@@ -1,276 +1,175 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ROIDER Guild Command Center</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROIDER Guild Management</title>
 <style>
 :root {
-  --bg: #0f1220;
-  --card: #171a2b;
-  --text: #e5e7ff;
+  --bg: #0f1015;
+  --card: #1c1f2a;
   --accent: #f4c430;
-  --muted: #9aa0ff;
-  --border: #2a2f55;
+  --text: #e6e6e6;
 }
-
-[data-theme="light"] {
-  --bg: #f3f4fb;
+body.light {
+  --bg: #f4f6fb;
   --card: #ffffff;
-  --text: #111;
-  --accent: #f4c430;
-  --muted: #666;
-  --border: #ddd;
+  --accent: #ff9800;
+  --text: #222;
 }
-
 body {
   margin: 0;
-  font-family: Pretendard, system-ui, -apple-system, sans-serif;
-  background: linear-gradient(180deg, #0b1022, #060916);
+  font-family: Pretendard, system-ui;
+  background: var(--bg);
   color: var(--text);
 }
-
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: rgba(20,25,60,0.9);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #1f2933, #121721);
 }
-
-header h1 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--accent);
-}
-
 nav button {
-  background: transparent;
-  border: 1px solid var(--border);
+  background: none;
+  border: none;
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-right: 6px;
-}
-
-nav button.active {
-  background: var(--accent);
-  color: #000;
   font-weight: bold;
+  margin-right: 10px;
+  cursor: pointer;
 }
-
-main {
-  padding: 20px;
-  max-width: 1200px;
-  margin: auto;
-}
+nav button:hover { color: var(--accent); }
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin: 16px;
 }
+.hidden { display:none; }
 
-h2 {
-  margin-top: 0;
-  color: var(--accent);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-
-.day {
-  border: 1px solid var(--border);
+input, button {
+  padding: 10px;
   border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-  font-size: 12px;
-}
-
-.day.disabled {
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.day button {
-  margin-top: 4px;
-  font-size: 11px;
-  padding: 4px;
-  width: 100%;
-  border-radius: 6px;
   border: none;
-  cursor: pointer;
+}
+button.primary {
   background: var(--accent);
+  font-weight: bold;
 }
-
-input, select {
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
 th, td {
-  padding: 8px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-footer {
+  padding: 10px;
+  border-bottom: 1px solid #333;
   text-align: center;
-  padding: 20px;
-  color: var(--muted);
 }
+small { opacity: .6; }
 </style>
 </head>
-
-<body data-theme="dark">
-
+<body>
 <header>
-  <h1>🏆 ROIDER Guild Command Center</h1>
-  <div>
-    <select id="themeSelect">
-      <option value="dark">다크</option>
-      <option value="light">라이트</option>
-      <option value="system">시스템</option>
-    </select>
-  </div>
+  <div><b>ROIDER Guild Management</b></div>
+  <nav>
+    <button onclick="show('notice')">📢 공지</button>
+    <button onclick="show('members')">👥 길드원</button>
+    <button onclick="show('attendance')">📅 출석부</button>
+    <button onclick="show('weekly')">🏆 주간결산</button>
+    <button onclick="show('war')">⚔️ 대항전</button>
+  </nav>
+  <select onchange="setTheme(this.value)">
+    <option value="system">시스템</option>
+    <option value="dark">다크</option>
+    <option value="light">화이트</option>
+  </select>
 </header>
 
-<nav style="padding:10px; text-align:center;">
-  <button onclick="showView('notice')" class="active">📢 공지</button>
-  <button onclick="showView('members')">👥 길드원</button>
-  <button onclick="showView('attendance')">📅 출석부</button>
-  <button onclick="showView('weekly')">🏆 주간결산</button>
-  <button onclick="showView('war')">⚔️ 대항전</button>
-</nav>
+<div id="notice" class="card">
+  <h2>📢 공지사항</h2>
+  <textarea id="noticeInput" placeholder="공지 입력 (관리자 전용)" style="width:100%;height:80px;"></textarea>
+  <button class="primary" onclick="saveNotice()">저장</button>
+  <div id="noticeList"></div>
+</div>
 
-<main>
-  <div id="notice" class="card view">
-    <h2>📢 공지</h2>
-    <p>길드 공지사항 영역 (관리자 전용 예정)</p>
-  </div>
+<div id="members" class="card hidden">
+  <h2>👥 길드원 명단</h2>
+  <input id="newMember" placeholder="닉네임 입력">
+  <button onclick="addMember()">추가</button>
+  <ul id="memberList"></ul>
+</div>
 
-  <div id="members" class="card view" style="display:none;">
-    <h2>👥 길드원</h2>
-    <ul id="memberList"></ul>
-  </div>
+<div id="attendance" class="card hidden">
+  <h2>📅 출석부</h2>
+  <button class="primary" onclick="markAttendance('laby')">이계 출석</button>
+  <button class="primary" onclick="markAttendance('duel')">명결 출석</button>
+  <ul id="attendanceLog"></ul>
+</div>
 
-  <div id="attendance" class="card view" style="display:none;">
-    <h2>📅 출석부</h2>
-    <div class="grid" id="calendar"></div>
-  </div>
+<div id="weekly" class="card hidden">
+  <h2>🏆 주간결산 (관리자만 분배)</h2>
+  <input id="totalChest" type="number" placeholder="총 상자 수">
+  <button class="primary" onclick="calculate()">분배 계산</button>
+  <table id="weeklyTable"></table>
+</div>
 
-  <div id="weekly" class="card view" style="display:none;">
-    <h2>🏆 주간결산</h2>
-    <table>
-      <thead>
-        <tr><th>닉네임</th><th>이계</th><th>명결</th><th>합계</th></tr>
-      </thead>
-      <tbody id="weeklyTable"></tbody>
-    </table>
-  </div>
-
-  <div id="war" class="card view" style="display:none;">
-    <h2>⚔️ 대항전</h2>
-    <p>대항전 전략 배치 UI (확장 예정)</p>
-  </div>
-</main>
-
-<footer>
-  AFK Journey Fanmade Tool – ROIDER Guild
-</footer>
+<div id="war" class="card hidden">
+  <h2>⚔️ 대항전</h2>
+  <p>전술 배치 UI 예정</p>
+</div>
 
 <script>
-const members = ["갓넬라", "재광", "루시", "하이든", "에릭", "테오", "아리아"];
-const attendance = JSON.parse(localStorage.getItem("attendance") || "{}");
+let state = JSON.parse(localStorage.getItem("roider")) || {
+  isAdmin: true,
+  members: [],
+  attendance: [],
+  notices: []
+};
 
-function showView(id) {
-  document.querySelectorAll(".view").forEach(v => v.style.display = "none");
-  document.getElementById(id).style.display = "block";
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
-  if (id === "weekly") renderWeekly();
+function saveState(){ localStorage.setItem("roider", JSON.stringify(state)); }
+
+function show(id) {
+  document.querySelectorAll('.card').forEach(c => c.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
 }
 
-function renderMembers() {
-  const ul = document.getElementById("memberList");
-  ul.innerHTML = "";
-  members.forEach(m => {
-    const li = document.createElement("li");
-    li.textContent = m;
-    ul.appendChild(li);
-  });
+function setTheme(mode) {
+  if(mode==="light") document.body.classList.add("light");
+  else document.body.classList.remove("light");
 }
 
-function renderCalendar() {
-  const cal = document.getElementById("calendar");
-  cal.innerHTML = "";
-  const now = new Date();
-  const days = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-
-  for (let d = 1; d <= days; d++) {
-    const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${d}`;
-    const div = document.createElement("div");
-    div.className = "day";
-    if (d > now.getDate()) div.classList.add("disabled");
-    div.innerHTML = `<strong>${d}</strong>
-      <button onclick="mark('${dateKey}')">출석</button>`;
-    cal.appendChild(div);
-  }
+function saveNotice(){
+  state.notices.push(document.getElementById("noticeInput").value);
+  document.getElementById("noticeInput").value="";
+  saveState(); render();
 }
 
-function mark(key) {
-  if (!attendance[key]) attendance[key] = { laby: 0, duel: 0 };
-  attendance[key].laby += 1;
-  attendance[key].duel += 1;
-  localStorage.setItem("attendance", JSON.stringify(attendance));
-  alert("출석 완료");
+function addMember(){
+  const v=document.getElementById("newMember").value;
+  state.members.push(v);
+  document.getElementById("newMember").value="";
+  saveState(); render();
 }
 
-function renderWeekly() {
-  const tbody = document.getElementById("weeklyTable");
-  tbody.innerHTML = "";
-  members.forEach(m => {
-    let laby = 0, duel = 0;
-    Object.values(attendance).forEach(v => {
-      laby += v.laby;
-      duel += v.duel;
-    });
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${m}</td><td>${laby}</td><td>${duel}</td><td>${laby+duel}</td>`;
-    tbody.appendChild(tr);
-  });
+function markAttendance(type){
+  state.attendance.push({type, date:new Date().toLocaleDateString()});
+  saveState(); render();
 }
 
-document.getElementById("themeSelect").addEventListener("change", e => {
-  const val = e.target.value;
-  if (val === "system") {
-    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.body.dataset.theme = isDark ? "dark" : "light";
-  } else {
-    document.body.dataset.theme = val;
-  }
-});
+function calculate(){
+  if(!state.isAdmin) return alert("관리자만 가능");
+  const total = Number(document.getElementById("totalChest").value||0);
+  document.getElementById("weeklyTable").innerHTML =
+    `<tr><th>분배 결과</th><td>${total}개</td></tr>`;
+}
 
-renderMembers();
-renderCalendar();
+function render(){
+  document.getElementById("noticeList").innerHTML = state.notices.map(n=>`<p>${n}</p>`).join("");
+  document.getElementById("memberList").innerHTML = state.members.map(m=>`<li>${m}</li>`).join("");
+  document.getElementById("attendanceLog").innerHTML = state.attendance.map(a=>`<li>${a.date} - ${a.type}</li>`).join("");
+}
+render();
 </script>
-
 </body>
 </html>
