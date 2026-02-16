@@ -1,210 +1,276 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>ROIDER Guild Management</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ROIDER Guild Command Center</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1220;
+  --card: #171a2b;
+  --text: #e5e7ff;
+  --accent: #f4c430;
+  --muted: #9aa0ff;
+  --border: #2a2f55;
+}
 
-  <style>
-    :root {
-      --bg: #0f0f13;
-      --panel: #1c1c24;
-      --text: #eaeaf0;
-      --subtext: #9aa0aa;
-      --gold: #f5c77a;
-      --accent: #5ddcff;
-    }
+[data-theme="light"] {
+  --bg: #f3f4fb;
+  --card: #ffffff;
+  --text: #111;
+  --accent: #f4c430;
+  --muted: #666;
+  --border: #ddd;
+}
 
-    [data-theme="light"] {
-      --bg: #f4f6fb;
-      --panel: #ffffff;
-      --text: #1c1c24;
-      --subtext: #666;
-      --gold: #c9a24d;
-      --accent: #0066ff;
-    }
+body {
+  margin: 0;
+  font-family: Pretendard, system-ui, -apple-system, sans-serif;
+  background: linear-gradient(180deg, #0b1022, #060916);
+  color: var(--text);
+}
 
-    * {
-      box-sizing: border-box;
-      font-family: "Pretendard", system-ui, sans-serif;
-    }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(20,25,60,0.9);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
 
-    body {
-      margin: 0;
-      background: radial-gradient(circle at top, #1b1b2a 0%, var(--bg) 60%);
-      color: var(--text);
-      min-height: 100vh;
-    }
+header h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--accent);
+}
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
+nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 6px;
+}
 
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: var(--gold);
-    }
+nav button.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: bold;
+}
 
-    nav {
-      display: flex;
-      gap: 14px;
-    }
+main {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
 
-    nav button {
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 14px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
 
-    nav button:hover {
-      background: rgba(255,255,255,0.08);
-      color: var(--gold);
-    }
+h2 {
+  margin-top: 0;
+  color: var(--accent);
+}
 
-    .theme-switcher {
-      display: flex;
-      gap: 6px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
 
-    .theme-switcher button {
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text);
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 12px;
-    }
+.day {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+}
 
-    main {
-      padding: 30px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
+.day.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
 
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
-      background-color: var(--panel);
-      border-radius: 18px;
-      padding: 20px;
-      min-height: 160px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.06);
-    }
+.day button {
+  margin-top: 4px;
+  font-size: 11px;
+  padding: 4px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+}
 
-    .card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 18px;
-      pointer-events: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-    }
+input, select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
 
-    .card h2 {
-      margin: 0 0 10px;
-      font-size: 18px;
-      color: var(--gold);
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-    .card p {
-      margin: 0;
-      font-size: 14px;
-      color: var(--subtext);
-      line-height: 1.6;
-    }
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
 
-    footer {
-      text-align: center;
-      padding: 30px 0;
-      color: var(--subtext);
-      font-size: 12px;
-    }
-  </style>
+footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+}
+</style>
 </head>
 
-<body>
-  <header>
-    <div class="logo">⚔️ ROIDER Guild Management</div>
+<body data-theme="dark">
 
-    <nav>
-      <button>📢 공지</button>
-      <button>👥 길드원</button>
-      <button>🗓️ 출석부</button>
-      <button>📦 주간결산</button>
-      <button>⚔️ 대항전</button>
-    </nav>
+<header>
+  <h1>🏆 ROIDER Guild Command Center</h1>
+  <div>
+    <select id="themeSelect">
+      <option value="dark">다크</option>
+      <option value="light">라이트</option>
+      <option value="system">시스템</option>
+    </select>
+  </div>
+</header>
 
-    <div class="theme-switcher">
-      <button onclick="setTheme('dark')">다크</button>
-      <button onclick="setTheme('light')">라이트</button>
-      <button onclick="setTheme('system')">시스템</button>
-    </div>
-  </header>
+<nav style="padding:10px; text-align:center;">
+  <button onclick="showView('notice')" class="active">📢 공지</button>
+  <button onclick="showView('members')">👥 길드원</button>
+  <button onclick="showView('attendance')">📅 출석부</button>
+  <button onclick="showView('weekly')">🏆 주간결산</button>
+  <button onclick="showView('war')">⚔️ 대항전</button>
+</nav>
 
-  <main>
-    <div class="card">
-      <h2>📢 공지</h2>
-      <p>길드 공지사항이 표시되는 영역입니다.</p>
-    </div>
+<main>
+  <div id="notice" class="card view">
+    <h2>📢 공지</h2>
+    <p>길드 공지사항 영역 (관리자 전용 예정)</p>
+  </div>
 
-    <div class="card">
-      <h2>👥 길드원 명단</h2>
-      <p>현재 등록된 길드원 목록이 표시됩니다.</p>
-    </div>
+  <div id="members" class="card view" style="display:none;">
+    <h2>👥 길드원</h2>
+    <ul id="memberList"></ul>
+  </div>
 
-    <div class="card">
-      <h2>🗓️ 출석부</h2>
-      <p>이계의 미궁 / 명예의 결투 출석 및 점수 관리</p>
-    </div>
+  <div id="attendance" class="card view" style="display:none;">
+    <h2>📅 출석부</h2>
+    <div class="grid" id="calendar"></div>
+  </div>
 
-    <div class="card">
-      <h2>📦 주간결산</h2>
-      <p>주간 상자 분배 및 순위 집계</p>
-    </div>
+  <div id="weekly" class="card view" style="display:none;">
+    <h2>🏆 주간결산</h2>
+    <table>
+      <thead>
+        <tr><th>닉네임</th><th>이계</th><th>명결</th><th>합계</th></tr>
+      </thead>
+      <tbody id="weeklyTable"></tbody>
+    </table>
+  </div>
 
-    <div class="card">
-      <h2>⚔️ 대항전</h2>
-      <p>길드 대항전 전술 및 성과 관리</p>
-    </div>
-  </main>
+  <div id="war" class="card view" style="display:none;">
+    <h2>⚔️ 대항전</h2>
+    <p>대항전 전략 배치 UI (확장 예정)</p>
+  </div>
+</main>
 
-  <footer>
-    ROIDER Guild Command Center v1.0
-  </footer>
+<footer>
+  AFK Journey Fanmade Tool – ROIDER Guild
+</footer>
 
-  <script>
-    function setTheme(mode) {
-      if (mode === "system") {
-        document.documentElement.removeAttribute("data-theme");
-        localStorage.removeItem("theme");
-      } else {
-        document.documentElement.setAttribute("data-theme", mode);
-        localStorage.setItem("theme", mode);
-      }
-    }
+<script>
+const members = ["갓넬라", "재광", "루시", "하이든", "에릭", "테오", "아리아"];
+const attendance = JSON.parse(localStorage.getItem("attendance") || "{}");
 
-    const saved = localStorage.getItem("theme");
-    if (saved) {
-      document.documentElement.setAttribute("data-theme", saved);
-    }
-  </script>
+function showView(id) {
+  document.querySelectorAll(".view").forEach(v => v.style.display = "none");
+  document.getElementById(id).style.display = "block";
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  if (id === "weekly") renderWeekly();
+}
+
+function renderMembers() {
+  const ul = document.getElementById("memberList");
+  ul.innerHTML = "";
+  members.forEach(m => {
+    const li = document.createElement("li");
+    li.textContent = m;
+    ul.appendChild(li);
+  });
+}
+
+function renderCalendar() {
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  const now = new Date();
+  const days = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+
+  for (let d = 1; d <= days; d++) {
+    const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${d}`;
+    const div = document.createElement("div");
+    div.className = "day";
+    if (d > now.getDate()) div.classList.add("disabled");
+    div.innerHTML = `<strong>${d}</strong>
+      <button onclick="mark('${dateKey}')">출석</button>`;
+    cal.appendChild(div);
+  }
+}
+
+function mark(key) {
+  if (!attendance[key]) attendance[key] = { laby: 0, duel: 0 };
+  attendance[key].laby += 1;
+  attendance[key].duel += 1;
+  localStorage.setItem("attendance", JSON.stringify(attendance));
+  alert("출석 완료");
+}
+
+function renderWeekly() {
+  const tbody = document.getElementById("weeklyTable");
+  tbody.innerHTML = "";
+  members.forEach(m => {
+    let laby = 0, duel = 0;
+    Object.values(attendance).forEach(v => {
+      laby += v.laby;
+      duel += v.duel;
+    });
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m}</td><td>${laby}</td><td>${duel}</td><td>${laby+duel}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("themeSelect").addEventListener("change", e => {
+  const val = e.target.value;
+  if (val === "system") {
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.body.dataset.theme = isDark ? "dark" : "light";
+  } else {
+    document.body.dataset.theme = val;
+  }
+});
+
+renderMembers();
+renderCalendar();
+</script>
+
 </body>
 </html>
