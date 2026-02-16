@@ -1,48 +1,210 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ROIDER Guild Management</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --bg: #0f0f13;
+      --panel: #1c1c24;
+      --text: #eaeaf0;
+      --subtext: #9aa0aa;
+      --gold: #f5c77a;
+      --accent: #5ddcff;
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --text: #1c1c24;
+      --subtext: #666;
+      --gold: #c9a24d;
+      --accent: #0066ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Pretendard", system-ui, sans-serif;
+    }
+
     body {
-      background:#0f0f13;
-      color:#f5f5f5;
-      font-family: Arial, sans-serif;
-      margin:0;
-      padding:0;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      text-align:center;
+      margin: 0;
+      background: radial-gradient(circle at top, #1b1b2a 0%, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
     }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+    }
+
+    nav {
+      display: flex;
+      gap: 14px;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    nav button:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--gold);
+    }
+
+    .theme-switcher {
+      display: flex;
+      gap: 6px;
+    }
+
+    .theme-switcher button {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    main {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
     .card {
-      background:#1e1e2e;
-      padding:40px;
-      border-radius:16px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.5);
-      max-width:500px;
-      width:90%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+      background-color: var(--panel);
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 160px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.06);
     }
-    h1 { color:#f4c430; margin-bottom:10px; }
-    p { color:#aaa; }
-    .badge {
-      margin-top:20px;
-      display:inline-block;
-      padding:6px 12px;
-      background:#2e2e3e;
-      border-radius:999px;
-      font-size:0.9rem;
-      color:#00e676;
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: var(--gold);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--subtext);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--subtext);
+      font-size: 12px;
     }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>ROIDER Guild Management</h1>
-    <p>길드 관리 웹이 성공적으로 배포되었습니다.</p>
-    <div class="badge">Cloudflare Pages 연결 테스트 완료 ✅</div>
-  </div>
+  <header>
+    <div class="logo">⚔️ ROIDER Guild Management</div>
+
+    <nav>
+      <button>📢 공지</button>
+      <button>👥 길드원</button>
+      <button>🗓️ 출석부</button>
+      <button>📦 주간결산</button>
+      <button>⚔️ 대항전</button>
+    </nav>
+
+    <div class="theme-switcher">
+      <button onclick="setTheme('dark')">다크</button>
+      <button onclick="setTheme('light')">라이트</button>
+      <button onclick="setTheme('system')">시스템</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>📢 공지</h2>
+      <p>길드 공지사항이 표시되는 영역입니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>👥 길드원 명단</h2>
+      <p>현재 등록된 길드원 목록이 표시됩니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>🗓️ 출석부</h2>
+      <p>이계의 미궁 / 명예의 결투 출석 및 점수 관리</p>
+    </div>
+
+    <div class="card">
+      <h2>📦 주간결산</h2>
+      <p>주간 상자 분배 및 순위 집계</p>
+    </div>
+
+    <div class="card">
+      <h2>⚔️ 대항전</h2>
+      <p>길드 대항전 전술 및 성과 관리</p>
+    </div>
+  </main>
+
+  <footer>
+    ROIDER Guild Command Center v1.0
+  </footer>
+
+  <script>
+    function setTheme(mode) {
+      if (mode === "system") {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.removeItem("theme");
+      } else {
+        document.documentElement.setAttribute("data-theme", mode);
+        localStorage.setItem("theme", mode);
+      }
+    }
+
+    const saved = localStorage.getItem("theme");
+    if (saved) {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  </script>
 </body>
 </html>
