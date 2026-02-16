@@ -6,70 +6,23 @@
 <title>ROIDER Guild Management</title>
 <style>
 :root {
-  --bg: #0f1015;
-  --card: #1c1f2a;
-  --accent: #f4c430;
-  --text: #e6e6e6;
+  --bg:#0f1015;--card:#1c1f2a;--accent:#f4c430;--text:#e6e6e6;
 }
-body.light {
-  --bg: #f4f6fb;
-  --card: #ffffff;
-  --accent: #ff9800;
-  --text: #222;
-}
-body {
-  margin: 0;
-  font-family: Pretendard, system-ui;
-  background: var(--bg);
-  color: var(--text);
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #1f2933, #121721);
-}
-nav button {
-  background: none;
-  border: none;
-  color: var(--text);
-  font-weight: bold;
-  margin-right: 10px;
-  cursor: pointer;
-}
-nav button:hover { color: var(--accent); }
-
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 16px;
-  margin: 16px;
-}
-.hidden { display:none; }
-
-input, button {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
-button.primary {
-  background: var(--accent);
-  font-weight: bold;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #333;
-  text-align: center;
-}
-small { opacity: .6; }
+body.light{--bg:#f4f6fb;--card:#fff;--accent:#ff9800;--text:#222;}
+body{margin:0;font-family:Pretendard;background:var(--bg);color:var(--text);}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:linear-gradient(135deg,#1f2933,#121721);}
+nav button{background:none;border:none;color:var(--text);font-weight:bold;margin-right:10px;cursor:pointer;}
+nav button:hover{color:var(--accent);}
+.card{background:var(--card);border-radius:12px;padding:16px;margin:16px;}
+.hidden{display:none;}
+input,button{padding:10px;border-radius:8px;border:none;}
+button.primary{background:var(--accent);font-weight:bold;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:8px;border-bottom:1px solid #333;text-align:center;}
 </style>
 </head>
 <body>
+
 <header>
   <div><b>ROIDER Guild Management</b></div>
   <nav>
@@ -87,15 +40,15 @@ small { opacity: .6; }
 </header>
 
 <div id="notice" class="card">
-  <h2>📢 공지사항</h2>
-  <textarea id="noticeInput" placeholder="공지 입력 (관리자 전용)" style="width:100%;height:80px;"></textarea>
+  <h2>📢 공지</h2>
+  <textarea id="noticeInput" style="width:100%;height:80px;"></textarea>
   <button class="primary" onclick="saveNotice()">저장</button>
   <div id="noticeList"></div>
 </div>
 
 <div id="members" class="card hidden">
-  <h2>👥 길드원 명단</h2>
-  <input id="newMember" placeholder="닉네임 입력">
+  <h2>👥 길드원</h2>
+  <input id="newMember" placeholder="닉네임">
   <button onclick="addMember()">추가</button>
   <ul id="memberList"></ul>
 </div>
@@ -108,66 +61,86 @@ small { opacity: .6; }
 </div>
 
 <div id="weekly" class="card hidden">
-  <h2>🏆 주간결산 (관리자만 분배)</h2>
-  <input id="totalChest" type="number" placeholder="총 상자 수">
+  <h2>🏆 주간결산 (AFK v3.6 분리 분배)</h2>
+  <input id="totalChest" type="number" placeholder="총 상자 수"><br><br>
+  <input id="allocContrib" type="number" placeholder="공헌 배정">
+  <input id="allocLaby" type="number" placeholder="이계 배정">
+  <input id="allocDuel" type="number" placeholder="명결 배정"><br><br>
+
+  <input id="rankContrib" type="number" value="5"> 공헌 Top N  
+  <input id="rankLaby" type="number" value="5"> 이계 Top N  
+  <input id="rankDuel" type="number" value="5"> 명결 Top N  
+  <br><br>
   <button class="primary" onclick="calculate()">분배 계산</button>
   <table id="weeklyTable"></table>
 </div>
 
 <div id="war" class="card hidden">
   <h2>⚔️ 대항전</h2>
-  <p>전술 배치 UI 예정</p>
+  <p>전술 UI 예정</p>
 </div>
 
 <script>
 let state = JSON.parse(localStorage.getItem("roider")) || {
-  isAdmin: true,
-  members: [],
-  attendance: [],
-  notices: []
+  isAdmin:true,
+  members:[],
+  attendance:[],
+  notices:[]
 };
 
-function saveState(){ localStorage.setItem("roider", JSON.stringify(state)); }
+function saveState(){localStorage.setItem("roider",JSON.stringify(state));}
+function show(id){document.querySelectorAll('.card').forEach(c=>c.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
+function setTheme(m){m==="light"?document.body.classList.add("light"):document.body.classList.remove("light");}
 
-function show(id) {
-  document.querySelectorAll('.card').forEach(c => c.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-function setTheme(mode) {
-  if(mode==="light") document.body.classList.add("light");
-  else document.body.classList.remove("light");
-}
-
-function saveNotice(){
-  state.notices.push(document.getElementById("noticeInput").value);
-  document.getElementById("noticeInput").value="";
-  saveState(); render();
-}
-
-function addMember(){
-  const v=document.getElementById("newMember").value;
-  state.members.push(v);
-  document.getElementById("newMember").value="";
-  saveState(); render();
-}
+function saveNotice(){state.notices.push(document.getElementById("noticeInput").value);document.getElementById("noticeInput").value="";saveState();render();}
+function addMember(){const v=document.getElementById("newMember").value;if(!v)return;state.members.push({name:v,contrib:0,laby:0,duel:0});document.getElementById("newMember").value="";saveState();render();}
 
 function markAttendance(type){
-  state.attendance.push({type, date:new Date().toLocaleDateString()});
-  saveState(); render();
+  const today=new Date().toLocaleDateString();
+  state.attendance.push({type,date:today});
+  state.members.forEach(m=>{
+    if(type==="laby") m.laby+=10;
+    if(type==="duel") m.duel+=10;
+  });
+  saveState();render();
+}
+
+function distribute(pool, list){
+  const n=list.length;
+  if(n===0||pool<=0) return [];
+  let weights=[]; let sum=0;
+  for(let i=0;i<n;i++){ let w=n+(n-i); weights.push(w); sum+=w; }
+  let res=weights.map(w=>Math.floor(pool*(w/sum)));
+  let diff=pool-res.reduce((a,b)=>a+b,0);
+  let i=0; while(diff>0){res[i%n]++; diff--; i++;}
+  return res;
 }
 
 function calculate(){
-  if(!state.isAdmin) return alert("관리자만 가능");
-  const total = Number(document.getElementById("totalChest").value||0);
-  document.getElementById("weeklyTable").innerHTML =
-    `<tr><th>분배 결과</th><td>${total}개</td></tr>`;
+  if(!state.isAdmin) return alert("관리자만 분배 가능");
+  const aC=+allocContrib.value,aL=+allocLaby.value,aD=+allocDuel.value;
+  const rC=+rankContrib.value,rL=+rankLaby.value,rD=+rankDuel.value;
+
+  const cList=[...state.members].sort((a,b)=>b.contrib-a.contrib).slice(0,rC);
+  const lList=[...state.members].sort((a,b)=>b.laby-a.laby).slice(0,rL);
+  const dList=[...state.members].sort((a,b)=>b.duel-a.duel).slice(0,rD);
+
+  const cRes=distribute(aC,cList);
+  const lRes=distribute(aL,lList);
+  const dRes=distribute(aD,dList);
+
+  let html="<tr><th>구분</th><th>순위</th><th>닉네임</th><th>상자</th></tr>";
+  cList.forEach((m,i)=>html+=`<tr><td>공헌</td><td>${i+1}</td><td>${m.name}</td><td>${cRes[i]}</td></tr>`);
+  lList.forEach((m,i)=>html+=`<tr><td>이계</td><td>${i+1}</td><td>${m.name}</td><td>${lRes[i]}</td></tr>`);
+  dList.forEach((m,i)=>html+=`<tr><td>명결</td><td>${i+1}</td><td>${m.name}</td><td>${dRes[i]}</td></tr>`);
+
+  weeklyTable.innerHTML=html;
 }
 
 function render(){
-  document.getElementById("noticeList").innerHTML = state.notices.map(n=>`<p>${n}</p>`).join("");
-  document.getElementById("memberList").innerHTML = state.members.map(m=>`<li>${m}</li>`).join("");
-  document.getElementById("attendanceLog").innerHTML = state.attendance.map(a=>`<li>${a.date} - ${a.type}</li>`).join("");
+  noticeList.innerHTML=state.notices.map(n=>`<p>${n}</p>`).join("");
+  memberList.innerHTML=state.members.map(m=>`<li>${m.name} (공헌:${m.contrib} / 이계:${m.laby} / 명결:${m.duel})</li>`).join("");
+  attendanceLog.innerHTML=state.attendance.map(a=>`<li>${a.date} - ${a.type}</li>`).join("");
 }
 render();
 </script>
