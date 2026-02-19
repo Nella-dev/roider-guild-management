@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>승인 대기</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; text-align:center;}
+</style>
+</head>
+<body>
+  <div>
+    <h2>관리자 승인 대기 중</h2>
+    <p>승인되면 자동으로 메인 페이지로 이동합니다.</p>
+  </div>
+
+<script>
+const firebaseConfig = { /* 동일 */ };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user => {
+  if (!user) location.href = "login.html";
+  db.collection("users").doc(user.uid).onSnapshot(doc => {
+    if (doc.exists && doc.data().role !== "pending") {
+      location.href = "main.html";
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -3,146 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROIDER Guild Management</title>
+<title>AFK:새로운 여정-힐링농장 ROIDER Guild Login</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-:root {
-  --bg:#0f1015;--card:#1c1f2a;--accent:#f4c430;--text:#e6e6e6;
-}
-body.light{--bg:#f4f6fb;--card:#fff;--accent:#ff9800;--text:#222;}
-body{margin:0;font-family:Pretendard;background:var(--bg);color:var(--text);}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:linear-gradient(135deg,#1f2933,#121721);}
-nav button{background:none;border:none;color:var(--text);font-weight:bold;margin-right:10px;cursor:pointer;}
-nav button:hover{color:var(--accent);}
-.card{background:var(--card);border-radius:12px;padding:16px;margin:16px;}
-.hidden{display:none;}
-input,button{padding:10px;border-radius:8px;border:none;}
-button.primary{background:var(--accent);font-weight:bold;}
-table{width:100%;border-collapse:collapse;}
-th,td{padding:8px;border-bottom:1px solid #333;text-align:center;}
+  body {
+    margin: 0;
+    font-family: Pretendard, system-ui;
+    background: #0f1015;
+    color: #e6e6e6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .card {
+    background: #1c1f2a;
+    padding: 30px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  h1 { color: #f4c430; margin-bottom: 10px; }
+  button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .primary {
+    background: #f4c430;
+    color: #000;
+    width: 100%;
+    margin-top: 10px;
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+    background: #2a2e3a;
+    color: #fff;
+  }
+  .hidden { display: none; }
+  .status { margin-top: 10px; opacity: .8; }
 </style>
 </head>
 <body>
 
-<header>
-  <div><b>ROIDER Guild Management</b></div>
-  <nav>
-    <button onclick="show('notice')">📢 공지</button>
-    <button onclick="show('members')">👥 길드원</button>
-    <button onclick="show('attendance')">📅 출석부</button>
-    <button onclick="show('weekly')">🏆 주간결산</button>
-    <button onclick="show('war')">⚔️ 대항전</button>
-  </nav>
-  <select onchange="setTheme(this.value)">
-    <option value="system">시스템</option>
-    <option value="dark">다크</option>
-    <option value="light">화이트</option>
-  </select>
-</header>
+<div class="card">
+  <h1>ROIDER 길드</h1>
 
-<div id="notice" class="card">
-  <h2>📢 공지</h2>
-  <textarea id="noticeInput" style="width:100%;height:80px;"></textarea>
-  <button class="primary" onclick="saveNotice()">저장</button>
-  <div id="noticeList"></div>
-</div>
+  <!-- 로그인 -->
+  <div id="loginBox">
+    <p>구글 계정으로 로그인</p>
+    <button class="primary" onclick="googleLogin()">Google 로그인</button>
+  </div>
 
-<div id="members" class="card hidden">
-  <h2>👥 길드원</h2>
-  <input id="newMember" placeholder="닉네임">
-  <button onclick="addMember()">추가</button>
-  <ul id="memberList"></ul>
-</div>
+  <!-- 닉네임 등록 -->
+  <div id="nicknameBox" class="hidden">
+    <p>닉네임을 등록하세요</p>
+    <input id="nicknameInput" placeholder="게임 닉네임 입력">
+    <button class="primary" onclick="saveNickname()">등록</button>
+  </div>
 
-<div id="attendance" class="card hidden">
-  <h2>📅 출석부</h2>
-  <button class="primary" onclick="markAttendance('laby')">이계 출석</button>
-  <button class="primary" onclick="markAttendance('duel')">명결 출석</button>
-  <ul id="attendanceLog"></ul>
-</div>
+  <!-- 승인 대기 -->
+  <div id="pendingBox" class="hidden">
+    <p>⏳ 관리자 승인 대기중입니다</p>
+    <small class="status">승인 후 자동으로 접속 가능합니다.</small>
+  </div>
 
-<div id="weekly" class="card hidden">
-  <h2>🏆 주간결산 (AFK v3.6 분리 분배)</h2>
-  <input id="totalChest" type="number" placeholder="총 상자 수"><br><br>
-  <input id="allocContrib" type="number" placeholder="공헌 배정">
-  <input id="allocLaby" type="number" placeholder="이계 배정">
-  <input id="allocDuel" type="number" placeholder="명결 배정"><br><br>
-
-  <input id="rankContrib" type="number" value="5"> 공헌 Top N  
-  <input id="rankLaby" type="number" value="5"> 이계 Top N  
-  <input id="rankDuel" type="number" value="5"> 명결 Top N  
-  <br><br>
-  <button class="primary" onclick="calculate()">분배 계산</button>
-  <table id="weeklyTable"></table>
-</div>
-
-<div id="war" class="card hidden">
-  <h2>⚔️ 대항전</h2>
-  <p>전술 UI 예정</p>
+  <!-- 승인 완료 -->
+  <div id="approvedBox" class="hidden">
+    <p>✅ 승인 완료!</p>
+    <button class="primary" onclick="enterApp()">길드 시스템 입장</button>
+  </div>
 </div>
 
 <script>
-let state = JSON.parse(localStorage.getItem("roider")) || {
-  isAdmin:true,
-  members:[],
-  attendance:[],
-  notices:[]
+  // 🔥 여기에 Firebase 콘솔 값 넣기
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+  storageBucket: "roider-guild-management.firebasestorage.app",
+  messagingSenderId: "1012249034459",
+  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
+  measurementId: "G-J7W4LFLHPP"
 };
 
-function saveState(){localStorage.setItem("roider",JSON.stringify(state));}
-function show(id){document.querySelectorAll('.card').forEach(c=>c.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
-function setTheme(m){m==="light"?document.body.classList.add("light"):document.body.classList.remove("light");}
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-function saveNotice(){state.notices.push(document.getElementById("noticeInput").value);document.getElementById("noticeInput").value="";saveState();render();}
-function addMember(){const v=document.getElementById("newMember").value;if(!v)return;state.members.push({name:v,contrib:0,laby:0,duel:0});document.getElementById("newMember").value="";saveState();render();}
+  let currentUser = null;
 
-function markAttendance(type){
-  const today=new Date().toLocaleDateString();
-  state.attendance.push({type,date:today});
-  state.members.forEach(m=>{
-    if(type==="laby") m.laby+=10;
-    if(type==="duel") m.duel+=10;
+  function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+
+    currentUser = user;
+    document.getElementById("loginBox").classList.add("hidden");
+
+    const ref = db.collection("users").doc(user.uid);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      document.getElementById("nicknameBox").classList.remove("hidden");
+    } else {
+      const data = snap.data();
+      if (data.approved) {
+        document.getElementById("approvedBox").classList.remove("hidden");
+      } else {
+        document.getElementById("pendingBox").classList.remove("hidden");
+      }
+    }
   });
-  saveState();render();
-}
 
-function distribute(pool, list){
-  const n=list.length;
-  if(n===0||pool<=0) return [];
-  let weights=[]; let sum=0;
-  for(let i=0;i<n;i++){ let w=n+(n-i); weights.push(w); sum+=w; }
-  let res=weights.map(w=>Math.floor(pool*(w/sum)));
-  let diff=pool-res.reduce((a,b)=>a+b,0);
-  let i=0; while(diff>0){res[i%n]++; diff--; i++;}
-  return res;
-}
+  async function saveNickname() {
+    const nick = document.getElementById("nicknameInput").value.trim();
+    if (!nick) return alert("닉네임을 입력하세요.");
 
-function calculate(){
-  if(!state.isAdmin) return alert("관리자만 분배 가능");
-  const aC=+allocContrib.value,aL=+allocLaby.value,aD=+allocDuel.value;
-  const rC=+rankContrib.value,rL=+rankLaby.value,rD=+rankDuel.value;
+    await db.collection("users").doc(currentUser.uid).set({
+      uid: currentUser.uid,
+      email: currentUser.email,
+      nickname: nick,
+      approved: false,
+      role: "member",
+      createdAt: new Date()
+    });
 
-  const cList=[...state.members].sort((a,b)=>b.contrib-a.contrib).slice(0,rC);
-  const lList=[...state.members].sort((a,b)=>b.laby-a.laby).slice(0,rL);
-  const dList=[...state.members].sort((a,b)=>b.duel-a.duel).slice(0,rD);
+    document.getElementById("nicknameBox").classList.add("hidden");
+    document.getElementById("pendingBox").classList.remove("hidden");
+  }
 
-  const cRes=distribute(aC,cList);
-  const lRes=distribute(aL,lList);
-  const dRes=distribute(aD,dList);
-
-  let html="<tr><th>구분</th><th>순위</th><th>닉네임</th><th>상자</th></tr>";
-  cList.forEach((m,i)=>html+=`<tr><td>공헌</td><td>${i+1}</td><td>${m.name}</td><td>${cRes[i]}</td></tr>`);
-  lList.forEach((m,i)=>html+=`<tr><td>이계</td><td>${i+1}</td><td>${m.name}</td><td>${lRes[i]}</td></tr>`);
-  dList.forEach((m,i)=>html+=`<tr><td>명결</td><td>${i+1}</td><td>${m.name}</td><td>${dRes[i]}</td></tr>`);
-
-  weeklyTable.innerHTML=html;
-}
-
-function render(){
-  noticeList.innerHTML=state.notices.map(n=>`<p>${n}</p>`).join("");
-  memberList.innerHTML=state.members.map(m=>`<li>${m.name} (공헌:${m.contrib} / 이계:${m.laby} / 명결:${m.duel})</li>`).join("");
-  attendanceLog.innerHTML=state.attendance.map(a=>`<li>${a.date} - ${a.type}</li>`).join("");
-}
-render();
+  function enterApp() {
+    location.href = "main.html"; // 메인 페이지로 이동
+  }
 </script>
+
 </body>
 </html>

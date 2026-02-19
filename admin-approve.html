@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>관리자 승인</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+body { background:#0f1015; color:#eee; font-family:system-ui; padding:20px; }
+.card { background:#1c1f2a; padding:20px; border-radius:12px; margin-bottom:10px; }
+button { margin-left:10px; }
+</style>
+</head>
+<body>
+<h2>승인 대기자 목록</h2>
+<div id="list"></div>
+
+<script>
+const firebaseConfig = { /* 동일 */ };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return location.href = "login.html";
+  const me = await db.collection("users").doc(user.uid).get();
+  if (me.data().role !== "admin") {
+    alert("관리자 전용");
+    return location.href = "main.html";
+  }
+
+  db.collection("users").where("role", "==", "pending")
+    .onSnapshot(snapshot => {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      snapshot.forEach(doc => {
+        const u = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `${u.nickname} (${u.email})
+          <button onclick="approve('${doc.id}')">승인</button>`;
+        list.appendChild(div);
+      });
+    });
+});
+
+function approve(uid) {
+  db.collection("users").doc(uid).update({ role: "member" });
+}
+</script>
+</body>
+</html>

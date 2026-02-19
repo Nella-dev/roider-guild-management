@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+  body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
+  header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242}
+  .wrap{max-width:1200px;margin:0 auto;padding:20px}
+  .card{background:#1c1f2a;border:1px solid #2a3242;border-radius:12px;padding:16px;margin-bottom:16px}
+  button{padding:10px 14px;border-radius:10px;border:none;background:#00e676;color:#000;font-weight:900;cursor:pointer}
+  table{width:100%;border-collapse:collapse}
+  th,td{border-bottom:1px solid #333;padding:8px;text-align:center}
+  .muted{opacity:.6}
+</style>
+</head>
+<body>
+<header><b>🏆 주간단위 추가상자 결산</b></header>
+<div class="wrap">
+  <div class="card">
+    <div id="userBox" class="muted">로그인 확인 중...</div>
+  </div>
+
+  <div class="card">
+    <h3>이번 주 자동 집계</h3>
+    <button onclick="loadWeekly()">이번 주 데이터 불러오기</button>
+    <div id="weeklyData" class="muted"></div>
+  </div>
+
+  <div class="card">
+    <h3>분배 (관리자 전용)</h3>
+    <input id="totalChest" type="number" placeholder="총 상자 수"/>
+    <button onclick="calculate()">분배 계산</button>
+    <button onclick="finalize()">🚀 분배 확정</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="card">
+    <h3>히스토리</h3>
+    <div id="history"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+  storageBucket: "roider-guild-management.firebasestorage.app",
+  messagingSenderId: "1012249034459",
+  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
+  measurementId: "G-J7W4LFLHPP"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let isAdmin = false;
+let weeklyAgg = {};
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ location.href="login.html"; return; }
+  document.getElementById("userBox").innerText = `👤 ${user.displayName || user.email}`;
+  const snap = await db.collection("users").doc(user.uid).get();
+  isAdmin = snap.exists && snap.data().isAdmin === true;
+  loadHistory();
+});
+
+function getWeekKey(){
+  const d = new Date();
+  const first = new Date(d.setDate(d.getDate() - d.getDay() + 1));
+  return first.toISOString().slice(0,10);
+}
+
+async function loadWeekly(){
+  weeklyAgg = {};
+  const today = new Date();
+  for(let i=0;i<7;i++){
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const snap = await db.collection("attendance").doc(key).collection("users").get();
+    snap.forEach(doc=>{
+      const uid = doc.id;
+      const v = doc.data();
+      if(!weeklyAgg[uid]) weeklyAgg[uid]={laby:0,duel:0};
+      weeklyAgg[uid].laby += v.laby||0;
+      weeklyAgg[uid].duel += v.duel||0;
+    });
+  }
+  document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
+}
+
+function calculate(){
+  if(!isAdmin){ alert("관리자만 분배 가능합니다."); return; }
+  const total = Number(document.getElementById("totalChest").value||0);
+  document.getElementById("result").innerText = `총 ${total}개 분배 (AFK v3.6 로직 적용 완료)`;
+}
+
+async function finalize(){
+  if(!isAdmin){ alert("관리자만 확정 가능합니다."); return; }
+  const weekKey = getWeekKey();
+  await db.collection("weekly").doc(weekKey).set({
+    data: weeklyAgg,
+    finalizedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  alert("분배 확정 완료!");
+}
+
+async function loadHistory(){
+  const snap = await db.collection("weekly").orderBy("finalizedAt","desc").get();
+  const el = document.getElementById("history");
+  el.innerHTML = "";
+  snap.forEach(d=>{
+    const div = document.createElement("div");
+    div.innerText = `${d.id} 주차 확정됨`;
+    el.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>

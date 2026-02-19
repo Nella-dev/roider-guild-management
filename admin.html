@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>관리자 권한 관리</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<style>
+body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
+.container { max-width:900px; margin:0 auto; padding:30px; }
+.card { background:#1c1f2a; border-radius:12px; padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+button { padding:6px 12px; border:none; border-radius:8px; cursor:pointer; }
+.admin { background:#00e676; }
+.remove { background:#ff5252; color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>👑 관리자 권한 관리</h1>
+  <div id="list"></div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser = null;
+let isAdmin = false;
+
+auth.onAuthStateChanged(async user => {
+  if (!user) location.href = "login.html";
+  currentUser = user;
+
+  const myRole = await db.collection("roles").doc(user.uid).get();
+  isAdmin = myRole.exists && myRole.data().role === "admin";
+  if (!isAdmin) {
+    alert("관리자만 접근 가능합니다.");
+    location.href = "main.html";
+    return;
+  }
+
+  loadMembers();
+});
+
+function loadMembers() {
+  db.collection("members").onSnapshot(snap => {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    snap.forEach(doc => {
+      const m = doc.data();
+      const isRoleAdmin = m.role === "admin";
+
+      list.innerHTML += `
+        <div class="card">
+          <div>
+            👤 ${m.nickname} <small style="opacity:.5">(${doc.id})</small>
+          </div>
+          <div>
+            ${
+              isRoleAdmin 
+              ? `<button class="remove" onclick="setRole('${doc.id}', 'user')">관리자 해제</button>`
+              : `<button class="admin" onclick="setRole('${doc.id}', 'admin')">관리자 지정</button>`
+            }
+          </div>
+        </div>
+      `;
+    });
+  });
+}
+
+async function setRole(uid, role) {
+  await db.collection("roles").doc(uid).set({ role });
+  await db.collection("members").doc(uid).update({ role });
+  alert("권한 변경 완료");
+}
+</script>
+</body>
+</html>

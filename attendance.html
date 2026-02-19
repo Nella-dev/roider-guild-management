@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+  body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
+  header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+  .card{background:#1c1f2a;border:1px solid #2a3242;border-radius:12px;padding:16px;margin-bottom:16px}
+  button{padding:10px 14px;border-radius:10px;border:none;background:#f4c430;color:#000;font-weight:800;cursor:pointer}
+  input{padding:10px;border-radius:8px;border:1px solid #333;background:#111;color:#eee}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .muted{opacity:.6}
+</style>
+</head>
+<body>
+<header><b>📅 출석부</b></header>
+<div class="wrap">
+  <div class="card">
+    <div id="userBox" class="muted">로그인 확인 중...</div>
+  </div>
+
+  <div class="card">
+    <h3>오늘 출석</h3>
+    <div class="row">
+      <input id="laby" type="number" placeholder="이계 점수"/>
+      <input id="duel" type="number" placeholder="명결 점수"/>
+      <button onclick="submitAttendance()">출석 등록</button>
+    </div>
+    <div id="status" class="muted"></div>
+  </div>
+
+  <div class="card">
+    <h3>내 출석 기록</h3>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+  storageBucket: "roider-guild-management.firebasestorage.app",
+  messagingSenderId: "1012249034459",
+  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
+  measurementId: "G-J7W4LFLHPP"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const todayKey = new Date().toISOString().slice(0,10);
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ location.href="login.html"; return; }
+  document.getElementById("userBox").innerText = `👤 ${user.displayName || user.email}`;
+  loadMyLogs(user.uid);
+  const doc = await db.collection("attendance").doc(todayKey).collection("users").doc(user.uid).get();
+  if(doc.exists){
+    document.getElementById("status").innerText = "오늘 출석은 이미 완료되었습니다.";
+  }
+});
+
+async function submitAttendance(){
+  const user = auth.currentUser;
+  if(!user) return;
+  const laby = Number(document.getElementById("laby").value||0);
+  const duel = Number(document.getElementById("duel").value||0);
+
+  const ref = db.collection("attendance").doc(todayKey).collection("users").doc(user.uid);
+  const snap = await ref.get();
+  if(snap.exists){
+    alert("오늘은 이미 출석했습니다.");
+    return;
+  }
+  await ref.set({ laby, duel, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  alert("출석 완료!");
+  location.reload();
+}
+
+async function loadMyLogs(uid){
+  const q = await db.collectionGroup("users").where(firebase.firestore.FieldPath.documentId(),"==",uid).get();
+  const el = document.getElementById("log");
+  el.innerHTML = "";
+  q.forEach(d=>{
+    const p = document.createElement("div");
+    p.innerText = `${d.ref.parent.parent.id} | 이계:${d.data().laby} / 명결:${d.data().duel}`;
+    el.appendChild(p);
+  });
+}
+</script>
+</body>
+</html>

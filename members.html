@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>길드원 상태판</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<style>
+body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
+.container { max-width:1000px; margin:0 auto; padding:30px; }
+.row { background:#1c1f2a; border-radius:12px; padding:12px; display:grid; grid-template-columns: 2fr 1fr 1fr; margin-bottom:8px; align-items:center; }
+.online { color:#00e676; }
+.offline { color:#aaa; }
+.flag { font-size:20px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>👥 길드원 상태판</h1>
+  <div class="row" style="font-weight:bold;">
+    <div>닉네임</div><div>접속 국가</div><div>접속 상태</div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user => {
+  if (!user) location.href = "login.html";
+});
+
+db.collection("members").onSnapshot(snap => {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const m = doc.data();
+    list.innerHTML += `
+      <div class="row">
+        <div>👤 ${m.nickname}</div>
+        <div class="flag">${m.country || "🌐"} ${m.countryCode || ""}</div>
+        <div class="${m.online ? "online" : "offline"}">
+          ${m.online ? "● 온라인" : "○ 오프라인"}
+        </div>
+      </div>
+    `;
+  });
+});
+</script>
+</body>
+</html>
