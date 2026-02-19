@@ -10,78 +10,131 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; }
-    .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; }
-    button { padding:12px 24px; border-radius:8px; border:none; background:#f4c430; font-weight:bold; cursor:pointer; }
+    body {
+      margin: 0;
+      font-family: system-ui, Pretendard, sans-serif;
+      background: radial-gradient(circle at top, #1b2333, #0f1015 60%);
+      color: #e6e6e6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: linear-gradient(180deg, #1f2736, #161b26);
+      border: 1px solid #2a3242;
+      border-radius: 16px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h2 {
+      color: #f4c430;
+      margin-bottom: 10px;
+    }
+    p {
+      opacity: 0.8;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #2a3242;
+      background: #101522;
+      color: #eee;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #f4c430;
+      box-shadow: 0 0 0 2px rgba(244,196,48,0.15);
+    }
+    button {
+      width: 100%;
+      padding: 12px 0;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #f4c430, #ffb300);
+      color: #000;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(244,196,48,0.35);
+    }
   </style>
 </head>
 <body>
+
   <div class="card">
-    <h2>AFK Journey: Homestead ROIDER Guild Management</h2>
-    <p>구글 계정으로 로그인</p>
-    <button onclick="login()">Google Login</button>
+    <h2 id="titleText">닉네임 설정</h2>
+    <p id="descText">길드에서 사용할 닉네임을 입력해주세요.</p>
+    <input id="nicknameInput" placeholder="게임 닉네임 입력" />
+    <button onclick="saveNickname()">확인</button>
   </div>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-};
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+      authDomain: "roider-guild-management.firebaseapp.com",
+      projectId: "roider-guild-management",
+      storageBucket: "roider-guild-management.firebasestorage.app",
+      messagingSenderId: "1012249034459",
+      appId: "1:1012249034459:web:ec0f821f29170446af96fe"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-auth.onAuthStateChanged(async (user) => {
-  try {
-    if (!user) {
-      location.href = "login.html";
-      return;
-    }
+    const lang = navigator.language.startsWith("ko") ? "ko" : "en";
+    document.title = lang === "ko"
+      ? "AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템"
+      : "AFK Journey: Homestead ROIDER Guild Management";
 
-    const ref = db.collection("users").doc(user.uid);
-    const snap = await ref.get();
+    document.getElementById("titleText").innerText =
+      lang === "ko" ? "닉네임 설정" : "Set Nickname";
+    document.getElementById("descText").innerText =
+      lang === "ko" ? "길드에서 사용할 닉네임을 입력해주세요." : "Enter your in-game nickname.";
 
-    if (!snap.exists) {
-      await ref.set({
-        uid: user.uid,
-        email: user.email || "",
-        nickname: "",
-        role: "pending",
-        country: navigator.language.startsWith("ko") ? "KR" : "EN",
-        createdAt: new Date()
-      });
-    }
-
-  } catch (err) {
-    console.error("🔥 nickname 페이지 로딩 오류:", err);
-    alert("닉네임 페이지 로딩 중 오류 발생:\n" + err.message);
-  }
-});
-
-async function saveNickname() {
-  try {
-    const nickname = document.getElementById("nicknameInput").value.trim();
-    if (!nickname) return alert("닉네임을 입력하세요.");
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    await db.collection("users").doc(user.uid).update({
-      nickname: nickname
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
     });
 
-    location.href = "pending.html";
-  } catch (err) {
-    console.error("🔥 닉네임 저장 오류:", err);
-    alert("닉네임 저장 중 오류 발생:\n" + err.message);
-  }
-}
-</script>
+    async function saveNickname() {
+      try {
+        const nickname = document.getElementById("nicknameInput").value.trim();
+        if (!nickname) {
+          alert(lang === "ko" ? "닉네임을 입력하세요." : "Please enter a nickname.");
+          return;
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          location.href = "login.html";
+          return;
+        }
+
+        await db.collection("users").doc(user.uid).update({
+          nickname: nickname
+        });
+
+        location.href = "pending.html";
+      } catch (err) {
+        console.error("닉네임 저장 오류:", err);
+        alert("닉네임 저장 중 오류가 발생했습니다.");
+      }
+    }
+  </script>
 
 </body>
 </html>
