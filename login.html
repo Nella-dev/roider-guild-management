@@ -1,3 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AFK Journey: Homestead ROIDER Guild Management</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; }
+    .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; }
+    button { padding:12px 24px; border-radius:8px; border:none; background:#f4c430; font-weight:bold; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>AFK Journey: Homestead ROIDER Guild Management</h2>
+    <p>구글 계정으로 로그인</p>
+    <button onclick="login()">Google Login</button>
+  </div>
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
@@ -55,3 +79,6 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 </script>
+
+</body>
+</html>
