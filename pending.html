@@ -1,52 +1,103 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>승인 대기</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AFK Journey: Homestead ROIDER Guild Management</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<style>
-  body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; }
-  .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; }
-</style>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background: radial-gradient(circle at top, #1b2333, #0f1015 60%);
+      color: #e6e6e6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: linear-gradient(180deg, #1f2736, #161b26);
+      border: 1px solid #2a3242;
+      border-radius: 20px;
+      padding: 50px 40px;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      color: #f4c430;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    p {
+      opacity: 0.8;
+      margin: 6px 0;
+    }
+
+    .hourglass {
+      font-size: 42px;
+      margin: 20px 0;
+      animation: spin 2s infinite linear;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>관리자 승인 대기중</h2>
-  <p>승인 완료 후 자동으로 메인 페이지로 이동합니다.</p>
-</div>
+  <div class="card">
+    <h1>ROIDER 길드</h1>
+    <div class="hourglass">⏳</div>
+    <p><b>관리자 승인 대기중입니다</b></p>
+    <p>승인 후 자동으로 접속됩니다.</p>
+  </div>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-};
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+      authDomain: "roider-guild-management.firebaseapp.com",
+      projectId: "roider-guild-management",
+      storageBucket: "roider-guild-management.firebasestorage.app",
+      messagingSenderId: "1012249034459",
+      appId: "1:1012249034459:web:ec0f821f29170446af96fe"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-auth.onAuthStateChanged((user) => {
-  if (!user) location.replace("login.html");
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
 
-  db.collection("users").doc(user.uid).onSnapshot((doc) => {
-    if (!doc.exists) return;
-    const data = doc.data();
-    if (data.role === "user" || data.role === "admin") {
-      location.replace("main.html");
-    }
-  });
-});
-</script>
+      const ref = db.collection("users").doc(user.uid);
+
+      // 🔥 실시간 감시 (role 변경 시 자동 이동)
+      ref.onSnapshot((doc) => {
+        if (!doc.exists) return;
+
+        const data = doc.data();
+
+        if (data.role === "admin" || data.role === "member") {
+          location.href = "main.html";
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
