@@ -191,7 +191,7 @@
   // DOM 준비 보장
   window.addEventListener("DOMContentLoaded", () => {
 
-    aauth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(async (user) => {
   const nameEl = document.getElementById("userName");
   const photoEl = document.getElementById("userPhoto");
 
