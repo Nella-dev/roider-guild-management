@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-     <link rel="stylesheet" href="header_standard.css">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
@@ -18,35 +17,17 @@
   th,td{border-bottom:1px solid #333;padding:8px;text-align:center}
   .muted{opacity:.6}
 </style>
-
-<style>
-/* Header standardization */
-header { min-height: 60px; }
-header .user-box { align-items: center; }
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
-}
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
-}
-</style>
-
+<link rel="stylesheet" href="header_standard.css">
 </head>
 <body>
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 <div class="wrap">
   <div class="card"><div id="userBox" class="muted">로그인 확인 중...</div></div>
   <div class="card"><h3>이번 주 자동 집계</h3><button onclick="loadWeekly()">이번 주 데이터 불러오기</button><div id="weeklyData" class="muted"></div></div>
@@ -94,38 +75,28 @@ async function loadWeekly(){
   weeklyAgg = {};
   const today = new Date();
   const start = new Date(today);
-  start.setDate(today.getDate()-6);
+  start.setDate(today.getDate() - 6);
+
   const usersSnap = await db.collection("attendance_logs").get();
-  for (const userDoc of usersSnap.docs){
+
+  for (const userDoc of usersSnap.docs) {
     const uid = userDoc.id;
     const daysSnap = await userDoc.ref.collection("days").get();
-    daysSnap.forEach(d=>{
+
+    daysSnap.forEach(d => {
       const v = d.data();
       const dt = new Date(v.date);
-      if (dt >= start && dt <= today){
-        if(!weeklyAgg[uid]) weeklyAgg[uid] = { laby:0, duel:0 };
-        weeklyAgg[uid].laby += v.laby||0;
-        weeklyAgg[uid].duel += v.duel||0;
+      if (dt >= start && dt <= today) {
+        if (!weeklyAgg[uid]) weeklyAgg[uid] = { laby: 0, duel: 0 };
+        weeklyAgg[uid].laby += v.laby || 0;
+        weeklyAgg[uid].duel += v.duel || 0;
       }
     });
   }
-  document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
-};
-  const today = new Date();
-  for(let i=0;i<7;i++){
-    const d = new Date(today); d.setDate(today.getDate()-i);
-    const key = d.toISOString().slice(0,10);
-    const snap = await db.collection("attendance").doc(key).collection("users").get();
-    snap.forEach(doc=>{
-      const uid = doc.id;
-      const v = doc.data();
-      if(!weeklyAgg[uid]) weeklyAgg[uid]={laby:0,duel:0};
-      weeklyAgg[uid].laby += v.laby||0;
-      weeklyAgg[uid].duel += v.duel||0;
-    });
-  }
-  document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
 
+  const el = document.getElementById("weeklyData");
+  if (el) el.innerText = JSON.stringify(weeklyAgg, null, 2);
+}
 function calculate(){
   if(!isAdmin){ alert("관리자만 분배 가능합니다."); return; }
   const total = Number(document.getElementById("totalChest").value||0);
