@@ -1,89 +1,59 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK: 새로운 여정 - ROIDER 출석부</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>출석부 - ROIDER</title>
 
-  <!-- FullCalendar v5 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <!-- Firebase -->
-  <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- FullCalendar (로컬) -->
+<link rel="stylesheet" href="./fullcalendar/index.global.min.css">
+<script src="./fullcalendar/index.global.min.js"></script>
 
-  <!-- 공통 헤더 -->
-  <link rel="stylesheet" href="header_standard.css">
+<style>
+body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
+header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242;display:flex;justify-content:space-between;align-items:center}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:#1c1f2a;border:1px solid #2a3242;border-radius:14px;padding:18px;margin-bottom:18px}
 
-  <style>
-    body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
-    .wrap{max-width:1200px;margin:0 auto;padding:20px}
-    .card{background:#1c1f2a;border:1px solid #2a3242;border-radius:12px;padding:16px;margin-bottom:16px}
-    .muted{opacity:.6}
-    #calendar{background:#11131a;border-radius:12px;padding:8px}
-
-    .fc{--fc-border-color:#2a3242; --fc-page-bg-color:#0f1015;}
-    .fc-event{border-radius:6px;padding:2px 4px;font-size:12px}
-
-    /* ===== 모달 ===== */
-    .modal-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.6);
-      display:none; align-items:center; justify-content:center; z-index:1000;
-    }
-    .modal{
-      background:#1c1f2a; border:1px solid #2a3242; border-radius:12px;
-      width:360px; padding:20px;
-      box-shadow:0 10px 30px rgba(0,0,0,.5);
-    }
-    .modal h3{margin:0 0 12px 0}
-    .modal .row{margin-bottom:10px}
-    .modal input{
-      width:100%; padding:10px; border-radius:8px; border:1px solid #2a3242;
-      background:#0f1015; color:#fff;
-    }
-    .modal .actions{
-      display:flex; gap:8px; justify-content:flex-end; margin-top:12px;
-    }
-    .btn{
-      padding:8px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700;
-    }
-    .btn.save{background:#ffd54a; color:#000}
-    .btn.cancel{background:#2a3242; color:#fff}
-    
-    /* 버튼 공통 클릭 피드백 */
-button,
-.btn {
-  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+/* 게임 버튼 */
+.game-btn {
+  position: relative;
+  background: linear-gradient(180deg, #ffd84d, #ffb700);
+  color: #111;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #b8860b, 0 8px 14px rgba(0,0,0,0.6);
+  transition: transform .06s ease, box-shadow .06s ease, filter .06s ease;
+}
+.game-btn:hover{filter:brightness(1.08)}
+.game-btn:active{
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #b8860b, 0 4px 8px rgba(0,0,0,0.7);
 }
 
-button:hover,
-.btn:hover {
-  filter: brightness(1.08);
-}
-
-button:active,
-.btn:active {
-  transform: translateY(1px) scale(0.98);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,.5);
-  filter: brightness(0.95);
-}
-  </style>
+/* 모달 */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:999}
+.modal{background:#1c1f2a;border:1px solid #2a3242;border-radius:14px;padding:20px;width:320px}
+.modal input{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px}
+</style>
 </head>
 <body>
 
 <header>
-  <div class="logo" id="appTitle">ROIDER</div>
-  <div class="user-box">
-    <img id="userPhoto" src="" alt="profile"/>
-    <span id="userName">Loading...</span>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
+  <div>ROIDER</div>
+  <button class="game-btn" onclick="logout()">Logout</button>
 </header>
 
 <div class="wrap">
-  <div class="card"><div id="userBox" class="muted">로그인 확인 중...</div></div>
+  <div class="card" id="status">로그인 확인 중...</div>
 
   <div class="card">
     <h3>출석 캘린더</h3>
@@ -92,136 +62,77 @@ button:active,
 
   <div class="card">
     <h3>내 출석 기록</h3>
-    <div id="myHistory" class="muted">아직 출석 기록이 없습니다.</div>
+    <div id="myHistory">아직 출석 기록이 없습니다.</div>
   </div>
 </div>
 
-<!-- ===== 모달 ===== -->
-<div class="modal-backdrop" id="modalBackdrop">
+<!-- 모달 -->
+<div class="modal-bg" id="modalBg">
   <div class="modal">
-    <h3 id="modalTitle">출석 입력</h3>
-    <div class="row">
-      <label>이계 점수</label>
-      <input type="number" id="inputLaby" placeholder="이계 점수">
-    </div>
-    <div class="row">
-      <label>명결 점수</label>
-      <input type="number" id="inputDuel" placeholder="명결 점수">
-    </div>
-    <div class="actions">
-      <button class="btn cancel" onclick="closeModal()">취소</button>
-      <button class="btn save" onclick="saveModal()">저장</button>
-    </div>
+    <h3 id="modalDate"></h3>
+    <input id="laby" type="number" placeholder="이계 점수"/>
+    <input id="duel" type="number" placeholder="명결 점수"/>
+    <button class="game-btn" onclick="saveAttendance()">저장</button>
+    <button class="game-btn" onclick="closeModal()" style="background:#444;color:#fff;box-shadow:none">취소</button>
   </div>
 </div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-    authDomain: "roider-guild-management.firebaseapp.com",
-    projectId: "roider-guild-management",
-    storageBucket: "roider-guild-management.firebasestorage.app",
-    messagingSenderId: "1012249034459",
-    appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-    measurementId: "G-J7W4LFLHPP"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+  authDomain: "roider-guild-management.firebaseapp.com",
+  projectId: "roider-guild-management",
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const title = document.getElementById("appTitle");
-    if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
+let currentUser = null;
+let selectedDate = null;
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){ location.href="login.html"; return; }
+  currentUser = user;
+  document.getElementById("status").innerText = "출석 등록 가능";
+  initCalendar();
+});
+
+function initCalendar(){
+  const calendarEl = document.getElementById('calendar');
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'ko',
+    dateClick(info){
+      selectedDate = info.dateStr;
+      document.getElementById("modalDate").innerText = info.dateStr;
+      document.getElementById("modalBg").style.display = "flex";
+    }
   });
+  calendar.render();
+}
 
-  let auth, db, currentUser, calendar;
-  let selectedDate = null;
+function closeModal(){
+  document.getElementById("modalBg").style.display = "none";
+}
 
-  window.addEventListener("load", () => {
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
+async function saveAttendance(){
+  const laby = Number(document.getElementById("laby").value || 0);
+  const duel = Number(document.getElementById("duel").value || 0);
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { location.href = "login.html"; return; }
-      currentUser = user;
+  await db.collection("attendance_logs")
+    .doc(currentUser.uid)
+    .collection("days")
+    .doc(selectedDate)
+    .set({ date: selectedDate, laby, duel });
 
-      const userPhoto = document.getElementById("userPhoto");
-      const userName = document.getElementById("userName");
-      if (user.photoURL) userPhoto.src = user.photoURL;
+  alert("저장 완료!");
+  closeModal();
+}
 
-      const snap = await db.collection("users").doc(user.uid).get();
-      userName.innerText = snap.exists ? (snap.data().nickname || user.displayName || user.email) : (user.displayName || user.email);
-
-      initCalendar();
-      loadMyHistory();
-    });
-  });
-
-  function initCalendar() {
-    const el = document.getElementById("calendar");
-    calendar = new FullCalendar.Calendar(el, {
-      initialView: 'dayGridMonth',
-      locale: 'ko',
-      height: 'auto',
-      dateClick: async (info) => {
-        selectedDate = info.dateStr;
-        document.getElementById("modalTitle").innerText = info.dateStr + " 출석 입력";
-        const ref = db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(info.dateStr);
-        const snap = await ref.get();
-        document.getElementById("inputLaby").value = snap.exists ? (snap.data().laby || 0) : 0;
-        document.getElementById("inputDuel").value = snap.exists ? (snap.data().duel || 0) : 0;
-        openModal();
-      }
-    });
-    calendar.render();
-    refreshEvents();
-  }
-
-  async function refreshEvents() {
-    const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
-    const events = [];
-    snap.forEach(d => {
-      const v = d.data();
-      const scoreSum = (v.laby||0) + (v.duel||0);
-      let color = scoreSum >= 200 ? "#00e676" : scoreSum > 0 ? "#ffd54a" : "#607d8b";
-      events.push({
-        title: `이계 ${v.laby||0} / 명결 ${v.duel||0}`,
-        start: v.date,
-        allDay: true,
-        backgroundColor: color,
-        borderColor: color
-      });
-    });
-    calendar.removeAllEvents();
-    calendar.addEventSource(events);
-  }
-
-  async function loadMyHistory() {
-    const el = document.getElementById("myHistory");
-    const snap = await db.collection("attendance_logs").doc(currentUser.uid)
-      .collection("days").orderBy("date","desc").limit(10).get();
-    if (snap.empty) { el.innerText = "아직 출석 기록이 없습니다."; return; }
-    el.innerHTML = "";
-    snap.forEach(d => {
-      const v = d.data();
-      const div = document.createElement("div");
-      div.innerText = `${v.date} : 이계 ${v.laby||0}, 명결 ${v.duel||0}`;
-      el.appendChild(div);
-    });
-  }
-
-  function openModal(){ document.getElementById("modalBackdrop").style.display = "flex"; }
-  function closeModal(){ document.getElementById("modalBackdrop").style.display = "none"; }
-
-  async function saveModal() {
-    const laby = Number(document.getElementById("inputLaby").value || 0);
-    const duel = Number(document.getElementById("inputDuel").value || 0);
-    await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(selectedDate)
-      .set({ date:selectedDate, laby, duel, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
-    closeModal();
-    refreshEvents();
-    loadMyHistory();
-  }
-
-  function logout(){ auth.signOut().then(()=>location.href="login.html"); }
+function logout(){
+  auth.signOut().then(()=>location.href="login.html");
+}
 </script>
+
 </body>
 </html>
