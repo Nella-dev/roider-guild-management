@@ -3,50 +3,47 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
+<title>ROIDER · 출석부</title>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <style>
   body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
   header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242}
-  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px}
   .card{background:#1c1f2a;border:1px solid #2a3242;border-radius:12px;padding:16px;margin-bottom:16px}
-  button{padding:10px 14px;border-radius:10px;border:none;background:#f4c430;color:#000;font-weight:800;cursor:pointer}
-  input{padding:10px;border-radius:8px;border:1px solid #333;background:#111;color:#eee}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input{background:#0f1015;border:1px solid #333;color:#eee;border-radius:8px;padding:10px}
+  button{padding:10px 14px;border-radius:10px;border:none;background:#f4c430;color:#000;font-weight:900;cursor:pointer}
   .muted{opacity:.6}
+  .row{padding:6px 0;border-bottom:1px dashed #333}
 </style>
 </head>
 <body>
 
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 
 <div class="wrap">
-  <div class="card">
-    <div id="userBox" class="muted">로그인 확인 중...</div>
-  </div>
+  <div class="card muted" id="statusBox">로그인 확인 중...</div>
 
   <div class="card">
     <h3>오늘 출석</h3>
-    <div class="row">
-      <input id="laby" type="number" placeholder="이계 점수"/>
-      <input id="duel" type="number" placeholder="명결 점수"/>
-      <button onclick="submitAttendance()">출석 등록</button>
-    </div>
-    <div id="status" class="muted"></div>
+    <input id="laby" type="number" placeholder="이계 점수"/>
+    <input id="duel" type="number" placeholder="명결 점수"/>
+    <button onclick="submitAttendance()">출석 등록</button>
   </div>
 
   <div class="card">
     <h3>내 출석 기록</h3>
-    <div id="log"></div>
+    <div id="log" class="muted">불러오는 중...</div>
   </div>
 </div>
 
@@ -57,52 +54,97 @@ const firebaseConfig = {
   projectId: "roider-guild-management",
   storageBucket: "roider-guild-management.firebasestorage.app",
   messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-  measurementId: "G-J7W4LFLHPP"
+  appId: "1:1012249034459:web:ec0f821f29170446af96fe"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const todayKey = new Date().toISOString().slice(0,10);
-
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="login.html"; return; }
-  document.getElementById("userBox").innerText = `👤 ${user.displayName || user.email}`;
-  loadMyLogs(user.uid);
-  const doc = await db.collection("attendance").doc(todayKey).collection("users").doc(user.uid).get();
-  if(doc.exists){
-    document.getElementById("status").innerText = "오늘 출석은 이미 완료되었습니다.";
+document.addEventListener("DOMContentLoaded", () => {
+  const title = document.getElementById("appTitle");
+  if (title) {
+    title.style.cursor = "pointer";
+    title.onclick = () => location.href = "main.html";
   }
+});
+
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
+
+  const userPhoto = document.getElementById("userPhoto");
+  const userName = document.getElementById("userName");
+  if (user.photoURL) userPhoto.src = user.photoURL;
+
+  const snap = await db.collection("users").doc(user.uid).get();
+  const data = snap.exists ? snap.data() : {};
+  userName.innerText = data.nickname || user.displayName || user.email || "User";
+
+  document.getElementById("statusBox").innerText = "출석 등록 가능";
+  await loadMyLogs(user.uid);
 });
 
 async function submitAttendance(){
   const user = auth.currentUser;
-  if(!user) return;
-  const laby = Number(document.getElementById("laby").value||0);
-  const duel = Number(document.getElementById("duel").value||0);
+  if (!user) return;
 
-  const ref = db.collection("attendance").doc(todayKey).collection("users").doc(user.uid);
+  const laby = Number(document.getElementById("laby").value || 0);
+  const duel = Number(document.getElementById("duel").value || 0);
+  const todayKey = new Date().toISOString().slice(0,10);
+
+  const ref = db.collection("attendance_logs")
+                .doc(user.uid)
+                .collection("days")
+                .doc(todayKey);
+
   const snap = await ref.get();
-  if(snap.exists){
+  if (snap.exists) {
     alert("오늘은 이미 출석했습니다.");
     return;
   }
-  await ref.set({ laby, duel, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+  await ref.set({
+    laby,
+    duel,
+    date: todayKey,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
   alert("출석 완료!");
-  location.reload();
+  await loadMyLogs(user.uid);
 }
 
 async function loadMyLogs(uid){
-  const q = await db.collectionGroup("users").where(firebase.firestore.FieldPath.documentId(),"==",uid).get();
   const el = document.getElementById("log");
   el.innerHTML = "";
-  q.forEach(d=>{
-    const p = document.createElement("div");
-    p.innerText = `${d.ref.parent.parent.id} | 이계:${d.data().laby} / 명결:${d.data().duel}`;
-    el.appendChild(p);
+
+  const snap = await db
+    .collection("attendance_logs")
+    .doc(uid)
+    .collection("days")
+    .orderBy("date", "desc")
+    .get();
+
+  if (snap.empty) {
+    el.innerText = "아직 출석 기록이 없습니다.";
+    return;
+  }
+
+  snap.forEach(d => {
+    const v = d.data();
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerText = `${v.date} | 이계: ${v.laby} / 명결: ${v.duel}`;
+    el.appendChild(div);
   });
 }
+
+function logout(){
+  auth.signOut().then(() => location.href = "login.html");
+}
 </script>
+
 </body>
 </html>
