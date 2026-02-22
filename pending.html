@@ -1,11 +1,9 @@
-<!-- updated 2026-02-21 -->
- <!-- cache bust -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK Journey: Homestead ROIDER Guild Management</title>
+  <title>ROIDER · 관리자 승인 대기</title>
 
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -22,7 +20,6 @@
       align-items: center;
       justify-content: center;
     }
-
     .card {
       background: linear-gradient(180deg, #1f2736, #161b26);
       border: 1px solid #2a3242;
@@ -33,28 +30,10 @@
       width: 90%;
       box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     }
-
-    h1 {
-      color: #f4c430;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
-
-    p {
-      opacity: 0.8;
-      margin: 6px 0;
-    }
-
-    .hourglass {
-      font-size: 42px;
-      margin: 20px 0;
-      animation: spin 2s infinite linear;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    h1 { color: #f4c430; margin-bottom: 10px; letter-spacing: 1px; }
+    p { opacity: 0.85; margin: 6px 0; }
+    .hourglass { font-size: 42px; margin: 20px 0; animation: spin 2s infinite linear; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -80,19 +59,24 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    location.replace("login.html");
-    return;
-  }
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        location.replace("login.html");
+        return;
+      }
 
-  const docRef = db.collection("users").doc(user.uid);
-  const docSnap = await docRef.get();
+      const ref = db.collection("users").doc(user.uid);
 
-  if (docSnap.exists && docSnap.data().role === "approved") {
-    location.replace("main.html"); // 메인 파일명에 맞게 수정
-  }
-});
+      // 🔥 실시간 감시: admin / member 승인되면 자동 이동
+      ref.onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const data = doc.data();
+
+        if (["admin", "member"].includes(data.role)) {
+          location.replace("main.html"); // 메인 파일명에 맞게 수정
+        }
+      });
+    });
   </script>
 
 </body>

@@ -17,7 +17,6 @@
       --accent: #f4c430;
       --text: #e6e6e6;
     }
-
     body {
       margin: 0;
       font-family: Pretendard, system-ui, sans-serif;
@@ -25,7 +24,6 @@
       color: var(--text);
       min-height: 100vh;
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -34,14 +32,12 @@
       background: linear-gradient(135deg, #1f2933, #121721);
       border-bottom: 1px solid #2a3242;
     }
-
     .logo {
       font-weight: 900;
       letter-spacing: 0.5px;
       color: var(--accent);
       text-shadow: 0 0 10px rgba(244,196,48,0.3);
     }
-
     .user-box {
       display: flex;
       align-items: center;
@@ -49,43 +45,34 @@
       font-size: 14px;
       color: #ccc;
     }
-
     .user-box img {
       width: 32px;
       height: 32px;
       border-radius: 50%;
       border: 1px solid #444;
     }
-
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 40px 20px;
       text-align: center;
     }
-
     .hero {
       margin-top: 40px;
       margin-bottom: 30px;
     }
-
     .hero h1 {
       font-size: 2rem;
       margin-bottom: 12px;
       color: var(--accent);
     }
-
-    .hero p {
-      opacity: 0.8;
-    }
-
+    .hero p { opacity: 0.8; }
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
       margin-top: 40px;
     }
-
     .menu-card {
       background: linear-gradient(180deg, #1f2736, #161b26);
       border: 1px solid #2a3242;
@@ -95,26 +82,22 @@
       transition: 0.25s;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
-
     .menu-card:hover {
       transform: translateY(-6px) scale(1.02);
       border-color: var(--accent);
       box-shadow: 0 10px 30px rgba(244,196,48,0.25);
     }
-
     .menu-card span {
       display: block;
       font-size: 28px;
       margin-bottom: 8px;
     }
-
     .footer {
       margin-top: 60px;
       text-align: center;
       font-size: 12px;
       opacity: 0.5;
     }
-
     button.logout {
       background: transparent;
       border: 1px solid #555;
@@ -123,10 +106,22 @@
       padding: 6px 14px;
       cursor: pointer;
     }
-
     button.logout:hover {
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    /* 관리자 전용 패널 */
+    .admin-panel {
+      margin-top: 30px;
+      padding: 20px;
+      border: 1px dashed #3a4256;
+      border-radius: 12px;
+      display: none;
+    }
+    .admin-panel h3 {
+      color: var(--accent);
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -135,9 +130,7 @@
   <header>
     <div class="logo" id="appTitle">ROIDER</div>
     <div class="user-box">
-      <img id="userPhoto"
-     src="https://api.dicebear.com/7.x/bottts/svg?seed=roider"
-     alt="profile" />
+      <img id="userPhoto" src="https://api.dicebear.com/7.x/bottts/svg?seed=roider" alt="profile" />
       <span id="userName">Loading...</span>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
@@ -150,21 +143,19 @@
     </div>
 
     <div class="menu-grid">
-      <div class="menu-card" onclick="go('notice.html')">
-        <span>📢</span> 공지
-      </div>
-      <div class="menu-card" onclick="go('members.html')">
-        <span>👥</span> 길드원
-      </div>
-      <div class="menu-card" onclick="go('attendance.html')">
-        <span>📅</span> 출석부
-      </div>
-      <div class="menu-card" onclick="go('weekly.html')">
-        <span>🏆</span> 주간결산
-      </div>
-      <div class="menu-card" onclick="go('war.html')">
-        <span>⚔️</span> 대항전
-      </div>
+      <div class="menu-card" onclick="go('notice.html')"><span>📢</span> 공지</div>
+      <div class="menu-card" onclick="go('members.html')"><span>👥</span> 길드원</div>
+      <div class="menu-card" onclick="go('attendance.html')"><span>📅</span> 출석부</div>
+      <div class="menu-card" onclick="go('weekly.html')"><span>🏆</span> 주간결산</div>
+      <div class="menu-card" onclick="go('war.html')"><span>⚔️</span> 대항전</div>
+    </div>
+
+    <!-- ✅ 관리자 전용 영역 -->
+    <div id="adminPanel" class="admin-panel">
+      <h3>관리자 전용 메뉴</h3>
+      <p>여기에 승인 관리, 공지 작성, 설정 메뉴 등을 추가할 수 있습니다.</p>
+      <!-- 예시 버튼 -->
+      <button onclick="alert('관리자 기능 준비중')">관리자 기능</button>
     </div>
 
     <div class="footer">
@@ -172,73 +163,64 @@
     </div>
   </div>
 
-<script>
-  // Firebase 설정 (기존 그대로)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-    authDomain: "roider-guild-management.firebaseapp.com",
-    projectId: "roider-guild-management",
-    storageBucket: "roider-guild-management.firebasestorage.app",
-    messagingSenderId: "1012249034459",
-    appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-    measurementId: "G-J7W4LFLHPP"
-  };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
+      authDomain: "roider-guild-management.firebaseapp.com",
+      projectId: "roider-guild-management",
+      storageBucket: "roider-guild-management.firebasestorage.app",
+      messagingSenderId: "1012249034459",
+      appId: "1:1012249034459:web:ec0f821f29170446af96fe",
+      measurementId: "G-J7W4LFLHPP"
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  // DOM 준비 보장
-  window.addEventListener("DOMContentLoaded", () => {
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     auth.onAuthStateChanged(async (user) => {
-  const nameEl = document.getElementById("userName");
-  const photoEl = document.getElementById("userPhoto");
+      if (!user) {
+        location.replace("login.html");
+        return;
+      }
 
-  if (!user) {
-    location.replace("login.html");
-    return;
-  }
+      const docRef = db.collection("users").doc(user.uid);
+      const docSnap = await docRef.get();
 
-  // 기본 UI (깜빡임 방지)
-  nameEl.textContent = "Loading...";
-  photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
+      // ❌ 승인 안 된 유저는 메인 접근 불가
+      if (!docSnap.exists || !["admin", "member"].includes(docSnap.data().role)) {
+        location.replace("pending.html");
+        return;
+      }
 
-  // 🔧 Firestore에서 사용자 정보 가져오기 (users 컬렉션)
-  const docRef = db.collection("users").doc(user.uid);
-  const docSnap = await docRef.get();
+      const data = docSnap.data();
+      const nameEl = document.getElementById("userName");
+      const photoEl = document.getElementById("userPhoto");
 
-  // 닉네임 등록 안 했으면 닉네임 설정 페이지로
-  if (!docSnap.exists) {
-    location.replace("nickname.html");
-    return;
-  }
+      // 닉네임 표시
+      const nickname = data.nickname;
+      nameEl.textContent = nickname || user.displayName || user.email || "User";
+      if (nickname) localStorage.setItem("nickname", nickname);
 
-  const data = docSnap.data();
+      // 프로필 이미지
+      if (user.photoURL) {
+        photoEl.src = user.photoURL;
+      }
 
-  // 🔥 승인 안 됐으면 메인 UI 보여주지 말고 바로 pending으로
-  if (data.role !== "approved") {
-    location.replace("pending.html");
-    return;
-  }
+      // ✅ 관리자 전용 UI 표시
+      if (data.role === "admin") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+    });
 
-  // ✅ 여기까지 왔으면 "승인된 사용자"만 메인 접근 허용
+    function logout() {
+      auth.signOut().then(() => location.replace("login.html"));
+    }
 
-  // 닉네임 표시 (Firestore → localStorage 동기화)
-  const nickname = data.nickname;
-  nameEl.textContent = nickname || user.displayName || user.email || "User";
-  if (nickname) {
-    localStorage.setItem("nickname", nickname);
-  }
-
-  // 프로필 이미지
-  if (user.photoURL) {
-    photoEl.src = user.photoURL;
-  }
-});
-
-  });
-</script>
+    function go(url) {
+      location.href = url;
+    }
+  </script>
 
 </body>
 </html>
