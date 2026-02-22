@@ -80,25 +80,19 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        location.href = "login.html";
-        return;
-      }
+    auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    location.replace("login.html");
+    return;
+  }
 
-      const ref = db.collection("users").doc(user.uid);
+  const docRef = db.collection("users").doc(user.uid);
+  const docSnap = await docRef.get();
 
-      // 🔥 실시간 감시 (role 변경 시 자동 이동)
-      ref.onSnapshot((doc) => {
-        if (!doc.exists) return;
-
-        const data = doc.data();
-
-        if (data.role === "admin" || data.role === "member") {
-          location.href = "main.html";
-        }
-      });
-    });
+  if (docSnap.exists && docSnap.data().role === "approved") {
+    location.replace("main.html"); // 메인 파일명에 맞게 수정
+  }
+});
   </script>
 
 </body>

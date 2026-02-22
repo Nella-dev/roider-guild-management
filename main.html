@@ -191,46 +191,50 @@
   // DOM 준비 보장
   window.addEventListener("DOMContentLoaded", () => {
 
-    auth.onAuthStateChanged(async (user) => {
+    aauth.onAuthStateChanged(async (user) => {
   const nameEl = document.getElementById("userName");
   const photoEl = document.getElementById("userPhoto");
 
   if (!user) {
-    location.href = "login.html";
+    location.replace("login.html");
     return;
   }
 
-  // 🔥 기본값으로 Loading 제거
-  nameEl.textContent = "User";
+  // 기본 UI (깜빡임 방지)
+  nameEl.textContent = "Loading...";
   photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
 
-  // ✅ 닉네임 표시 (로컬 우선)
-  const localNickname = localStorage.getItem("nickname");
-  nameEl.textContent = localNickname || user.displayName || user.email || "User";
-
-  if (user.photoURL) {
-    photoEl.src = user.photoURL;
-  }
-
-  // 🔧 Firestore 컬렉션 통일 (users)
+  // 🔧 Firestore에서 사용자 정보 가져오기 (users 컬렉션)
   const docRef = db.collection("users").doc(user.uid);
   const docSnap = await docRef.get();
 
+  // 닉네임 등록 안 했으면 닉네임 설정 페이지로
   if (!docSnap.exists) {
-    location.href = "nickname.html";
+    location.replace("nickname.html");
     return;
   }
 
   const data = docSnap.data();
 
-  // 🔧 승인 로직 통일
+  // 🔥 승인 안 됐으면 메인 UI 보여주지 말고 바로 pending으로
   if (data.role !== "approved") {
-    alert("관리자 승인 대기 중입니다.");
-    location.href = "pending.html";
+    location.replace("pending.html");
     return;
   }
 
-  console.log("승인 완료, 메인 접근 허용");
+  // ✅ 여기까지 왔으면 "승인된 사용자"만 메인 접근 허용
+
+  // 닉네임 표시 (Firestore → localStorage 동기화)
+  const nickname = data.nickname;
+  nameEl.textContent = nickname || user.displayName || user.email || "User";
+  if (nickname) {
+    localStorage.setItem("nickname", nickname);
+  }
+
+  // 프로필 이미지
+  if (user.photoURL) {
+    photoEl.src = user.photoURL;
+  }
 });
 
   });
