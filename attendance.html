@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AFK: 새로운 여정 - ROIDER 출석부</title>
 
-  <!-- Firebase (defer 유지 OK) -->
+  <!-- Firebase -->
   <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <!-- FullCalendar (⚠️ defer 제거: 반드시 먼저 로드되어야 함) -->
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
+  <!-- FullCalendar (unpkg 안정 CDN) -->
+  <link href="https://unpkg.com/@fullcalendar/core@6.1.11/main.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/@fullcalendar/daygrid@6.1.11/main.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/@fullcalendar/core@6.1.11/main.min.js"></script>
+  <script src="https://unpkg.com/@fullcalendar/daygrid@6.1.11/main.min.js"></script>
 
-  <!-- 공통 헤더 스타일 -->
   <link rel="stylesheet" href="header_standard.css">
 
   <style>
@@ -27,8 +28,6 @@
   </style>
 </head>
 <body>
-
-  <!-- ⚠️ 헤더는 기존 메인 기준 그대로 사용 -->
   <header>
     <div class="logo" id="appTitle">ROIDER</div>
     <div class="user-box">
@@ -53,7 +52,6 @@
   </div>
 
   <script>
-    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
       authDomain: "roider-guild-management.firebaseapp.com",
@@ -64,7 +62,6 @@
       measurementId: "G-J7W4LFLHPP"
     };
 
-    // 헤더 타이틀 → 메인 이동
     document.addEventListener("DOMContentLoaded", () => {
       const title = document.getElementById("appTitle");
       if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
@@ -72,7 +69,6 @@
 
     let auth, db, currentUser, calendar;
 
-    // Firebase 초기화 (defer 스크립트 로드 이후 실행됨)
     window.addEventListener("load", () => {
       firebase.initializeApp(firebaseConfig);
       auth = firebase.auth();
@@ -94,18 +90,19 @@
           userName.innerText = user.displayName || user.email;
         }
 
-        initCalendar();   // ← FullCalendar가 이미 로드된 뒤 호출
+        initCalendar();
         loadMyHistory();
       });
     });
 
     function initCalendar() {
-      if (!window.FullCalendar) {
-        alert("캘린더 라이브러리 로드 실패. 새로고침 후 다시 시도해주세요.");
+      if (!window.FullCalendar || !window.FullCalendarDayGrid) {
+        alert("캘린더 라이브러리 로드 실패. 네트워크 차단 여부를 확인해주세요.");
         return;
       }
       const el = document.getElementById("calendar");
       calendar = new FullCalendar.Calendar(el, {
+        plugins: [ FullCalendarDayGrid ],
         initialView: 'dayGridMonth',
         height: 'auto',
         locale: 'ko',
