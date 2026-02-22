@@ -17,25 +17,6 @@
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .muted{opacity:.6}
 </style>
-
-<style>
-/* Header standardization */
-header { min-height: 60px; }
-header .user-box { align-items: center; }
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
-}
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
-}
-</style>
-
 </head>
 <body>
 
@@ -100,34 +81,25 @@ async function submitAttendance(){
   if(!user) return;
   const laby = Number(document.getElementById("laby").value||0);
   const duel = Number(document.getElementById("duel").value||0);
-  const todayKey = new Date().toISOString().slice(0,10);
 
-  const ref = db.collection("attendance_logs").doc(user.uid).collection("days").doc(todayKey);
+  const ref = db.collection("attendance").doc(todayKey).collection("users").doc(user.uid);
   const snap = await ref.get();
   if(snap.exists){
     alert("오늘은 이미 출석했습니다.");
     return;
   }
-  await ref.set({ laby, duel, date: todayKey, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-  alert("출석 완료!");
-  location.reload();
-}
   await ref.set({ laby, duel, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   alert("출석 완료!");
   location.reload();
 }
 
 async function loadMyLogs(uid){
+  const q = await db.collectionGroup("users").where(firebase.firestore.FieldPath.documentId(),"==",uid).get();
   const el = document.getElementById("log");
   el.innerHTML = "";
-  const snap = await db.collection("attendance_logs").doc(uid).collection("days").orderBy("date","desc").get();
-  snap.forEach(d=>{
-    const v = d.data();
-    const row = document.createElement("div");
-    row.innerText = `${v.date} | 이계:${v.laby} / 명결:${v.duel}`;
-    el.appendChild(row);
-  });
-} | 이계:${d.data().laby} / 명결:${d.data().duel}`;
+  q.forEach(d=>{
+    const p = document.createElement("div");
+    p.innerText = `${d.ref.parent.parent.id} | 이계:${d.data().laby} / 명결:${d.data().duel}`;
     el.appendChild(p);
   });
 }
