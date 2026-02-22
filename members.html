@@ -15,6 +15,24 @@ body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
 .offline { color:#aaa; }
 .flag { font-size:20px; }
 </style>
+
+<style>
+/* 🔒 Header profile image standard (force main style) */
+header .user-box img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid #444 !important;
+}
+/* 🔒 Logout button standard (prevent green override) */
+button.logout {
+  background: transparent !important;
+  border: 1px solid #555 !important;
+  color: #ccc !important;
+}
+</style>
+
 </head>
 <body>
 <header>

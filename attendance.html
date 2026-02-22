@@ -17,6 +17,24 @@
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .muted{opacity:.6}
 </style>
+
+<style>
+/* 🔒 Header profile image standard (force main style) */
+header .user-box img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid #444 !important;
+}
+/* 🔒 Logout button standard (prevent green override) */
+button.logout {
+  background: transparent !important;
+  border: 1px solid #555 !important;
+  color: #ccc !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -93,15 +111,23 @@ async function submitAttendance(){
   location.reload();
 }
 
-async function loadMyLogs(uid){
-  const q = await db.collectionGroup("users").where(firebase.firestore.FieldPath.documentId(),"==",uid).get();
+async function loadMyLogs(uid) {
   const el = document.getElementById("log");
   el.innerHTML = "";
-  q.forEach(d=>{
-    const p = document.createElement("div");
-    p.innerText = `${d.ref.parent.parent.id} | 이계:${d.data().laby} / 명결:${d.data().duel}`;
-    el.appendChild(p);
-  });
+
+  const daysSnap = await db.collection("attendance").get();
+
+  for (const dayDoc of daysSnap.docs) {
+    const userRef = dayDoc.ref.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+
+    if (userSnap.exists) {
+      const data = userSnap.data();
+      const row = document.createElement("div");
+      row.innerText = `${dayDoc.id} | 이계:${data.laby} / 명결:${data.duel}`;
+      el.appendChild(row);
+    }
+  }
 }
 </script>
 </body>

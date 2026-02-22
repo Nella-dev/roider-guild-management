@@ -11,6 +11,24 @@ body { background:#0f1015; color:#eee; font-family:system-ui; padding:20px; }
 .card { background:#1c1f2a; padding:20px; border-radius:12px; margin-bottom:10px; }
 button { margin-left:10px; }
 </style>
+
+<style>
+/* 🔒 Header profile image standard (force main style) */
+header .user-box img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid #444 !important;
+}
+/* 🔒 Logout button standard (prevent green override) */
+button.logout {
+  background: transparent !important;
+  border: 1px solid #555 !important;
+  color: #ccc !important;
+}
+</style>
+
 </head>
 <body>
 <header>
