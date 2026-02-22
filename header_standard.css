@@ -1,45 +1,46 @@
-/* ===== Header Standard (Main 기준 통일) ===== */
+/* ===== Header Standard (main.html 기준 1:1) ===== */
 header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  min-height: 64px;
-  background: #121721;
+  align-items: center;
+  padding: 14px 20px;               /* main.html 기준 */
+  background: linear-gradient(135deg, #1f2933, #121721);
   border-bottom: 1px solid #2a3242;
+  box-sizing: border-box;
 }
 
-header .logo,
-#appTitle {
+#appTitle, .logo {
   font-weight: 900;
-  letter-spacing: .5px;
+  letter-spacing: 0.5px;
+  color: #f4c430;
   cursor: pointer;
 }
 
 header .user-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 10px;                        /* main.html 기준 */
+  font-size: 14px;
+  color: #ccc;
 }
 
 header .user-box img {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  object-fit: cover;
   border: 1px solid #444;
-}
-
-header .user-box span {
-  line-height: 1;
-  white-space: nowrap;
+  object-fit: cover;
 }
 
 button.logout {
-  padding: 6px 12px;
-  border-radius: 10px;
   background: transparent;
   border: 1px solid #555;
   color: #ccc;
-  font-weight: 600;
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+button.logout:hover {
+  border-color: #f4c430;
+  color: #f4c430;
 }
