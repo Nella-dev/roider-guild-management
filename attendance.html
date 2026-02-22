@@ -3,134 +3,201 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>출석부 - ROIDER</title>
+<title>ROIDER 출석부</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-<!-- FullCalendar (로컬) -->
-<link rel="stylesheet" href="./fullcalendar/index.global.min.css">
+<!-- FullCalendar JS (CSS 링크 없음이 정상) -->
 <script src="./fullcalendar/index.global.min.js"></script>
 
 <style>
-body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
-header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242;display:flex;justify-content:space-between;align-items:center}
-.wrap{max-width:1200px;margin:0 auto;padding:20px}
-.card{background:#1c1f2a;border:1px solid #2a3242;border-radius:14px;padding:18px;margin-bottom:18px}
+  body {
+    margin: 0;
+    font-family: Pretendard, system-ui, sans-serif;
+    background: #0f1015;
+    color: #e6e6e6;
+  }
 
-/* 게임 버튼 */
-.game-btn {
-  position: relative;
-  background: linear-gradient(180deg, #ffd84d, #ffb700);
-  color: #111;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 18px;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 6px 0 #b8860b, 0 8px 14px rgba(0,0,0,0.6);
-  transition: transform .06s ease, box-shadow .06s ease, filter .06s ease;
-}
-.game-btn:hover{filter:brightness(1.08)}
-.game-btn:active{
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 #b8860b, 0 4px 8px rgba(0,0,0,0.7);
-}
+  header {
+    height: 72px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, #1b2431, #0f131b);
+    border-bottom: 1px solid #2a3242;
+  }
 
-/* 모달 */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:999}
-.modal{background:#1c1f2a;border:1px solid #2a3242;border-radius:14px;padding:20px;width:320px}
-.modal input{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px}
+  .logo {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffc928;
+    cursor: pointer;
+  }
+
+  .user-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logout {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    background: #121826;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .logout:hover { transform: translateY(-1px); }
+  .logout:active { transform: translateY(1px) scale(0.97); }
+
+  .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .card {
+    background: linear-gradient(180deg, #1b1f2b, #151924);
+    border: 1px solid #2a3242;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+
+  #calendar {
+    margin-top: 12px;
+  }
+
+  /* 모달 */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  .modal {
+    width: 360px;
+    background: #151924;
+    border: 1px solid #2a3242;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.6);
+  }
+
+  .modal h3 {
+    margin: 0 0 10px;
+  }
+
+  .modal input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #0f1015;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .modal button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(180deg, #ffd84d, #ffb700);
+    color: #000;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.1s;
+  }
+
+  .modal button:active {
+    transform: translateY(2px) scale(0.97);
+    filter: brightness(0.9);
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div>ROIDER</div>
-  <button class="game-btn" onclick="logout()">Logout</button>
+  <div class="logo" onclick="location.href='main.html'">ROIDER</div>
+  <div class="user-box">
+    <span id="userName">갓넬라</span>
+    <button class="logout" onclick="alert('로그아웃 처리')">Logout</button>
+  </div>
 </header>
 
 <div class="wrap">
-  <div class="card" id="status">로그인 확인 중...</div>
-
   <div class="card">
-    <h3>출석 캘린더</h3>
+    <h2>출석 캘린더</h2>
     <div id="calendar"></div>
   </div>
 
   <div class="card">
-    <h3>내 출석 기록</h3>
-    <div id="myHistory">아직 출석 기록이 없습니다.</div>
+    <h2>내 출석 기록</h2>
+    <div id="myLog">아직 출석 기록이 없습니다.</div>
   </div>
 </div>
 
-<!-- 모달 -->
-<div class="modal-bg" id="modalBg">
+<!-- 점수 입력 모달 -->
+<div class="modal-backdrop" id="modal">
   <div class="modal">
-    <h3 id="modalDate"></h3>
-    <input id="laby" type="number" placeholder="이계 점수"/>
-    <input id="duel" type="number" placeholder="명결 점수"/>
-    <button class="game-btn" onclick="saveAttendance()">저장</button>
-    <button class="game-btn" onclick="closeModal()" style="background:#444;color:#fff;box-shadow:none">취소</button>
+    <h3 id="modalDate">날짜</h3>
+    <input id="laby" type="number" placeholder="이계 점수">
+    <input id="duel" type="number" placeholder="명결 점수">
+    <button onclick="saveScore()">저장</button>
   </div>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-let currentUser = null;
 let selectedDate = null;
+let calendar;
 
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="login.html"; return; }
-  currentUser = user;
-  document.getElementById("status").innerText = "출석 등록 가능";
-  initCalendar();
-});
+document.addEventListener("DOMContentLoaded", () => {
+  if (!window.FullCalendar) {
+    alert("FullCalendar 로드 실패: fullcalendar/index.global.min.js 경로 확인하세요.");
+    return;
+  }
 
-function initCalendar(){
-  const calendarEl = document.getElementById('calendar');
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    locale: 'ko',
-    dateClick(info){
-      selectedDate = info.dateStr;
-      document.getElementById("modalDate").innerText = info.dateStr;
-      document.getElementById("modalBg").style.display = "flex";
+  const calendarEl = document.getElementById("calendar");
+
+  calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    locale: "ko",
+    height: "auto",
+    dateClick(info) {
+      openModal(info.dateStr);
     }
   });
+
   calendar.render();
+});
+
+function openModal(dateStr) {
+  selectedDate = dateStr;
+  document.getElementById("modalDate").innerText = dateStr;
+  document.getElementById("modal").style.display = "flex";
 }
 
-function closeModal(){
-  document.getElementById("modalBg").style.display = "none";
-}
+function saveScore() {
+  const laby = document.getElementById("laby").value;
+  const duel = document.getElementById("duel").value;
 
-async function saveAttendance(){
-  const laby = Number(document.getElementById("laby").value || 0);
-  const duel = Number(document.getElementById("duel").value || 0);
+  calendar.addEvent({
+    title: `이계:${laby} / 명결:${duel}`,
+    start: selectedDate,
+    allDay: true,
+    backgroundColor: "#ffc928",
+    borderColor: "#ffc928",
+    textColor: "#000"
+  });
 
-  await db.collection("attendance_logs")
-    .doc(currentUser.uid)
-    .collection("days")
-    .doc(selectedDate)
-    .set({ date: selectedDate, laby, duel });
-
-  alert("저장 완료!");
-  closeModal();
-}
-
-function logout(){
-  auth.signOut().then(()=>location.href="login.html");
+  document.getElementById("modal").style.display = "none";
 }
 </script>
 
