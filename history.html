@@ -4,47 +4,56 @@
 <meta charset="UTF-8">
 <title>주간 분배 이력</title>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <style>
 body { background:#0f1015; color:#fff; font-family:Pretendard; margin:0; padding:30px;}
 .card { background:#1c1f2a; padding:15px; border-radius:10px; margin-bottom:15px;}
+header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242}
 </style>
 </head>
 <body>
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 <h1>📜 주간 분배 이력</h1>
 <div id="list"></div>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-};
+const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management" };
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
-
+document.addEventListener("DOMContentLoaded", () => {
+  const title = document.getElementById("appTitle");
+  if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
+});
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { location.href = "login.html"; return; }
+  const userPhoto = document.getElementById("userPhoto");
+  const userName = document.getElementById("userName");
+  if (user.photoURL) userPhoto.src = user.photoURL;
+  const snap = await db.collection("users").doc(user.uid).get();
+  if (snap.exists) {
+    const data = snap.data();
+    userName.innerText = data.nickname || user.displayName || user.email;
+  }
+});
 db.collection("weekly_results").orderBy("createdAt", "desc").onSnapshot(snap => {
   const list = document.getElementById("list");
   list.innerHTML = "";
   snap.forEach(doc => {
     const d = doc.data();
     let html = `<div class="card"><h3>${d.week}</h3>`;
-    Object.entries(d.result).forEach(([name, chest]) => {
-      html += `<div>${name} : ${chest}개</div>`;
-    });
+    Object.entries(d.result).forEach(([name, chest]) => { html += `<div>${name} : ${chest}개</div>`; });
     html += `</div>`;
     list.innerHTML += html;
   });
 });
+function logout(){ auth.signOut().then(()=>location.href="login.html"); }
 </script>
-</body>
-</html>
+</body></html>

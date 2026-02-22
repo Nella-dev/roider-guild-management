@@ -4,11 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>길드원 상태판</title>
-
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
 <style>
 body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
 .container { max-width:1000px; margin:0 auto; padding:30px; }
@@ -20,14 +18,13 @@ body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
 </head>
 <body>
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 <div class="container">
   <h1>👥 길드원 상태판</h1>
   <div class="row" style="font-weight:bold;">
@@ -35,22 +32,26 @@ body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
   </div>
   <div id="list"></div>
 </div>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-};
+const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management" };
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
 const db = firebase.firestore();
-
-auth.onAuthStateChanged(user => {
-  if (!user) location.href = "login.html";
+document.addEventListener("DOMContentLoaded", () => {
+  const title = document.getElementById("appTitle");
+  if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
 });
-
+auth.onAuthStateChanged(async user => {
+  if (!user) location.href = "login.html";
+  const userPhoto = document.getElementById("userPhoto");
+  const userName = document.getElementById("userName");
+  if (user.photoURL) userPhoto.src = user.photoURL;
+  const snap = await db.collection("users").doc(user.uid).get();
+  if (snap.exists) {
+    const data = snap.data();
+    userName.innerText = data.nickname || user.displayName || user.email;
+  }
+});
 db.collection("members").onSnapshot(snap => {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -60,13 +61,10 @@ db.collection("members").onSnapshot(snap => {
       <div class="row">
         <div>👤 ${m.nickname}</div>
         <div class="flag">${m.country || "🌐"} ${m.countryCode || ""}</div>
-        <div class="${m.online ? "online" : "offline"}">
-          ${m.online ? "● 온라인" : "○ 오프라인"}
-        </div>
-      </div>
-    `;
+        <div class="${m.online ? "online" : "offline"}">${m.online ? "● 온라인" : "○ 오프라인"}</div>
+      </div>`;
   });
 });
+function logout(){ auth.signOut().then(()=>location.href="login.html"); }
 </script>
-</body>
-</html>
+</body></html>

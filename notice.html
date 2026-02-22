@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AFK Journey: Homestead ROIDER Guild Management</title>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
   <style>
     body { margin:0; font-family:Pretendard, system-ui; background:#0f1015; color:#e6e6e6; }
     header { padding:14px 20px; background:#121721; display:flex; justify-content:space-between; align-items:center; }
@@ -25,113 +22,75 @@
   </style>
 </head>
 <body>
-
-
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
-
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 <div class="container">
   <h1 id="pageTitle">📢 공지사항</h1>
-
   <div class="card" id="adminWrite" style="display:none;">
     <h3>✏️ 공지 작성</h3>
     <textarea id="noticeInput" placeholder="공지 내용을 입력하세요"></textarea>
     <button onclick="addNotice()">등록</button>
   </div>
-
   <div class="card">
     <h3>📌 공지 목록</h3>
     <div id="noticeList"></div>
   </div>
 </div>
-
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-    authDomain: "roider-guild-management.firebaseapp.com",
-    projectId: "roider-guild-management",
-    storageBucket: "roider-guild-management.firebasestorage.app",
-    messagingSenderId: "1012249034459",
-    appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-    measurementId: "G-J7W4LFLHPP"
-  };
-
+  const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management", storageBucket: "roider-guild-management.firebasestorage.app", messagingSenderId: "1012249034459", appId: "1:1012249034459:web:ec0f821f29170446af96fe", measurementId: "G-J7W4LFLHPP" };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
-
-  const lang = navigator.language.startsWith("ko") ? "ko" : "en";
-  const titleText = lang === "ko"
-    ? "AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템"
-    : "AFK Journey: Homestead ROIDER Guild Management";
-
-  document.title = titleText;
-  document.getElementById("appTitle").innerText = titleText;
-  document.getElementById("pageTitle").innerText = lang === "ko" ? "📢 공지사항" : "Notices";
-
+  document.addEventListener("DOMContentLoaded", () => {
+    const title = document.getElementById("appTitle");
+    if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
+  });
   let isAdmin = false;
-
   auth.onAuthStateChanged(async user => {
     if (!user) location.href = "login.html";
-
-    document.getElementById("userName").innerText = user.displayName || user.email;
-
-    const snap = await db.collection("roles").doc(user.uid).get();
-    isAdmin = snap.exists && snap.data().role === "admin";
+    const userPhoto = document.getElementById("userPhoto");
+    const userName = document.getElementById("userName");
+    if (user.photoURL) userPhoto.src = user.photoURL;
+    const snap = await db.collection("users").doc(user.uid).get();
+    if (snap.exists) {
+      const data = snap.data();
+      userName.innerText = data.nickname || user.displayName || user.email;
+    }
+    const roleSnap = await db.collection("roles").doc(user.uid).get();
+    isAdmin = roleSnap.exists && roleSnap.data().role === "admin";
     if (isAdmin) document.getElementById("adminWrite").style.display = "block";
-
     loadNotices();
   });
-
   async function loadNotices() {
     const list = document.getElementById("noticeList");
     list.innerHTML = "";
-
     const snap = await db.collection("notices").orderBy("createdAt", "desc").get();
     snap.forEach(doc => {
       const d = doc.data();
       const div = document.createElement("div");
       div.className = "notice-item";
-      div.innerHTML = `
-        <div class="notice-header">
-          <span>${new Date(d.createdAt.seconds*1000).toLocaleString()}</span>
-          ${isAdmin ? `<button class="delete-btn" onclick="deleteNotice('${doc.id}')">삭제</button>` : ""}
-        </div>
-        <div>${d.text}</div>
-      `;
+      div.innerHTML = `<div class="notice-header"><span>${new Date(d.createdAt.seconds*1000).toLocaleString()}</span>${isAdmin ? `<button class="delete-btn" onclick="deleteNotice('${doc.id}')">삭제</button>` : ""}</div><div>${d.text}</div>`;
       list.appendChild(div);
     });
   }
-
   async function addNotice() {
     const text = document.getElementById("noticeInput").value.trim();
     if (!text) return;
-
-    await db.collection("notices").add({
-      text,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
+    await db.collection("notices").add({ text, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     document.getElementById("noticeInput").value = "";
     loadNotices();
   }
-
   async function deleteNotice(id) {
     if (!confirm("삭제하시겠습니까?")) return;
     await db.collection("notices").doc(id).delete();
     loadNotices();
   }
-
-  function logout() {
-    auth.signOut().then(()=>location.href="login.html");
-  }
+  function logout() { auth.signOut().then(()=>location.href="login.html"); }
 </script>
-</body>
-</html>
+</body></html>

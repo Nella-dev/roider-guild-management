@@ -19,41 +19,20 @@
 </style>
 </head>
 <body>
-
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+</header>
 <div class="wrap">
-  <div class="card">
-    <div id="userBox" class="muted">로그인 확인 중...</div>
-  </div>
-
-  <div class="card">
-    <h3>이번 주 자동 집계</h3>
-    <button onclick="loadWeekly()">이번 주 데이터 불러오기</button>
-    <div id="weeklyData" class="muted"></div>
-  </div>
-
-  <div class="card">
-    <h3>분배 (관리자 전용)</h3>
-    <input id="totalChest" type="number" placeholder="총 상자 수"/>
-    <button onclick="calculate()">분배 계산</button>
-    <button onclick="finalize()">🚀 분배 확정</button>
-    <div id="result"></div>
-  </div>
-
-  <div class="card">
-    <h3>히스토리</h3>
-    <div id="history"></div>
-  </div>
+  <div class="card"><div id="userBox" class="muted">로그인 확인 중...</div></div>
+  <div class="card"><h3>이번 주 자동 집계</h3><button onclick="loadWeekly()">이번 주 데이터 불러오기</button><div id="weeklyData" class="muted"></div></div>
+  <div class="card"><h3>분배 (관리자 전용)</h3><input id="totalChest" type="number" placeholder="총 상자 수"/><button onclick="calculate()">분배 계산</button><button onclick="finalize()">🚀 분배 확정</button><div id="result"></div></div>
+  <div class="card"><h3>히스토리</h3><div id="history"></div></div>
 </div>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
@@ -67,24 +46,30 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 let isAdmin = false;
 let weeklyAgg = {};
-
+document.addEventListener("DOMContentLoaded", () => {
+  const title = document.getElementById("appTitle");
+  if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
+});
 auth.onAuthStateChanged(async user=>{
   if(!user){ location.href="login.html"; return; }
-  document.getElementById("userBox").innerText = `👤 ${user.displayName || user.email}`;
+  const userPhoto = document.getElementById("userPhoto");
+  const userName = document.getElementById("userName");
+  if (user.photoURL) userPhoto.src = user.photoURL;
   const snap = await db.collection("users").doc(user.uid).get();
-  isAdmin = snap.exists && snap.data().isAdmin === true;
+  if (snap.exists) {
+    const data = snap.data();
+    userName.innerText = data.nickname || user.displayName || user.email;
+    isAdmin = data.isAdmin === true;
+  }
   loadHistory();
 });
-
 function getWeekKey(){
   const d = new Date();
   const first = new Date(d.setDate(d.getDate() - d.getDay() + 1));
   return first.toISOString().slice(0,10);
 }
-
 async function loadWeekly(){
   weeklyAgg = {};
   const today = new Date();
@@ -102,23 +87,17 @@ async function loadWeekly(){
   }
   document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
 }
-
 function calculate(){
   if(!isAdmin){ alert("관리자만 분배 가능합니다."); return; }
   const total = Number(document.getElementById("totalChest").value||0);
   document.getElementById("result").innerText = `총 ${total}개 분배 (AFK v3.6 로직 적용 완료)`;
 }
-
 async function finalize(){
   if(!isAdmin){ alert("관리자만 확정 가능합니다."); return; }
   const weekKey = getWeekKey();
-  await db.collection("weekly").doc(weekKey).set({
-    data: weeklyAgg,
-    finalizedAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  await db.collection("weekly").doc(weekKey).set({ data: weeklyAgg, finalizedAt: firebase.firestore.FieldValue.serverTimestamp() });
   alert("분배 확정 완료!");
 }
-
 async function loadHistory(){
   const snap = await db.collection("weekly").orderBy("finalizedAt","desc").get();
   const el = document.getElementById("history");
@@ -129,6 +108,6 @@ async function loadHistory(){
     el.appendChild(div);
   });
 }
+function logout(){ auth.signOut().then(()=>location.href="login.html"); }
 </script>
-</body>
-</html>
+</body></html>

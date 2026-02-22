@@ -4,257 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ROIDER · 관리자 승인 관리</title>
-
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
   <style>
-    body {
-      margin: 0;
-      font-family: Pretendard, system-ui, sans-serif;
-      background: radial-gradient(circle at top, #1b2333, #0f1015 60%);
-      color: #e6e6e6;
-      min-height: 100vh;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 20px;
-      background: linear-gradient(135deg, #1f2933, #121721);
-      border-bottom: 1px solid #2a3242;
-    }
-    .logo {
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      color: #f4c430;
-    }
-    .user-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      color: #ccc;
-    }
-    .user-box img {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 1px solid #444;
-    }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 30px 20px 60px;
-    }
-    h1 {
-      color: #f4c430;
-      margin: 20px 0 10px;
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin: 20px 0;
-    }
-    .tab {
-      padding: 8px 14px;
-      border: 1px solid #2a3242;
-      border-radius: 20px;
-      cursor: pointer;
-      opacity: 0.8;
-    }
-    .tab.active {
-      border-color: #f4c430;
-      color: #f4c430;
-      opacity: 1;
-    }
-    .list {
-      display: grid;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .row {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
-      gap: 10px;
-      align-items: center;
-      background: linear-gradient(180deg, #1f2736, #161b26);
-      border: 1px solid #2a3242;
-      border-radius: 12px;
-      padding: 12px 14px;
-    }
-    .badge {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      border: 1px solid #444;
-      width: fit-content;
-    }
+    body { margin: 0; font-family: Pretendard, system-ui, sans-serif; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: linear-gradient(135deg, #1f2933, #121721); border-bottom: 1px solid #2a3242; }
+    .logo { font-weight: 900; letter-spacing: 0.5px; color: #f4c430; }
+    .user-box { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc; }
+    .user-box img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #444; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px 60px; }
+    h1 { color: #f4c430; margin: 20px 0 10px; }
+    .tabs { display: flex; gap: 10px; margin: 20px 0; }
+    .tab { padding: 8px 14px; border: 1px solid #2a3242; border-radius: 20px; cursor: pointer; opacity: 0.8; }
+    .tab.active { border-color: #f4c430; color: #f4c430; opacity: 1; }
+    .list { display: grid; gap: 10px; margin-top: 10px; }
+    .row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.2fr; gap: 10px; align-items: center; background: linear-gradient(180deg, #1f2736, #161b26); border: 1px solid #2a3242; border-radius: 12px; padding: 12px 14px; }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; border: 1px solid #444; width: fit-content; }
     .badge.pending { border-color: #777; }
     .badge.member { border-color: #4caf50; color: #9be7a5; }
     .badge.admin { border-color: #f4c430; color: #f4c430; }
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    button {
-      background: transparent;
-      border: 1px solid #555;
-      color: #ccc;
-      border-radius: 16px;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-    button.primary {
-      border-color: #4caf50;
-      color: #9be7a5;
-    }
-    button.warn {
-      border-color: #f4c430;
-      color: #f4c430;
-    }
-    button.danger {
-      border-color: #e57373;
-      color: #e57373;
-    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button { background: transparent; border: 1px solid #555; color: #ccc; border-radius: 16px; padding: 6px 12px; cursor: pointer; }
+    button.primary { border-color: #4caf50; color: #9be7a5; }
+    button.warn { border-color: #f4c430; color: #f4c430; }
+    button.danger { border-color: #e57373; color: #e57373; }
     button:hover { opacity: 0.85; }
-    .footer {
-      opacity: 0.5;
-      font-size: 12px;
-      margin-top: 30px;
-      text-align: center;
-    }
+    .footer { opacity: 0.5; font-size: 12px; margin-top: 30px; text-align: center; }
   </style>
 </head>
 <body>
-
-  
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
-
-  <div class="container">
-    <h1>유저 관리</h1>
-    <div class="tabs">
-      <div class="tab active" data-role="all" onclick="filterRole('all')">전체</div>
-      <div class="tab" data-role="pending" onclick="filterRole('pending')">대기</div>
-      <div class="tab" data-role="member" onclick="filterRole('member')">멤버</div>
-      <div class="tab" data-role="admin" onclick="filterRole('admin')">관리자</div>
-    </div>
-
-    <div id="list" class="list"></div>
-
-    <div class="footer">
-      ROIDER Guild Admin Console
-    </div>
+  <div class="logo" id="appTitle">ROIDER</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">Loading...</span>
+    <button class="logout" onclick="logout()">Logout</button>
   </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-      authDomain: "roider-guild-management.firebaseapp.com",
-      projectId: "roider-guild-management",
-      storageBucket: "roider-guild-management.firebasestorage.app",
-      messagingSenderId: "1012249034459",
-      appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let meRole = null;
-    let currentFilter = "all";
-    let unsubscribe = null;
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        location.replace("login.html");
-        return;
-      }
-
-      const meRef = db.collection("users").doc(user.uid);
-      const meSnap = await meRef.get();
-
-      if (!meSnap.exists || meSnap.data().role !== "admin") {
-        alert("관리자만 접근할 수 있습니다.");
-        location.replace("main.html");
-        return;
-      }
-
-      const me = meSnap.data();
-      document.getElementById("meName").textContent = me.nickname || user.displayName || user.email || "Admin";
-      if (user.photoURL) document.getElementById("mePhoto").src = user.photoURL;
-
-      // 실시간 유저 목록 구독
-      subscribeUsers();
-    });
-
-    function subscribeUsers() {
-      if (unsubscribe) unsubscribe();
-
-      unsubscribe = db.collection("users").onSnapshot((snap) => {
-        const rows = [];
-        snap.forEach(doc => {
-          const data = doc.data();
-          const role = data.role || "pending";
-          if (currentFilter !== "all" && role !== currentFilter) return;
-
-          rows.push(renderRow(doc.id, data));
-        });
-
-        const list = document.getElementById("list");
-        list.innerHTML = rows.join("") || "<p style='opacity:.6'>표시할 유저가 없습니다.</p>";
+</header>
+<div class="container">
+  <h1>유저 관리</h1>
+  <div class="tabs">
+    <div class="tab active" data-role="all" onclick="filterRole('all')">전체</div>
+    <div class="tab" data-role="pending" onclick="filterRole('pending')">대기</div>
+    <div class="tab" data-role="member" onclick="filterRole('member')">멤버</div>
+    <div class="tab" data-role="admin" onclick="filterRole('admin')">관리자</div>
+  </div>
+  <div id="list" class="list"></div>
+  <div class="footer">ROIDER Guild Admin Console</div>
+</div>
+<script>
+  const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management", storageBucket: "roider-guild-management.firebasestorage.app", messagingSenderId: "1012249034459", appId: "1:1012249034459:web:ec0f821f29170446af96fe" };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  document.addEventListener("DOMContentLoaded", () => {
+    const title = document.getElementById("appTitle");
+    if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
+  });
+  let currentFilter = "all";
+  let unsubscribe = null;
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { location.replace("login.html"); return; }
+    const userPhoto = document.getElementById("userPhoto");
+    const userName = document.getElementById("userName");
+    if (user.photoURL) userPhoto.src = user.photoURL;
+    const meRef = db.collection("users").doc(user.uid);
+    const meSnap = await meRef.get();
+    if (!meSnap.exists || meSnap.data().role !== "admin") {
+      alert("관리자만 접근할 수 있습니다.");
+      location.replace("main.html");
+      return;
+    }
+    const me = meSnap.data();
+    userName.innerText = me.nickname || user.displayName || user.email || "Admin";
+    subscribeUsers();
+  });
+  function subscribeUsers() {
+    if (unsubscribe) unsubscribe();
+    unsubscribe = db.collection("users").onSnapshot((snap) => {
+      const rows = [];
+      snap.forEach(doc => {
+        const data = doc.data();
+        const role = data.role || "pending";
+        if (currentFilter !== "all" && role !== currentFilter) return;
+        rows.push(renderRow(doc.id, data));
       });
-    }
-
-    function renderRow(uid, data) {
-      const nickname = data.nickname || "(닉네임 없음)";
-      const email = data.email || "-";
-      const role = data.role || "pending";
-
-      return `
-        <div class="row">
-          <div>
-            <div><b>${nickname}</b></div>
-            <div style="opacity:.6; font-size:12px">${email}</div>
-          </div>
-          <div><span class="badge ${role}">${role}</span></div>
-          <div class="actions">
-            ${role !== "member" ? `<button class="primary" onclick="setRole('${uid}','member')">멤버 승인</button>` : ""}
-            ${role !== "admin" ? `<button class="warn" onclick="setRole('${uid}','admin')">관리자</button>` : ""}
-            ${role !== "pending" ? `<button class="danger" onclick="setRole('${uid}','pending')">대기</button>` : ""}
-          </div>
-          <div style="font-size:12px; opacity:.5">${uid.slice(0,6)}...</div>
-        </div>
-      `;
-    }
-
-    async function setRole(uid, role) {
-      if (!confirm(`권한을 '${role}'(으)로 변경할까요?`)) return;
-      await db.collection("users").doc(uid).set({ role }, { merge: true });
-    }
-
-    function filterRole(role) {
-      currentFilter = role;
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.querySelector(`.tab[data-role="${role}"]`).classList.add("active");
-      subscribeUsers();
-    }
-
-    function logout() {
-      auth.signOut().then(() => location.replace("login.html"));
-    }
-  </script>
-
-</body>
-</html>
+      const list = document.getElementById("list");
+      list.innerHTML = rows.join("") || "<p style='opacity:.6'>표시할 유저가 없습니다.</p>";
+    });
+  }
+  function renderRow(uid, data) {
+    const nickname = data.nickname || "(닉네임 없음)";
+    const email = data.email || "-";
+    const role = data.role || "pending";
+    return `<div class="row"><div><div><b>${nickname}</b></div><div style="opacity:.6; font-size:12px">${email}</div></div><div><span class="badge ${role}">${role}</span></div><div class="actions">${role !== "member" ? `<button class="primary" onclick="setRole('${uid}','member')">멤버 승인</button>` : ""}${role !== "admin" ? `<button class="warn" onclick="setRole('${uid}','admin')">관리자</button>` : ""}${role !== "pending" ? `<button class="danger" onclick="setRole('${uid}','pending')">대기</button>` : ""}</div><div style="font-size:12px; opacity:.5">${uid.slice(0,6)}...</div></div>`;
+  }
+  async function setRole(uid, role) {
+    if (!confirm(`권한을 '${role}'(으)로 변경할까요?`)) return;
+    await db.collection("users").doc(uid).set({ role }, { merge: true });
+  }
+  function filterRole(role) {
+    currentFilter = role;
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelector(`.tab[data-role="${role}"]`).classList.add("active");
+    subscribeUsers();
+  }
+  function logout() { auth.signOut().then(() => location.replace("login.html")); }
+</script>
+</body></html>
