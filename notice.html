@@ -1,137 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK Journey: Homestead ROIDER Guild Management</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+  <meta charset="UTF-8">
+  <title>NOTICE</title>
   <style>
-    body { margin:0; font-family:Pretendard, system-ui; background:#0f1015; color:#e6e6e6; }
-    header { padding:14px 20px; background:#121721; display:flex; justify-content:space-between; align-items:center; }
-    .logo { color:#f4c430; font-weight:900; }
-    .container { max-width:1000px; margin:0 auto; padding:30px 20px; }
-    h1 { color:#f4c430; }
-    .card { background:#1c1f2a; border-radius:14px; padding:20px; margin-bottom:20px; border:1px solid #2a3242; }
-    textarea { width:100%; min-height:80px; padding:10px; border-radius:8px; background:#121721; color:white; border:1px solid #444; }
-    button { padding:8px 14px; border-radius:10px; border:none; background:#f4c430; color:#000; font-weight:bold; cursor:pointer; }
-    .notice-item { padding:12px; border-bottom:1px solid #333; }
-    .notice-header { display:flex; justify-content:space-between; font-size:13px; opacity:.7; }
-    .delete-btn { background:#ff5252; color:white; font-size:12px; margin-left:10px; }
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 20px; background:linear-gradient(135deg,#1f2933,#121721);
+      border-bottom:1px solid #2a3242;
+    }
+    .logo { font-weight:900; color:#f4c430; cursor:pointer; }
+    .user-box { display:flex; gap:10px; align-items:center; color:#ccc; }
+    .user-box img { width:32px; height:32px; border-radius:50%; border:1px solid #444; }
+    .logout { background:transparent; border:1px solid #555; color:#ccc; border-radius:20px; padding:6px 14px; }
   </style>
 </head>
 <body>
+  <div id="header"></div>
+  <script>
+    fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h);
+    function logout(){ location.href="login.html"; }
+  </script>
 
-<header>
-  <div class="logo" style="cursor:pointer"
-       onclick="location.href='main.html'">
-    AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템
-  </div>
-  <div>
-    <span id="userName"></span>
-    <button onclick="logout()">Logout</button>
-  </div>
-</header>
-
-<div class="container">
-  <h1 id="pageTitle">📢 공지사항</h1>
-
-  <div class="card" id="adminWrite" style="display:none;">
-    <h3>✏️ 공지 작성</h3>
-    <textarea id="noticeInput" placeholder="공지 내용을 입력하세요"></textarea>
-    <button onclick="addNotice()">등록</button>
-  </div>
-
-  <div class="card">
-    <h3>📌 공지 목록</h3>
-    <div id="noticeList"></div>
-  </div>
-</div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-    authDomain: "roider-guild-management.firebaseapp.com",
-    projectId: "roider-guild-management",
-    storageBucket: "roider-guild-management.firebasestorage.app",
-    messagingSenderId: "1012249034459",
-    appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-    measurementId: "G-J7W4LFLHPP"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  const lang = navigator.language.startsWith("ko") ? "ko" : "en";
-  const titleText = lang === "ko"
-    ? "AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템"
-    : "AFK Journey: Homestead ROIDER Guild Management";
-
-  document.title = titleText;
-  document.getElementById("appTitle").innerText = titleText;
-  document.getElementById("pageTitle").innerText = lang === "ko" ? "📢 공지사항" : "Notices";
-
-  let isAdmin = false;
-
-  auth.onAuthStateChanged(async user => {
-    if (!user) location.href = "login.html";
-
-    document.getElementById("userName").innerText = user.displayName || user.email;
-
-    const snap = await db.collection("roles").doc(user.uid).get();
-    isAdmin = snap.exists && snap.data().role === "admin";
-    if (isAdmin) document.getElementById("adminWrite").style.display = "block";
-
-    loadNotices();
-  });
-
-  async function loadNotices() {
-    const list = document.getElementById("noticeList");
-    list.innerHTML = "";
-
-    const snap = await db.collection("notices").orderBy("createdAt", "desc").get();
-    snap.forEach(doc => {
-      const d = doc.data();
-      const div = document.createElement("div");
-      div.className = "notice-item";
-      div.innerHTML = `
-        <div class="notice-header">
-          <span>${new Date(d.createdAt.seconds*1000).toLocaleString()}</span>
-          ${isAdmin ? `<button class="delete-btn" onclick="deleteNotice('${doc.id}')">삭제</button>` : ""}
-        </div>
-        <div>${d.text}</div>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  async function addNotice() {
-    const text = document.getElementById("noticeInput").value.trim();
-    if (!text) return;
-
-    await db.collection("notices").add({
-      text,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    document.getElementById("noticeInput").value = "";
-    loadNotices();
-  }
-
-  async function deleteNotice(id) {
-    if (!confirm("삭제하시겠습니까?")) return;
-    await db.collection("notices").doc(id).delete();
-    loadNotices();
-  }
-
-  function logout() {
-    auth.signOut().then(()=>location.href="login.html");
-  }
-</script>
+  <main style="padding:40px;color:white;">
+    <h1>NOTICE</h1>
+    <p>이 페이지는 공통 헤더가 적용된 예시 페이지입니다.</p>
+  </main>
 </body>
 </html>

@@ -1,229 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK Journey: Homestead ROIDER Guild Management</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+  <meta charset="UTF-8">
+  <title>MAIN</title>
   <style>
-    :root {
-      --bg: #0f1015;
-      --card: #1c1f2a;
-      --accent: #f4c430;
-      --text: #e6e6e6;
-    }
-    body {
-      margin: 0;
-      font-family: Pretendard, system-ui, sans-serif;
-      background: radial-gradient(circle at top, #1b2333, #0f1015 60%);
-      color: var(--text);
-      min-height: 100vh;
-    }
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 20px;
-      background: linear-gradient(135deg, #1f2933, #121721);
-      border-bottom: 1px solid #2a3242;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 20px; background:linear-gradient(135deg,#1f2933,#121721);
+      border-bottom:1px solid #2a3242;
     }
-    .logo {
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      color: var(--accent);
-      text-shadow: 0 0 10px rgba(244,196,48,0.3);
-    }
-    .user-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      color: #ccc;
-    }
-    .user-box img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 1px solid #444;
-    }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      text-align: center;
-    }
-    .hero {
-      margin-top: 40px;
-      margin-bottom: 30px;
-    }
-    .hero h1 {
-      font-size: 2rem;
-      margin-bottom: 12px;
-      color: var(--accent);
-    }
-    .hero p { opacity: 0.8; }
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-top: 40px;
-    }
-    .menu-card {
-      background: linear-gradient(180deg, #1f2736, #161b26);
-      border: 1px solid #2a3242;
-      border-radius: 14px;
-      padding: 24px 10px;
-      cursor: pointer;
-      transition: 0.25s;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-    }
-    .menu-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      border-color: var(--accent);
-      box-shadow: 0 10px 30px rgba(244,196,48,0.25);
-    }
-    .menu-card span {
-      display: block;
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-    .footer {
-      margin-top: 60px;
-      text-align: center;
-      font-size: 12px;
-      opacity: 0.5;
-    }
-    button.logout {
-      background: transparent;
-      border: 1px solid #555;
-      color: #ccc;
-      border-radius: 20px;
-      padding: 6px 14px;
-      cursor: pointer;
-    }
-    button.logout:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* 관리자 전용 패널 */
-    .admin-panel {
-      margin-top: 30px;
-      padding: 20px;
-      border: 1px dashed #3a4256;
-      border-radius: 12px;
-      display: none;
-    }
-    .admin-panel h3 {
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
+    .logo { font-weight:900; color:#f4c430; cursor:pointer; }
+    .user-box { display:flex; gap:10px; align-items:center; color:#ccc; }
+    .user-box img { width:32px; height:32px; border-radius:50%; border:1px solid #444; }
+    .logout { background:transparent; border:1px solid #555; color:#ccc; border-radius:20px; padding:6px 14px; }
   </style>
 </head>
 <body>
-
-<header>
-  <div class="logo" id="appTitle" style="cursor:pointer"
-       onclick="location.href='main.html'">
-    AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템
-  </div>
-  <div class="user-box">
-    <img id="userPhoto" src="https://api.dicebear.com/7.x/bottts/svg?seed=roider" />
-    <span id="userName">Loading...</span>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
-</header>
-
-  <div class="container">
-    <div class="hero">
-      <h1 id="heroTitle">AFK Journey: Homestead ROIDER Guild Management</h1>
-      <p id="heroDesc">Guild Operation & Weekly Management System</p>
-    </div>
-
-    <div class="menu-grid">
-      <div class="menu-card" onclick="go('notice.html')"><span>📢</span> 공지</div>
-      <div class="menu-card" onclick="go('members.html')"><span>👥</span> 길드원</div>
-      <div class="menu-card" onclick="go('attendance.html')"><span>📅</span> 출석부</div>
-      <div class="menu-card" onclick="go('weekly.html')"><span>🏆</span> 주간결산</div>
-      <div class="menu-card" onclick="go('war.html')"><span>⚔️</span> 대항전</div>
-    </div>
-
-    <!-- ✅ 관리자 전용 영역 -->
-    <div id="adminPanel" class="admin-panel">
-      <h3>관리자 전용 메뉴</h3>
-      <p>여기에 승인 관리, 공지 작성, 설정 메뉴 등을 추가할 수 있습니다.</p>
-      <!-- 예시 버튼 -->
-      <button onclick="location.href='admin.html'">관리자 기능</button>
-    </div>
-
-    <div class="footer">
-      AFK Journey Fanmade Tool · ROIDER Guild
-    </div>
-  </div>
-
+  <div id="header"></div>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-      authDomain: "roider-guild-management.firebaseapp.com",
-      projectId: "roider-guild-management",
-      storageBucket: "roider-guild-management.firebasestorage.app",
-      messagingSenderId: "1012249034459",
-      appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-      measurementId: "G-J7W4LFLHPP"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        location.replace("login.html");
-        return;
-      }
-
-      const docRef = db.collection("users").doc(user.uid);
-      const docSnap = await docRef.get();
-
-      // ❌ 승인 안 된 유저는 메인 접근 불가
-      if (!docSnap.exists || !["admin", "member"].includes(docSnap.data().role)) {
-        location.replace("pending.html");
-        return;
-      }
-
-      const data = docSnap.data();
-      const nameEl = document.getElementById("userName");
-      const photoEl = document.getElementById("userPhoto");
-
-      // 닉네임 표시
-      const nickname = data.nickname;
-      nameEl.textContent = nickname || user.displayName || user.email || "User";
-      if (nickname) localStorage.setItem("nickname", nickname);
-
-      // 프로필 이미지
-      if (user.photoURL) {
-        photoEl.src = user.photoURL;
-      }
-
-      // ✅ 관리자 전용 UI 표시
-      if (data.role === "admin") {
-        document.getElementById("adminPanel").style.display = "block";
-      }
-    });
-
-    function logout() {
-      auth.signOut().then(() => location.replace("login.html"));
-    }
-
-    function go(url) {
-      location.href = url;
-    }
+    fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h);
+    function logout(){ location.href="login.html"; }
   </script>
 
+  <main style="padding:40px;color:white;">
+    <h1>MAIN</h1>
+    <p>이 페이지는 공통 헤더가 적용된 예시 페이지입니다.</p>
+  </main>
 </body>
 </html>

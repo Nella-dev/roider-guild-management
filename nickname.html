@@ -1,64 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>닉네임 설정</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-<style>
-  body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; }
-  .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; width:320px; }
-  input, button { width:100%; padding:12px; margin-top:10px; border-radius:8px; border:none; }
-  button { background:#f4c430; font-weight:bold; cursor:pointer; }
-</style>
+  <meta charset="UTF-8">
+  <title>NICKNAME</title>
+  <style>
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 20px; background:linear-gradient(135deg,#1f2933,#121721);
+      border-bottom:1px solid #2a3242;
+    }
+    .logo { font-weight:900; color:#f4c430; cursor:pointer; }
+    .user-box { display:flex; gap:10px; align-items:center; color:#ccc; }
+    .user-box img { width:32px; height:32px; border-radius:50%; border:1px solid #444; }
+    .logout { background:transparent; border:1px solid #555; color:#ccc; border-radius:20px; padding:6px 14px; }
+  </style>
 </head>
 <body>
+  <div id="header"></div>
+  <script>
+    fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h);
+    function logout(){ location.href="login.html"; }
+  </script>
 
-<div class="card">
-  <h2>닉네임 설정</h2>
-  <input id="nicknameInput" placeholder="게임 닉네임 입력" />
-  <button onclick="saveNickname()">저장</button>
-</div>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-auth.onAuthStateChanged((user) => {
-  if (!user) location.replace("login.html");
-});
-
-async function saveNickname() {
-  const user = auth.currentUser;
-  const nickname = document.getElementById("nicknameInput").value.trim();
-  if (!nickname) return alert("닉네임을 입력하세요.");
-
-  // ✅ 로컬에도 닉네임 저장 (메인 화면 표시용)
-localStorage.setItem("nickname", nickname);
-
-// ✅ Firestore 저장 (문서 없을 수도 있으니 set + merge 권장)
-await db.collection("users").doc(user.uid).set({
-  nickname: nickname,
-  role: "pending"
-}, { merge: true });
-
-location.replace("pending.html");
-}
-</script>
-
+  <main style="padding:40px;color:white;">
+    <h1>NICKNAME</h1>
+    <p>이 페이지는 공통 헤더가 적용된 예시 페이지입니다.</p>
+  </main>
 </body>
 </html>

@@ -1,42 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>주간 분배 이력</title>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<style>
-body { background:#0f1015; color:#fff; font-family:Pretendard; margin:0; padding:30px;}
-.card { background:#1c1f2a; padding:15px; border-radius:10px; margin-bottom:15px;}
-</style>
+  <meta charset="UTF-8">
+  <title>HISTORY</title>
+  <style>
+    header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:14px 20px; background:linear-gradient(135deg,#1f2933,#121721);
+      border-bottom:1px solid #2a3242;
+    }
+    .logo { font-weight:900; color:#f4c430; cursor:pointer; }
+    .user-box { display:flex; gap:10px; align-items:center; color:#ccc; }
+    .user-box img { width:32px; height:32px; border-radius:50%; border:1px solid #444; }
+    .logout { background:transparent; border:1px solid #555; color:#ccc; border-radius:20px; padding:6px 14px; }
+  </style>
 </head>
 <body>
+  <div id="header"></div>
+  <script>
+    fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h);
+    function logout(){ location.href="login.html"; }
+  </script>
 
-<h1>📜 주간 분배 이력</h1>
-<div id="list"></div>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-db.collection("weekly_results").orderBy("createdAt", "desc").onSnapshot(snap => {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  snap.forEach(doc => {
-    const d = doc.data();
-    let html = `<div class="card"><h3>${d.week}</h3>`;
-    Object.entries(d.result).forEach(([name, chest]) => {
-      html += `<div>${name} : ${chest}개</div>`;
-    });
-    html += `</div>`;
-    list.innerHTML += html;
-  });
-});
-</script>
+  <main style="padding:40px;color:white;">
+    <h1>HISTORY</h1>
+    <p>이 페이지는 공통 헤더가 적용된 예시 페이지입니다.</p>
+  </main>
 </body>
 </html>
