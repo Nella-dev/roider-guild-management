@@ -11,11 +11,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
+    :root {
+      --bg: #0f1015;
+      --card: #1c1f2a;
+      --accent: #f4c430;
+      --text: #e6e6e6;
+    }
     body {
       margin: 0;
       font-family: Pretendard, system-ui, sans-serif;
       background: radial-gradient(circle at top, #1b2333, #0f1015 60%);
-      color: #e6e6e6;
+      color: var(--text);
       min-height: 100vh;
     }
     header {
@@ -29,7 +35,8 @@
     .logo {
       font-weight: 900;
       letter-spacing: 0.5px;
-      color: #f4c430;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(244,196,48,0.3);
     }
     .user-box {
       display: flex;
@@ -39,100 +46,88 @@
       color: #ccc;
     }
     .user-box img {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 1px solid #444;
     }
     .container {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 30px 20px 60px;
+      padding: 40px 20px;
+      text-align: center;
     }
-    h1 {
-      color: #f4c430;
-      margin: 20px 0 10px;
+    .hero {
+      margin-top: 40px;
+      margin-bottom: 30px;
     }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin: 20px 0;
+    .hero h1 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      color: var(--accent);
     }
-    .tab {
-      padding: 8px 14px;
-      border: 1px solid #2a3242;
-      border-radius: 20px;
-      cursor: pointer;
-      opacity: 0.8;
-    }
-    .tab.active {
-      border-color: #f4c430;
-      color: #f4c430;
-      opacity: 1;
-    }
-    .list {
+    .hero p { opacity: 0.8; }
+    .menu-grid {
       display: grid;
-      gap: 10px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
     }
-    .row {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
-      gap: 10px;
-      align-items: center;
+    .menu-card {
       background: linear-gradient(180deg, #1f2736, #161b26);
       border: 1px solid #2a3242;
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 14px;
+      padding: 24px 10px;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
-    .badge {
-      padding: 4px 10px;
-      border-radius: 999px;
+    .menu-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: var(--accent);
+      box-shadow: 0 10px 30px rgba(244,196,48,0.25);
+    }
+    .menu-card span {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .footer {
+      margin-top: 60px;
+      text-align: center;
       font-size: 12px;
-      border: 1px solid #444;
-      width: fit-content;
+      opacity: 0.5;
     }
-    .badge.pending { border-color: #777; }
-    .badge.member { border-color: #4caf50; color: #9be7a5; }
-    .badge.admin { border-color: #f4c430; color: #f4c430; }
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    button {
+    button.logout {
       background: transparent;
       border: 1px solid #555;
       color: #ccc;
-      border-radius: 16px;
-      padding: 6px 12px;
+      border-radius: 20px;
+      padding: 6px 14px;
       cursor: pointer;
     }
-    button.primary {
-      border-color: #4caf50;
-      color: #9be7a5;
+    button.logout:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
-    button.warn {
-      border-color: #f4c430;
-      color: #f4c430;
-    }
-    button.danger {
-      border-color: #e57373;
-      color: #e57373;
-    }
-    button:hover { opacity: 0.85; }
-    .footer {
-      opacity: 0.5;
-      font-size: 12px;
+
+    /* 관리자 전용 패널 */
+    .admin-panel {
       margin-top: 30px;
-      text-align: center;
+      padding: 20px;
+      border: 1px dashed #3a4256;
+      border-radius: 12px;
+      display: none;
+    }
+    .admin-panel h3 {
+      color: var(--accent);
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  
-<header>
+  <header>
   <div class="logo" id="appTitle" style="cursor:pointer" onclick="location.href='main.html'">
     AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템
   </div>
@@ -142,7 +137,6 @@
     <button class="logout" onclick="logout()">Logout</button>
   </div>
 </header>
-
 
   <div class="container">
     <h1>유저 관리</h1>
