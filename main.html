@@ -134,7 +134,9 @@
   <header>
     <div class="logo" id="appTitle">ROIDER</div>
     <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
+      <img id="userPhoto"
+     src="https://api.dicebear.com/7.x/bottts/svg?seed=roider"
+     alt="profile" />
       <span id="userName">Loading...</span>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
@@ -169,8 +171,8 @@
     </div>
   </div>
 
-  <script>
-  // Firebase 설정 (네가 준 값)
+<script>
+  // Firebase 설정 (기존 그대로)
   const firebaseConfig = {
     apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
     authDomain: "roider-guild-management.firebaseapp.com",
@@ -185,72 +187,50 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // 국가 기반 언어 자동 설정
-  const userLang = navigator.language || navigator.userLanguage;
-  const lang = userLang.startsWith("ko") ? "ko" : "en";
+  // DOM 준비 보장
+  window.addEventListener("DOMContentLoaded", () => {
 
-  const titleText = (lang === "ko")
-    ? "AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템"
-    : "AFK Journey: Homestead ROIDER Guild Management";
+    auth.onAuthStateChanged(async (user) => {
+      const nameEl = document.getElementById("userName");
+      const photoEl = document.getElementById("userPhoto");
 
-  document.title = titleText;
-  document.getElementById("appTitle").innerText = titleText;
-  document.getElementById("heroTitle").innerText = titleText;
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
 
-  // 🔐 로그인 + 닉네임 + 승인 체크
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      location.href = "login.html";
-      return;
-    }
+      // 🔥 무조건 기본값 먼저 세팅 (Loading 제거)
+      nameEl.textContent = "User";
+      photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
 
-    // 사용자 기본 정보 표시
-  // ✅ 로컬 닉네임 우선 표시
-const localNickname = localStorage.getItem("nickname");
-document.getElementById("userName").innerText =
-  localNickname || user.displayName || user.email;
+      // ✅ 로컬 닉네임 우선
+      const localNickname = localStorage.getItem("nickname");
+      nameEl.textContent = localNickname || user.displayName || user.email || "User";
 
-// ✅ 프로필 이미지 깨짐 방지 (기본 이미지 fallback)
-const photoEl = document.getElementById("userPhoto");
-if (user.photoURL) {
-  photoEl.src = user.photoURL;
-} else {
-  photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
-}
+      // ✅ 프로필 이미지
+      if (user.photoURL) {
+        photoEl.src = user.photoURL;
+      }
 
-    // Firestore 등록 여부 확인
-    const docRef = db.collection("registered_devices").doc(user.uid);
-    const docSnap = await docRef.get();
+      // Firestore 승인 체크 (기존 로직 유지)
+      const docRef = db.collection("registered_devices").doc(user.uid);
+      const docSnap = await docRef.get();
 
-    // 닉네임 등록 안 됐으면 → 닉네임 등록 페이지
-    if (!docSnap.exists) {
-      location.href = "nickname.html";
-      return;
-    }
+      if (!docSnap.exists) {
+        location.href = "nickname.html";
+        return;
+      }
 
-    const data = docSnap.data();
+      const data = docSnap.data();
 
-    // 관리자 승인 대기
-    if (!data.approved) {
-      alert(lang === "ko"
-        ? "관리자 승인 대기 중입니다."
-        : "Waiting for admin approval."
-      );
-      location.href = "pending.html"; // 승인 대기 페이지 (없으면 만들어주면 됨)
-      return;
-    }
+      if (!data.approved) {
+        alert("관리자 승인 대기 중입니다.");
+        location.href = "pending.html";
+        return;
+      }
+    });
 
-    // 승인 완료 → 그냥 메인 UI 사용
-    console.log("승인 완료, 메인 접근 허용");
   });
-
-  function logout() {
-    auth.signOut().then(() => location.href = "login.html");
-  }
-
-  function go(url) {
-    location.href = url;
-  }
 </script>
 
 </body>
