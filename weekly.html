@@ -19,7 +19,9 @@
 </style>
 
 <style>
-/* 🔒 Header profile image standard (force main style) */
+/* Header standardization */
+header { min-height: 60px; }
+header .user-box { align-items: center; }
 header .user-box img {
   width: 32px !important;
   height: 32px !important;
@@ -27,7 +29,6 @@ header .user-box img {
   object-fit: cover !important;
   border: 1px solid #444 !important;
 }
-/* 🔒 Logout button standard (prevent green override) */
 button.logout {
   background: transparent !important;
   border: 1px solid #555 !important;
@@ -90,6 +91,25 @@ function getWeekKey(){
 }
 async function loadWeekly(){
   weeklyAgg = {};
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate()-6);
+  const usersSnap = await db.collection("attendance_logs").get();
+  for (const userDoc of usersSnap.docs){
+    const uid = userDoc.id;
+    const daysSnap = await userDoc.ref.collection("days").get();
+    daysSnap.forEach(d=>{
+      const v = d.data();
+      const dt = new Date(v.date);
+      if (dt >= start && dt <= today){
+        if(!weeklyAgg[uid]) weeklyAgg[uid] = { laby:0, duel:0 };
+        weeklyAgg[uid].laby += v.laby||0;
+        weeklyAgg[uid].duel += v.duel||0;
+      }
+    });
+  }
+  document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
+};
   const today = new Date();
   for(let i=0;i<7;i++){
     const d = new Date(today); d.setDate(today.getDate()-i);
