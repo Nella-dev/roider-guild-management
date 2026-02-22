@@ -156,11 +156,12 @@
 
 <script>
 let selectedDate = null;
-let calendar;
+let calendar = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (!window.FullCalendar) {
-    alert("FullCalendar 로드 실패: fullcalendar/index.global.min.js 경로 확인하세요.");
+  if (!window.FullCalendar || !window.FullCalendar.Calendar) {
+    alert("FullCalendar 로드 실패!\n\nfullcalendar/index.global.min.js 경로를 확인하세요.");
+    console.error("FullCalendar is not loaded", window.FullCalendar);
     return;
   }
 
@@ -181,12 +182,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function openModal(dateStr) {
   selectedDate = dateStr;
   document.getElementById("modalDate").innerText = dateStr;
+  document.getElementById("laby").value = "";
+  document.getElementById("duel").value = "";
   document.getElementById("modal").style.display = "flex";
 }
 
 function saveScore() {
-  const laby = document.getElementById("laby").value;
-  const duel = document.getElementById("duel").value;
+  const laby = document.getElementById("laby").value || 0;
+  const duel = document.getElementById("duel").value || 0;
+
+  if (!calendar) {
+    alert("캘린더가 아직 로드되지 않았습니다.");
+    return;
+  }
 
   calendar.addEvent({
     title: `이계:${laby} / 명결:${duel}`,
