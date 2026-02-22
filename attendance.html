@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AFK: 새로운 여정 - ROIDER 출석부</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- Firebase (defer 적용) -->
+<script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<!-- FullCalendar -->
+<!-- FullCalendar (defer 적용) -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
 
 <link rel="stylesheet" href="header_standard.css">
 
@@ -70,142 +70,146 @@ const firebaseConfig = {
   appId: "1:1012249034459:web:ec0f821f29170446af96fe",
   measurementId: "G-J7W4LFLHPP"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
 let calendar;
 let selectedDate = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
   const title = document.getElementById("appTitle");
   if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
-});
 
-auth.onAuthStateChanged(async user => {
-  if (!user) { location.href = "login.html"; return; }
+  auth.onAuthStateChanged(async user => {
+    if (!user) { location.href = "login.html"; return; }
 
-  document.getElementById("loginStatus").innerText = "출석 등록 가능";
-  const userPhoto = document.getElementById("userPhoto");
-  const userName = document.getElementById("userName");
-  if (user.photoURL) userPhoto.src = user.photoURL;
+    document.getElementById("loginStatus").innerText = "출석 등록 가능";
+    const userPhoto = document.getElementById("userPhoto");
+    const userName = document.getElementById("userName");
+    if (user.photoURL) userPhoto.src = user.photoURL;
 
-  const snap = await db.collection("users").doc(user.uid).get();
-  if (snap.exists) {
-    const data = snap.data();
-    userName.innerText = data.nickname || user.displayName || user.email;
-  } else {
-    userName.innerText = user.displayName || user.email;
-  }
-
-  initCalendar(user.uid);
-  loadMyHistory(user.uid);
-});
-
-function initCalendar(uid) {
-  const calendarEl = document.getElementById("calendar");
-  calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: "dayGridMonth",
-    locale: "ko",
-    height: "auto",
-    dateClick: async (info) => {
-      selectedDate = info.dateStr;
-      document.getElementById("editBox").style.display = "block";
-      document.getElementById("editTitle").innerText = `${info.dateStr} 출석 입력`;
-
-      const snap = await db
-        .collection("attendance_logs")
-        .doc(uid)
-        .collection("days")
-        .doc(info.dateStr)
-        .get();
-
-      if (snap.exists) {
-        const d = snap.data();
-        document.getElementById("labyInput").value = d.laby || "";
-        document.getElementById("duelInput").value = d.duel || "";
-      } else {
-        document.getElementById("labyInput").value = "";
-        document.getElementById("duelInput").value = "";
-      }
+    const snap = await db.collection("users").doc(user.uid).get();
+    if (snap.exists) {
+      const data = snap.data();
+      userName.innerText = data.nickname || user.displayName || user.email;
+    } else {
+      userName.innerText = user.displayName || user.email;
     }
+
+    initCalendar(db, user.uid);
+    loadMyHistory(db, user.uid);
   });
 
-  calendar.render();
-  loadAttendanceEvents(uid);
-}
+  function initCalendar(db, uid) {
+    const calendarEl = document.getElementById("calendar");
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      locale: "ko",
+      height: "auto",
+      dateClick: async (info) => {
+        selectedDate = info.dateStr;
+        document.getElementById("editBox").style.display = "block";
+        document.getElementById("editTitle").innerText = `${info.dateStr} 출석 입력`;
 
-async function loadAttendanceEvents(uid) {
-  const snap = await db
-    .collection("attendance_logs")
-    .doc(uid)
-    .collection("days")
-    .get();
+        const snap = await db
+          .collection("attendance_logs")
+          .doc(uid)
+          .collection("days")
+          .doc(info.dateStr)
+          .get();
 
-  const events = [];
-  snap.forEach(doc => {
-    const d = doc.data();
-    events.push({
-      title: `이계:${d.laby || 0} / 명결:${d.duel || 0}`,
-      start: d.date,
-      allDay: true
+        if (snap.exists) {
+          const d = snap.data();
+          document.getElementById("labyInput").value = d.laby || "";
+          document.getElementById("duelInput").value = d.duel || "";
+        } else {
+          document.getElementById("labyInput").value = "";
+          document.getElementById("duelInput").value = "";
+        }
+      }
     });
-  });
 
-  calendar.removeAllEvents();
-  calendar.addEventSource(events);
-}
-
-async function saveAttendance() {
-  if (!selectedDate) return;
-
-  const laby = Number(document.getElementById("labyInput").value || 0);
-  const duel = Number(document.getElementById("duelInput").value || 0);
-  const uid = auth.currentUser.uid;
-
-  await db
-    .collection("attendance_logs")
-    .doc(uid)
-    .collection("days")
-    .doc(selectedDate)
-    .set({
-      date: selectedDate,
-      laby,
-      duel,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-
-  alert("저장 완료");
-  document.getElementById("editBox").style.display = "none";
-  await loadAttendanceEvents(uid);
-  await loadMyHistory(uid);
-}
-
-async function loadMyHistory(uid) {
-  const snap = await db
-    .collection("attendance_logs")
-    .doc(uid)
-    .collection("days")
-    .orderBy("date", "desc")
-    .limit(10)
-    .get();
-
-  const el = document.getElementById("myHistory");
-  if (snap.empty) {
-    el.innerText = "아직 출석 기록이 없습니다.";
-    return;
+    calendar.render();
+    loadAttendanceEvents(db, uid);
   }
 
-  el.innerHTML = "";
-  snap.forEach(d => {
-    const v = d.data();
-    const div = document.createElement("div");
-    div.innerText = `${v.date} | 이계 ${v.laby || 0} / 명결 ${v.duel || 0}`;
-    el.appendChild(div);
-  });
-}
+  async function loadAttendanceEvents(db, uid) {
+    const snap = await db
+      .collection("attendance_logs")
+      .doc(uid)
+      .collection("days")
+      .get();
 
-function logout(){ auth.signOut().then(()=>location.href="login.html"); }
+    const events = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      events.push({
+        title: `이계:${d.laby || 0} / 명결:${d.duel || 0}`,
+        start: d.date,
+        allDay: true
+      });
+    });
+
+    calendar.removeAllEvents();
+    calendar.addEventSource(events);
+  }
+
+  window.saveAttendance = async function saveAttendance() {
+    if (!selectedDate) return;
+
+    const laby = Number(document.getElementById("labyInput").value || 0);
+    const duel = Number(document.getElementById("duelInput").value || 0);
+    const user = auth.currentUser;
+    const uid = user.uid;
+
+    await db
+      .collection("attendance_logs")
+      .doc(uid)
+      .collection("days")
+      .doc(selectedDate)
+      .set({
+        date: selectedDate,
+        laby,
+        duel,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+
+    alert("저장 완료");
+    document.getElementById("editBox").style.display = "none";
+    await loadAttendanceEvents(db, uid);
+    await loadMyHistory(db, uid);
+  }
+
+  async function loadMyHistory(db, uid) {
+    const snap = await db
+      .collection("attendance_logs")
+      .doc(uid)
+      .collection("days")
+      .orderBy("date", "desc")
+      .limit(10)
+      .get();
+
+    const el = document.getElementById("myHistory");
+    if (snap.empty) {
+      el.innerText = "아직 출석 기록이 없습니다.";
+      return;
+    }
+
+    el.innerHTML = "";
+    snap.forEach(d => {
+      const v = d.data();
+      const div = document.createElement("div");
+      div.innerText = `${v.date} | 이계 ${v.laby || 0} / 명결 ${v.duel || 0}`;
+      el.appendChild(div);
+    });
+  }
+
+  window.logout = function logout(){
+    firebase.auth().signOut().then(()=>location.href="login.html");
+  }
+});
 </script>
 </body>
 </html>
