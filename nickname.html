@@ -47,12 +47,16 @@ async function saveNickname() {
   const nickname = document.getElementById("nicknameInput").value.trim();
   if (!nickname) return alert("닉네임을 입력하세요.");
 
-  await db.collection("users").doc(user.uid).update({
-    nickname: nickname,
-    role: "pending"
-  });
+  // ✅ 로컬에도 닉네임 저장 (메인 화면 표시용)
+localStorage.setItem("nickname", nickname);
 
-  location.replace("pending.html");
+// ✅ Firestore 저장 (문서 없을 수도 있으니 set + merge 권장)
+await db.collection("users").doc(user.uid).set({
+  nickname: nickname,
+  role: "pending"
+}, { merge: true });
+
+location.replace("pending.html");
 }
 </script>
 

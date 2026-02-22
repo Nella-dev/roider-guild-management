@@ -205,8 +205,18 @@
     }
 
     // 사용자 기본 정보 표시
-    document.getElementById("userName").innerText = user.displayName || user.email;
-    document.getElementById("userPhoto").src = user.photoURL || "";
+  // ✅ 로컬 닉네임 우선 표시
+const localNickname = localStorage.getItem("nickname");
+document.getElementById("userName").innerText =
+  localNickname || user.displayName || user.email;
+
+// ✅ 프로필 이미지 깨짐 방지 (기본 이미지 fallback)
+const photoEl = document.getElementById("userPhoto");
+if (user.photoURL) {
+  photoEl.src = user.photoURL;
+} else {
+  photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
+}
 
     // Firestore 등록 여부 확인
     const docRef = db.collection("registered_devices").doc(user.uid);
