@@ -1,0 +1,45 @@
+/* ===== Header Standard (Main 기준 통일) ===== */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  min-height: 64px;
+  background: #121721;
+  border-bottom: 1px solid #2a3242;
+}
+
+header .logo,
+#appTitle {
+  font-weight: 900;
+  letter-spacing: .5px;
+  cursor: pointer;
+}
+
+header .user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header .user-box img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #444;
+}
+
+header .user-box span {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+button.logout {
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+  font-weight: 600;
+}

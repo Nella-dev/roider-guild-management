@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+     <link rel="stylesheet" href="header_standard.css">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
@@ -124,7 +125,7 @@ async function loadWeekly(){
     });
   }
   document.getElementById("weeklyData").innerText = JSON.stringify(weeklyAgg, null, 2);
-}
+
 function calculate(){
   if(!isAdmin){ alert("관리자만 분배 가능합니다."); return; }
   const total = Number(document.getElementById("totalChest").value||0);
