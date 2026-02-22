@@ -191,44 +191,46 @@
   window.addEventListener("DOMContentLoaded", () => {
 
     auth.onAuthStateChanged(async (user) => {
-      const nameEl = document.getElementById("userName");
-      const photoEl = document.getElementById("userPhoto");
+  const nameEl = document.getElementById("userName");
+  const photoEl = document.getElementById("userPhoto");
 
-      if (!user) {
-        location.href = "login.html";
-        return;
-      }
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
 
-      // 🔥 무조건 기본값 먼저 세팅 (Loading 제거)
-      nameEl.textContent = "User";
-      photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
+  // 🔥 기본값으로 Loading 제거
+  nameEl.textContent = "User";
+  photoEl.src = "https://api.dicebear.com/7.x/bottts/svg?seed=roider";
 
-      // ✅ 로컬 닉네임 우선
-      const localNickname = localStorage.getItem("nickname");
-      nameEl.textContent = localNickname || user.displayName || user.email || "User";
+  // ✅ 닉네임 표시 (로컬 우선)
+  const localNickname = localStorage.getItem("nickname");
+  nameEl.textContent = localNickname || user.displayName || user.email || "User";
 
-      // ✅ 프로필 이미지
-      if (user.photoURL) {
-        photoEl.src = user.photoURL;
-      }
+  if (user.photoURL) {
+    photoEl.src = user.photoURL;
+  }
 
-      // Firestore 승인 체크 (기존 로직 유지)
-      const docRef = db.collection("registered_devices").doc(user.uid);
-      const docSnap = await docRef.get();
+  // 🔧 Firestore 컬렉션 통일 (users)
+  const docRef = db.collection("users").doc(user.uid);
+  const docSnap = await docRef.get();
 
-      if (!docSnap.exists) {
-        location.href = "nickname.html";
-        return;
-      }
+  if (!docSnap.exists) {
+    location.href = "nickname.html";
+    return;
+  }
 
-      const data = docSnap.data();
+  const data = docSnap.data();
 
-      if (!data.approved) {
-        alert("관리자 승인 대기 중입니다.");
-        location.href = "pending.html";
-        return;
-      }
-    });
+  // 🔧 승인 로직 통일
+  if (data.role !== "approved") {
+    alert("관리자 승인 대기 중입니다.");
+    location.href = "pending.html";
+    return;
+  }
+
+  console.log("승인 완료, 메인 접근 허용");
+});
 
   });
 </script>
