@@ -5,33 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ROIDER 출석부</title>
 
-<script src="./assets/fullcalendar/index.global.min.js"></script>
+<link rel="stylesheet" href="./fullcalendar.min.css">
+<script src="./fullcalendar.min.js"></script>
 
 <style>
 body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
-header{height:72px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#1b2431,#0f131b);border-bottom:1px solid #2a3242}
+header{
+  height:72px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,#1b2431,#0f131b);border-bottom:1px solid #2a3242
+}
 .logo{font-size:22px;font-weight:900;color:#ffc928;cursor:pointer}
 .wrap{max-width:1200px;margin:0 auto;padding:20px}
-.card{background:linear-gradient(180deg,#1b1f2b,#151924);border:1px solid #2a3242;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
-.fc-daygrid-day-frame{position:relative}
-.attend-btn{
-  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
-  padding:6px 10px;border-radius:10px;
-  background:#ffc928;color:#000;font-weight:900;font-size:12px;
-  cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.4);
-  transition:.15s
+.card{
+  background:linear-gradient(180deg,#1b1f2b,#151924);
+  border:1px solid #2a3242;border-radius:16px;padding:18px;margin-bottom:16px
 }
-.attend-btn:hover{transform:translateX(-50%) translateY(-1px)}
-.attend-btn:active{transform:translateX(-50%) translateY(1px) scale(.96)}
 
-.attend-past{background:#666;color:#ccc}
+/* 출석 버튼 */
+.attend-btn{
+  margin-top:8px;
+  width:100%;
+  padding:8px 0;
+  font-size:13px;
+  font-weight:900;
+  border-radius:8px;
+  border:2px solid #ffc928;
+  background:linear-gradient(180deg,#ffd84d,#ffb700);
+  color:#000;
+  cursor:pointer;
+}
+.attended{background:#2a3242!important;border-color:#555!important;color:#aaa!important;cursor:default!important}
+.past{background:#666!important;border-color:#999!important;color:#000!important}
 
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999}
-.modal{width:360px;background:#151924;border:1px solid #2a3242;border-radius:16px;padding:20px;position:relative}
-.modal h3{margin:0 0 12px}
-.modal input{width:100%;padding:10px;border-radius:10px;border:none;background:#0f1015;color:#fff;margin-bottom:10px}
-.modal button{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#ffd84d,#ffb700);font-weight:900;cursor:pointer}
-.modal .close{position:absolute;top:10px;right:12px;font-size:20px;cursor:pointer}
+/* 모달 */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;z-index:999
+}
+.modal{
+  width:360px;background:#151924;border:1px solid #2a3242;border-radius:16px;padding:20px;position:relative
+}
+.modal h3{margin:0 0 10px}
+.modal input{
+  width:100%;padding:10px;border-radius:8px;border:none;background:#0f1015;color:#fff;margin-bottom:10px
+}
+.modal button{
+  width:100%;padding:12px;border-radius:10px;border:none;
+  background:linear-gradient(180deg,#ffd84d,#ffb700);font-weight:900;cursor:pointer
+}
+.modal-close{
+  position:absolute;right:10px;top:8px;font-size:18px;cursor:pointer;opacity:.6
+}
+.modal-close:hover{opacity:1}
 </style>
 </head>
 <body>
@@ -45,16 +70,15 @@ header{height:72px;padding:0 24px;display:flex;align-items:center;justify-conten
     <h2>출석 캘린더</h2>
     <div id="calendar"></div>
   </div>
-
   <div class="card">
     <h2>내 출석 기록</h2>
     <div id="myLog"></div>
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalBg" onclick="closeModal(event)">
+<div class="modal-backdrop" id="modal" onclick="if(event.target.id==='modal')closeModal()">
   <div class="modal">
-    <div class="close" onclick="hideModal()">✕</div>
+    <div class="modal-close" onclick="closeModal()">✕</div>
     <h3 id="modalDate"></h3>
     <input id="laby" type="number" placeholder="이계 점수">
     <input id="duel" type="number" placeholder="명결 점수">
@@ -64,66 +88,70 @@ header{height:72px;padding:0 24px;display:flex;align-items:center;justify-conten
 
 <script>
 let selectedDate=null;
-const storeKey="attendance_log";
+const storageKey="roider_attendance";
+const todayStr=new Date().toISOString().slice(0,10);
 
-function getLogs(){ return JSON.parse(localStorage.getItem(storeKey)||"{}"); }
-function saveLogs(d){ localStorage.setItem(storeKey,JSON.stringify(d)); renderMyLog(); }
+function loadData(){return JSON.parse(localStorage.getItem(storageKey)||"{}")}
+function saveData(d){localStorage.setItem(storageKey,JSON.stringify(d))}
+function closeModal(){document.getElementById("modal").style.display="none"}
 
 document.addEventListener("DOMContentLoaded",()=>{
-  const cal = new FullCalendar.Calendar(document.getElementById("calendar"),{
-    initialView:"dayGridMonth",
-    locale:"ko",
-    height:"auto",
-    dayCellDidMount(info){
-      const today = new Date().toISOString().slice(0,10);
-      const dateStr = info.date.toISOString().slice(0,10);
+  const data=loadData();
+  const cal=new FullCalendar.Calendar(document.getElementById("calendar"),{
+    initialView:"dayGridMonth",locale:"ko",height:"auto",
+    dayCellContent(arg){
+      const d=arg.date.toISOString().slice(0,10);
+      const isFuture=d>todayStr;
+      const isPast=d<todayStr;
+      const attended=data[d];
 
-      if(dateStr > today) return;
+      const wrap=document.createElement("div");
+      wrap.innerText=arg.dayNumberText;
 
-      const btn = document.createElement("div");
-      btn.className="attend-btn";
-      btn.innerText="출석";
-
-      if(dateStr < today) btn.classList.add("attend-past");
-
-      btn.onclick=()=>openModal(dateStr);
-      info.el.querySelector(".fc-daygrid-day-frame").appendChild(btn);
+      if(!isFuture){
+        const btn=document.createElement("button");
+        btn.className="attend-btn"+(attended?" attended":"")+(isPast&&!attended?" past":"");
+        btn.innerText=attended?"완료":"출석";
+        if(!attended){
+          btn.onclick=()=>openModal(d,isPast);
+        }
+        wrap.appendChild(btn);
+      }
+      return{domNodes:[wrap]};
     }
   });
   cal.render();
-  renderMyLog();
+  renderLog();
 });
 
-function openModal(date){
-  selectedDate=date;
-  document.getElementById("modalDate").innerText=date;
-  document.getElementById("modalBg").style.display="flex";
+function openModal(d,isPast){
+  selectedDate={date:d,isPast};
+  document.getElementById("modalDate").innerText=d+(isPast?" (과거 출석 - 50% 패널티)":"");
+  document.getElementById("modal").style.display="flex";
 }
-function hideModal(){document.getElementById("modalBg").style.display="none";}
-function closeModal(e){if(e.target.id==="modalBg") hideModal();}
 
 function saveScore(){
-  let laby=+document.getElementById("laby").value||0;
-  let duel=+document.getElementById("duel").value||0;
-  const today=new Date().toISOString().slice(0,10);
-
-  if(selectedDate<today){ laby=Math.floor(laby*0.5); duel=Math.floor(duel*0.5); }
-
-  const logs=getLogs();
-  logs[selectedDate]={laby,duel};
-  saveLogs(logs);
-  hideModal();
+  const laby=Number(document.getElementById("laby").value||0);
+  const duel=Number(document.getElementById("duel").value||0);
+  const final={
+    laby:selectedDate.isPast?Math.floor(laby*0.5):laby,
+    duel:selectedDate.isPast?Math.floor(duel*0.5):duel,
+    raw:{laby,duel},
+    time:new Date().toISOString()
+  };
+  const data=loadData();
+  data[selectedDate.date]=final;
+  saveData(data);
+  location.reload();
 }
 
-function renderMyLog(){
-  const logs=getLogs();
+function renderLog(){
+  const data=loadData();
   const el=document.getElementById("myLog");
-  el.innerHTML="";
-  Object.entries(logs).forEach(([d,v])=>{
-    const div=document.createElement("div");
-    div.innerText=`${d} - 이계:${v.laby}, 명결:${v.duel}`;
-    el.appendChild(div);
-  });
+  const arr=Object.entries(data).sort((a,b)=>b[0].localeCompare(a[0]));
+  el.innerHTML=arr.length?arr.map(([d,v])=>`
+    <div>📅 ${d} | 이계 ${v.laby}, 명결 ${v.duel} ${v.raw?`(원본 ${v.raw.laby}/${v.raw.duel})`:''}</div>
+  `).join(""):"아직 출석 기록이 없습니다.";
 }
 </script>
 </body>
