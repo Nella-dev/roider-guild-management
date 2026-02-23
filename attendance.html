@@ -50,15 +50,27 @@
     align-items: center;
   }
 
+  .weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .weekday.sun { color: #ff6b6b; }
+  .weekday.sat { color: #4da3ff; }
+
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 10px;
   }
 
   .day {
-    min-height: 100px;
+    min-height: 110px;
     border-radius: 12px;
     background: #0f131b;
     border: 1px solid #2a3242;
@@ -68,6 +80,16 @@
 
   .day.past { opacity: 0.6; }
   .day.today { outline: 2px solid #ffc928; }
+
+  .day.sun .date { color: #ff6b6b; }
+  .day.sat .date { color: #4da3ff; }
+  .day.holiday .date { color: #ff6b6b; }
+
+  .holiday-label {
+    font-size: 11px;
+    color: #ff6b6b;
+    margin-top: 2px;
+  }
 
   .date {
     font-weight: 700;
@@ -157,6 +179,18 @@
     <div class="calendar-header">
       <h2 id="monthTitle"></h2>
     </div>
+
+    <!-- 요일 -->
+    <div class="weekday-row">
+      <div class="weekday sun">일</div>
+      <div class="weekday">월</div>
+      <div class="weekday">화</div>
+      <div class="weekday">수</div>
+      <div class="weekday">목</div>
+      <div class="weekday">금</div>
+      <div class="weekday sat">토</div>
+    </div>
+
     <div class="calendar-grid" id="calendar"></div>
   </div>
 
@@ -181,6 +215,18 @@ const today = new Date();
 let selected = null;
 const data = JSON.parse(localStorage.getItem("attendance") || "{}");
 
+/* 🇰🇷 한국 공휴일 (확장 구조) */
+const holidaysKR = {
+  "2026-01-01": "신정",
+  "2026-03-01": "삼일절",
+  "2026-05-05": "어린이날",
+  "2026-06-06": "현충일",
+  "2026-08-15": "광복절",
+  "2026-10-03": "개천절",
+  "2026-10-09": "한글날",
+  "2026-12-25": "성탄절"
+};
+
 function renderCalendar() {
   const grid = document.getElementById("calendar");
   grid.innerHTML = "";
@@ -189,7 +235,12 @@ function renderCalendar() {
   const m = today.getMonth();
   document.getElementById("monthTitle").innerText = `${y}년 ${m+1}월`;
 
+  const firstDay = new Date(y, m, 1).getDay();
   const last = new Date(y, m+1, 0).getDate();
+
+  for(let i=0;i<firstDay;i++) {
+    grid.appendChild(document.createElement("div"));
+  }
 
   for(let d=1; d<=last; d++) {
     const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -197,10 +248,19 @@ function renderCalendar() {
     box.className = "day";
 
     const now = new Date(y, m, d);
+    const dow = now.getDay();
+    if (dow === 0) box.classList.add("sun");
+    if (dow === 6) box.classList.add("sat");
+
     if (now < today) box.classList.add("past");
     if (d === today.getDate()) box.classList.add("today");
 
     box.innerHTML = `<div class="date">${d}일</div>`;
+
+    if (holidaysKR[dateStr]) {
+      box.classList.add("holiday");
+      box.innerHTML += `<div class="holiday-label">${holidaysKR[dateStr]}</div>`;
+    }
 
     if (now <= today) {
       const btn = document.createElement("button");
