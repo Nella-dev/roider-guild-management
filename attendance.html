@@ -33,7 +33,7 @@
   .user-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
 
   .logout {
@@ -43,10 +43,7 @@
     background: #121826;
     color: #fff;
     cursor: pointer;
-    transition: 0.15s;
   }
-  .logout:hover { transform: translateY(-1px); }
-  .logout:active { transform: translateY(1px) scale(0.97); }
 
   .wrap {
     max-width: 1200px;
@@ -88,27 +85,19 @@
   }
 
   .day {
-    min-height: 120px;
-    border-radius: 14px;
+    min-height: 110px;
+    border-radius: 12px;
     background: #0f131b;
     border: 1px solid #2a3242;
-    padding: 10px;
+    padding: 8px;
     position: relative;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
   }
 
-  .day.past { opacity: 0.5; }
+  .day.past { opacity: 0.6; }
   .day.today { outline: 2px solid #ffc928; }
 
   .day.sun .date { color: #ff6b6b; }
   .day.sat .date { color: #4da3ff; }
-  .day.holiday .date { color: #ff6b6b; }
-
-  .holiday-label {
-    font-size: 11px;
-    color: #ff6b6b;
-    margin-top: 2px;
-  }
 
   .date {
     font-weight: 700;
@@ -118,18 +107,16 @@
 
   .attend-btn {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    padding: 14px;
+    bottom: 8px;
+    left: 12%;
+    right: 12%;
+    padding: 12px;
     border-radius: 14px;
     background: linear-gradient(180deg, #ffd84d, #ffb700);
     border: none;
-    font-size: 16px;
     font-weight: 900;
     cursor: pointer;
     box-shadow: 0 6px 0 #c89000;
-    transition: 0.1s;
   }
 
   .attend-btn:active {
@@ -137,90 +124,58 @@
     box-shadow: 0 3px 0 #c89000;
   }
 
-  /* 모달 */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.75);
-  backdrop-filter: blur(6px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
 
-.modal {
-  width: 420px;
-  max-width: calc(100vw - 32px);
-  background: linear-gradient(180deg, #1f2a3a, #121722);
-  border-radius: 20px;
-  padding: 26px 24px 24px;
-  border: 1px solid #2f3a4f;
-  position: relative;
-  box-shadow: 0 30px 80px rgba(0,0,0,.8);
-  animation: modalPop .18s ease-out;
-}
+  .modal {
+    width: 360px;
+    background: #151924;
+    border-radius: 18px;
+    padding: 24px;
+    border: 1px solid #2a3242;
+    position: relative;
+  }
 
-@keyframes modalPop {
-  from { transform: scale(.95) translateY(10px); opacity: 0; }
-  to   { transform: scale(1) translateY(0); opacity: 1; }
-}
+  .modal h3 {
+    margin: 0 0 14px;
+    text-align: center;
+  }
 
-.modal h3 {
-  margin: 0 0 18px;
-  font-size: 20px;
-  font-weight: 900;
-  text-align: center;
-  letter-spacing: 0.5px;
-}
+  .close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    cursor: pointer;
+    font-size: 20px;
+  }
 
-.close {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  cursor: pointer;
-  font-size: 22px;
-  opacity: 0.6;
-  transition: .15s;
-}
-.close:hover { opacity: 1; transform: scale(1.1); }
+  .modal input {
+    width: 85%;
+    display: block;
+    margin: 0 auto 10px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #0f1015;
+    color: #fff;
+  }
 
-.modal input {
-  width: 85%;
-  padding: 14px 14px;
-  margin: 0 auto 14px;
-  margin-bottom: 14px;
-  display: block;
-  border-radius: 14px;
-  border: 1px solid #2a3242;
-  background: #0f1015;
-  color: #fff;
-  font-size: 15px;
-  outline: none;
-}
-
-.modal input:focus {
-  border-color: #ffc928;
-  box-shadow: 0 0 0 2px rgba(255,201,40,.25);
-}
-
-.modal button {
-  width: 100%;
-  padding: 18px;
-  border-radius: 16px;
-  border: none;
-  background: linear-gradient(180deg, #ffd84d, #ffb700);
-  font-weight: 900;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 6px 0 #c89000;
-  transition: .1s;
-}
-
-.modal button:active {
-  transform: translateY(3px);
-  box-shadow: 0 3px 0 #c89000;
-}
+  .modal button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(180deg, #ffd84d, #ffb700);
+    font-weight: 900;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -229,15 +184,13 @@
   <div class="logo">ROIDER</div>
   <div class="user-box">
     <span id="userName">갓넬라</span>
-    <button class="logout" onclick="alert('로그아웃 처리')">Logout</button>
+    <button class="logout">Logout</button>
   </div>
 </header>
 
 <div class="wrap">
   <div class="card">
-    <div class="calendar-header">
-      <h2 id="monthTitle"></h2>
-    </div>
+    <h2 id="monthTitle"></h2>
 
     <div class="weekday-row">
       <div class="weekday sun">일</div>
@@ -254,11 +207,20 @@
 
   <div class="card">
     <h2>내 출석 기록</h2>
-    <div id="log"></div>
+    <div id="log">아직 출석 기록이 없습니다.</div>
+  </div>
+
+  <!-- 관리자 전용 -->
+  <div class="card" id="adminPanel" style="display:none;">
+    <h2>📊 관리자 출석 모니터링 (오늘)</h2>
+    <div id="adminToday">데이터 없음</div>
+    <hr style="margin:12px 0;border-color:#2a3242;">
+    <h2>📈 주간 출석률</h2>
+    <canvas id="weeklyChart" height="120"></canvas>
   </div>
 </div>
 
-<div class="modal-backdrop" id="modal" onclick="if(event.target===this) closeModal()">
+<div class="modal-backdrop" id="modal">
   <div class="modal">
     <div class="close" onclick="closeModal()">✕</div>
     <h3 id="modalDate"></h3>
@@ -270,19 +232,9 @@
 
 <script>
 const today = new Date();
+const IS_ADMIN = true; // TODO: 실제 권한 로직 연동
 let selected = null;
 const data = JSON.parse(localStorage.getItem("attendance") || "{}");
-
-const holidaysKR = {
-  "2026-01-01": "신정",
-  "2026-03-01": "삼일절",
-  "2026-05-05": "어린이날",
-  "2026-06-06": "현충일",
-  "2026-08-15": "광복절",
-  "2026-10-03": "개천절",
-  "2026-10-09": "한글날",
-  "2026-12-25": "성탄절"
-};
 
 function renderCalendar() {
   const grid = document.getElementById("calendar");
@@ -295,9 +247,7 @@ function renderCalendar() {
   const firstDay = new Date(y, m, 1).getDay();
   const last = new Date(y, m+1, 0).getDate();
 
-  for(let i=0;i<firstDay;i++) {
-    grid.appendChild(document.createElement("div"));
-  }
+  for(let i=0;i<firstDay;i++) grid.appendChild(document.createElement("div"));
 
   for(let d=1; d<=last; d++) {
     const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -305,21 +255,12 @@ function renderCalendar() {
     box.className = "day";
 
     const now = new Date(y, m, d);
-    const dow = now.getDay();
-    if (dow === 0) box.classList.add("sun");
-    if (dow === 6) box.classList.add("sat");
-
-    if (now < new Date(today.toDateString())) box.classList.add("past");
+    if (now < today) box.classList.add("past");
     if (d === today.getDate()) box.classList.add("today");
 
     box.innerHTML = `<div class="date">${d}일</div>`;
 
-    if (holidaysKR[dateStr]) {
-      box.classList.add("holiday");
-      box.innerHTML += `<div class="holiday-label">${holidaysKR[dateStr]}</div>`;
-    }
-
-    if (now <= new Date(today.toDateString())) {
+    if (now <= today) {
       const btn = document.createElement("button");
       btn.className = "attend-btn";
       btn.innerText = "출석하기";
@@ -331,6 +272,7 @@ function renderCalendar() {
   }
 
   renderLog();
+  renderAdmin();
 }
 
 function openModal(d) {
@@ -347,15 +289,12 @@ function save() {
   const laby = Number(document.getElementById("laby").value || 0);
   const duel = Number(document.getElementById("duel").value || 0);
 
-  const isPast = new Date(selected) < new Date(today.toDateString());
-  data[selected] = {
-    laby: isPast ? Math.floor(laby * 0.5) : laby,
-    duel: isPast ? Math.floor(duel * 0.5) : duel
-  };
-
+  data[selected] = { laby, duel };
   localStorage.setItem("attendance", JSON.stringify(data));
+
   closeModal();
   renderLog();
+  renderAdmin();
 }
 
 function renderLog() {
@@ -363,6 +302,38 @@ function renderLog() {
   log.innerHTML = Object.entries(data)
     .map(([d,v]) => `${d} → 이계:${v.laby}, 명결:${v.duel}`)
     .join("<br>") || "아직 출석 기록이 없습니다.";
+}
+
+function renderAdmin() {
+  if (!IS_ADMIN) return;
+  document.getElementById("adminPanel").style.display = "block";
+
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  document.getElementById("adminToday").innerText =
+    data[todayKey] ? "✅ 오늘 출석 완료" : "❌ 아직 출석 안 함";
+
+  renderWeeklyChart();
+}
+
+function renderWeeklyChart() {
+  const canvas = document.getElementById("weeklyChart");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const values = [];
+  for(let i=6;i>=0;i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate()-i);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    values.push(data[key] ? 100 : 0);
+  }
+
+  const w = canvas.width / 7;
+  values.forEach((v,i)=>{
+    const h = (v/100) * canvas.height;
+    ctx.fillStyle="#ffc928";
+    ctx.fillRect(i*w+10, canvas.height-h, w-20, h);
+  });
 }
 
 renderCalendar();
