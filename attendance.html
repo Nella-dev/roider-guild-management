@@ -33,25 +33,20 @@
   .user-box {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-weight: 700;
+    gap: 10px;
   }
 
   .logout {
     padding: 8px 14px;
     border-radius: 10px;
-    border: none;
-    background: linear-gradient(180deg, #ffd84d, #ffb700);
-    color: #000;
-    font-weight: 900;
+    border: 1px solid #444;
+    background: #121826;
+    color: #fff;
     cursor: pointer;
-    box-shadow: 0 4px 0 #c89000;
+    transition: 0.15s;
   }
-
-  .logout:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #c89000;
-  }
+  .logout:hover { transform: translateY(-1px); }
+  .logout:active { transform: translateY(1px) scale(0.97); }
 
   .wrap {
     max-width: 1200px;
@@ -99,15 +94,26 @@
     border: 1px solid #2a3242;
     padding: 10px;
     position: relative;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
   }
 
-  .day.past { opacity: 0.55; }
+  .day.past { opacity: 0.5; }
   .day.today { outline: 2px solid #ffc928; }
 
+  .day.sun .date { color: #ff6b6b; }
+  .day.sat .date { color: #4da3ff; }
+  .day.holiday .date { color: #ff6b6b; }
+
+  .holiday-label {
+    font-size: 11px;
+    color: #ff6b6b;
+    margin-top: 2px;
+  }
+
   .date {
-    font-weight: 800;
-    font-size: 15px;
-    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
   }
 
   .attend-btn {
@@ -115,13 +121,15 @@
     bottom: 10px;
     left: 10px;
     right: 10px;
-    padding: 12px;
+    padding: 14px;
     border-radius: 14px;
     background: linear-gradient(180deg, #ffd84d, #ffb700);
     border: none;
+    font-size: 16px;
     font-weight: 900;
     cursor: pointer;
     box-shadow: 0 6px 0 #c89000;
+    transition: 0.1s;
   }
 
   .attend-btn:active {
@@ -133,7 +141,7 @@
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.7);
+    background: rgba(0,0,0,.75);
     display: none;
     align-items: center;
     justify-content: center;
@@ -142,8 +150,8 @@
 
   .modal {
     width: 380px;
-    background: linear-gradient(180deg, #1c2333, #121826);
-    border-radius: 20px;
+    background: linear-gradient(180deg, #1b2230, #121722);
+    border-radius: 18px;
     padding: 24px;
     border: 1px solid #2a3242;
     position: relative;
@@ -152,20 +160,19 @@
 
   .modal h3 {
     margin: 0 0 14px;
-    font-size: 22px;
-    font-weight: 900;
+    font-size: 20px;
+    text-align: center;
   }
 
-  .modal .close {
+  .close {
     position: absolute;
-    top: 14px;
-    right: 16px;
+    top: 10px;
+    right: 14px;
     cursor: pointer;
     font-size: 22px;
-    opacity: .7;
+    opacity: 0.7;
   }
-
-  .modal .close:hover { opacity: 1; }
+  .close:hover { opacity: 1; }
 
   .modal input {
     width: 100%;
@@ -175,7 +182,7 @@
     border: none;
     background: #0f1015;
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .modal button {
@@ -185,7 +192,7 @@
     border: none;
     background: linear-gradient(180deg, #ffd84d, #ffb700);
     font-weight: 900;
-    font-size: 16px;
+    font-size: 17px;
     cursor: pointer;
     box-shadow: 0 6px 0 #c89000;
   }
@@ -202,22 +209,32 @@
   <div class="logo">ROIDER</div>
   <div class="user-box">
     <span id="userName">갓넬라</span>
-    <button class="logout">Logout</button>
+    <button class="logout" onclick="alert('로그아웃 처리')">Logout</button>
   </div>
 </header>
 
 <div class="wrap">
   <div class="card">
-    <h2 id="monthTitle"></h2>
-    <div class="weekday-row">
-      <div class="weekday sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="weekday sat">토</div>
+    <div class="calendar-header">
+      <h2 id="monthTitle"></h2>
     </div>
+
+    <div class="weekday-row">
+      <div class="weekday sun">일</div>
+      <div class="weekday">월</div>
+      <div class="weekday">화</div>
+      <div class="weekday">수</div>
+      <div class="weekday">목</div>
+      <div class="weekday">금</div>
+      <div class="weekday sat">토</div>
+    </div>
+
     <div class="calendar-grid" id="calendar"></div>
   </div>
 
   <div class="card">
     <h2>내 출석 기록</h2>
-    <div id="log">아직 출석 기록이 없습니다.</div>
+    <div id="log"></div>
   </div>
 </div>
 
@@ -236,6 +253,17 @@ const today = new Date();
 let selected = null;
 const data = JSON.parse(localStorage.getItem("attendance") || "{}");
 
+const holidaysKR = {
+  "2026-01-01": "신정",
+  "2026-03-01": "삼일절",
+  "2026-05-05": "어린이날",
+  "2026-06-06": "현충일",
+  "2026-08-15": "광복절",
+  "2026-10-03": "개천절",
+  "2026-10-09": "한글날",
+  "2026-12-25": "성탄절"
+};
+
 function renderCalendar() {
   const grid = document.getElementById("calendar");
   grid.innerHTML = "";
@@ -247,21 +275,42 @@ function renderCalendar() {
   const firstDay = new Date(y, m, 1).getDay();
   const last = new Date(y, m+1, 0).getDate();
 
-  for(let i=0;i<firstDay;i++) grid.appendChild(document.createElement("div"));
+  for(let i=0;i<firstDay;i++) {
+    grid.appendChild(document.createElement("div"));
+  }
 
   for(let d=1; d<=last; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const box = document.createElement("div");
     box.className = "day";
+
+    const now = new Date(y, m, d);
+    const dow = now.getDay();
+    if (dow === 0) box.classList.add("sun");
+    if (dow === 6) box.classList.add("sat");
+
+    if (now < new Date(today.toDateString())) box.classList.add("past");
+    if (d === today.getDate()) box.classList.add("today");
+
     box.innerHTML = `<div class="date">${d}일</div>`;
 
-    const btn = document.createElement("button");
-    btn.className = "attend-btn";
-    btn.innerText = "출석하기";
-    btn.onclick = () => openModal(`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
-    box.appendChild(btn);
+    if (holidaysKR[dateStr]) {
+      box.classList.add("holiday");
+      box.innerHTML += `<div class="holiday-label">${holidaysKR[dateStr]}</div>`;
+    }
+
+    if (now <= new Date(today.toDateString())) {
+      const btn = document.createElement("button");
+      btn.className = "attend-btn";
+      btn.innerText = "출석하기";
+      btn.onclick = () => openModal(dateStr);
+      box.appendChild(btn);
+    }
 
     grid.appendChild(box);
   }
+
+  renderLog();
 }
 
 function openModal(d) {
@@ -275,11 +324,25 @@ function closeModal() {
 }
 
 function save() {
-  const laby = document.getElementById("laby").value;
-  const duel = document.getElementById("duel").value;
-  data[selected] = { laby, duel };
+  const laby = Number(document.getElementById("laby").value || 0);
+  const duel = Number(document.getElementById("duel").value || 0);
+
+  const isPast = new Date(selected) < new Date(today.toDateString());
+  data[selected] = {
+    laby: isPast ? Math.floor(laby * 0.5) : laby,
+    duel: isPast ? Math.floor(duel * 0.5) : duel
+  };
+
   localStorage.setItem("attendance", JSON.stringify(data));
   closeModal();
+  renderLog();
+}
+
+function renderLog() {
+  const log = document.getElementById("log");
+  log.innerHTML = Object.entries(data)
+    .map(([d,v]) => `${d} → 이계:${v.laby}, 명결:${v.duel}`)
+    .join("<br>") || "아직 출석 기록이 없습니다.";
 }
 
 renderCalendar();
