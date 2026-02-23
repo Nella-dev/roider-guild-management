@@ -5,57 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ROIDER 출석부</title>
 
-<!-- 기존 베이스 유지 -->
-<link rel="stylesheet" href="./fullcalendar.min.css">
-<script src="./fullcalendar.min.js"></script>
+<script src="./assets/fullcalendar/index.global.min.js"></script>
 
 <style>
-  body { margin:0; font-family:Pretendard,system-ui; background:#0f1015; color:#e6e6e6 }
-  header {
-    height:72px; padding:0 24px; display:flex; align-items:center; justify-content:space-between;
-    background:linear-gradient(180deg,#1b2431,#0f131b); border-bottom:1px solid #2a3242;
-  }
-  .logo{font-size:22px;font-weight:900;color:#ffc928;cursor:pointer}
-  .logout{
-    padding:10px 16px;border-radius:12px;border:none;
-    background:linear-gradient(180deg,#ffd84d,#ffb700);
-    font-weight:900;cursor:pointer;box-shadow:0 6px 16px rgba(255,200,40,.35);
-  }
-  .logout:active{transform:translateY(2px) scale(.96)}
-  .wrap{max-width:1200px;margin:0 auto;padding:20px}
-  .card{
-    background:linear-gradient(180deg,#1b1f2b,#151924);
-    border:1px solid #2a3242;border-radius:16px;padding:18px;margin-bottom:16px
-  }
-  #calendar{margin-top:12px}
+body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
+header{height:72px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#1b2431,#0f131b);border-bottom:1px solid #2a3242}
+.logo{font-size:22px;font-weight:900;color:#ffc928;cursor:pointer}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:linear-gradient(180deg,#1b1f2b,#151924);border:1px solid #2a3242;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.fc-daygrid-day-frame{position:relative}
+.attend-btn{
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  padding:6px 10px;border-radius:10px;
+  background:#ffc928;color:#000;font-weight:900;font-size:12px;
+  cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.4);
+  transition:.15s
+}
+.attend-btn:hover{transform:translateX(-50%) translateY(-1px)}
+.attend-btn:active{transform:translateX(-50%) translateY(1px) scale(.96)}
 
-  /* 모달 (기존 구조 유지 + UX 개선) */
-  .modal-backdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,.65);
-    display:none;align-items:center;justify-content:center;z-index:999
-  }
-  .modal{
-    width:360px;background:#151924;border:1px solid #2a3242;border-radius:16px;padding:20px;position:relative
-  }
-  .modal h3{margin:0 0 10px}
-  .modal input{
-    width:100%;padding:10px;border-radius:8px;border:none;background:#0f1015;color:#fff;margin-bottom:10px
-  }
-  .modal button{
-    width:100%;padding:12px;border-radius:10px;border:none;
-    background:linear-gradient(180deg,#ffd84d,#ffb700);font-weight:900;cursor:pointer
-  }
-  .modal-close{
-    position:absolute;right:10px;top:8px;font-size:18px;cursor:pointer;opacity:.6
-  }
-  .modal-close:hover{opacity:1}
+.attend-past{background:#666;color:#ccc}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999}
+.modal{width:360px;background:#151924;border:1px solid #2a3242;border-radius:16px;padding:20px;position:relative}
+.modal h3{margin:0 0 12px}
+.modal input{width:100%;padding:10px;border-radius:10px;border:none;background:#0f1015;color:#fff;margin-bottom:10px}
+.modal button{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#ffd84d,#ffb700);font-weight:900;cursor:pointer}
+.modal .close{position:absolute;top:10px;right:12px;font-size:20px;cursor:pointer}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo" onclick="location.href='main.html'">ROIDER</div>
-  <button class="logout" onclick="alert('로그아웃 처리')">Logout</button>
 </header>
 
 <div class="wrap">
@@ -66,15 +48,14 @@
 
   <div class="card">
     <h2>내 출석 기록</h2>
-    <div id="myLog">아직 출석 기록이 없습니다.</div>
+    <div id="myLog"></div>
   </div>
 </div>
 
-<!-- 점수 입력 모달 -->
-<div class="modal-backdrop" id="modal" onclick="if(event.target.id==='modal')closeModal()">
+<div class="modal-backdrop" id="modalBg" onclick="closeModal(event)">
   <div class="modal">
-    <div class="modal-close" onclick="closeModal()">✕</div>
-    <h3 id="modalDate">날짜</h3>
+    <div class="close" onclick="hideModal()">✕</div>
+    <h3 id="modalDate"></h3>
     <input id="laby" type="number" placeholder="이계 점수">
     <input id="duel" type="number" placeholder="명결 점수">
     <button onclick="saveScore()">출석 저장</button>
@@ -82,104 +63,68 @@
 </div>
 
 <script>
-let selectedDate = null;
-let calendar;
-const storageKey = "roider_attendance";
+let selectedDate=null;
+const storeKey="attendance_log";
 
-function loadData(){
-  return JSON.parse(localStorage.getItem(storageKey) || "{}");
-}
-function saveData(data){
-  localStorage.setItem(storageKey, JSON.stringify(data));
-}
+function getLogs(){ return JSON.parse(localStorage.getItem(storeKey)||"{}"); }
+function saveLogs(d){ localStorage.setItem(storeKey,JSON.stringify(d)); renderMyLog(); }
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!window.FullCalendar) {
-    alert("FullCalendar 로드 실패: fullcalendar.min.js 경로 확인하세요.");
-    return;
-  }
-
-  const calendarEl = document.getElementById("calendar");
-
-  calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: "dayGridMonth",
-    locale: "ko",
-    height: "auto",
-    dateClick(info) {
+document.addEventListener("DOMContentLoaded",()=>{
+  const cal = new FullCalendar.Calendar(document.getElementById("calendar"),{
+    initialView:"dayGridMonth",
+    locale:"ko",
+    height:"auto",
+    dayCellDidMount(info){
       const today = new Date().toISOString().slice(0,10);
-      if (info.dateStr > today) {
-        alert("오늘 이후 날짜는 출석할 수 없습니다.");
-        return;
-      }
-      openModal(info.dateStr);
+      const dateStr = info.date.toISOString().slice(0,10);
+
+      if(dateStr > today) return;
+
+      const btn = document.createElement("div");
+      btn.className="attend-btn";
+      btn.innerText="출석";
+
+      if(dateStr < today) btn.classList.add("attend-past");
+
+      btn.onclick=()=>openModal(dateStr);
+      info.el.querySelector(".fc-daygrid-day-frame").appendChild(btn);
     }
   });
-
-  calendar.render();
-  renderLog();
-
-  // 기존 데이터 복원
-  const data = loadData();
-  Object.entries(data).forEach(([date, v]) => {
-    calendar.addEvent({
-      title: `이계 ${v.laby} / 명결 ${v.duel}`,
-      start: date,
-      allDay: true,
-      backgroundColor: v.past ? "#555" : "#ffc928",
-      borderColor: v.past ? "#555" : "#ffc928",
-      textColor: "#000"
-    });
-  });
+  cal.render();
+  renderMyLog();
 });
 
-function openModal(dateStr) {
-  selectedDate = dateStr;
-  document.getElementById("modalDate").innerText = dateStr;
-  document.getElementById("modal").style.display = "flex";
+function openModal(date){
+  selectedDate=date;
+  document.getElementById("modalDate").innerText=date;
+  document.getElementById("modalBg").style.display="flex";
+}
+function hideModal(){document.getElementById("modalBg").style.display="none";}
+function closeModal(e){if(e.target.id==="modalBg") hideModal();}
+
+function saveScore(){
+  let laby=+document.getElementById("laby").value||0;
+  let duel=+document.getElementById("duel").value||0;
+  const today=new Date().toISOString().slice(0,10);
+
+  if(selectedDate<today){ laby=Math.floor(laby*0.5); duel=Math.floor(duel*0.5); }
+
+  const logs=getLogs();
+  logs[selectedDate]={laby,duel};
+  saveLogs(logs);
+  hideModal();
 }
 
-function closeModal() {
-  document.getElementById("modal").style.display = "none";
-}
-
-function saveScore() {
-  let laby = Number(document.getElementById("laby").value || 0);
-  let duel = Number(document.getElementById("duel").value || 0);
-
-  const today = new Date().toISOString().slice(0,10);
-  const past = selectedDate < today;
-
-  if (past) {
-    laby = Math.floor(laby * 0.5);
-    duel = Math.floor(duel * 0.5);
-  }
-
-  const data = loadData();
-  data[selectedDate] = { laby, duel, past };
-  saveData(data);
-
-  calendar.addEvent({
-    title: `이계 ${laby} / 명결 ${duel}`,
-    start: selectedDate,
-    allDay: true,
-    backgroundColor: past ? "#555" : "#ffc928",
-    borderColor: past ? "#555" : "#ffc928",
-    textColor: "#000"
+function renderMyLog(){
+  const logs=getLogs();
+  const el=document.getElementById("myLog");
+  el.innerHTML="";
+  Object.entries(logs).forEach(([d,v])=>{
+    const div=document.createElement("div");
+    div.innerText=`${d} - 이계:${v.laby}, 명결:${v.duel}`;
+    el.appendChild(div);
   });
-
-  renderLog();
-  closeModal();
-}
-
-function renderLog() {
-  const el = document.getElementById("myLog");
-  const data = loadData();
-  const entries = Object.entries(data).sort((a,b)=>b[0].localeCompare(a[0]));
-  el.innerHTML = entries.length
-    ? entries.map(([d,v])=>`<div>📅 ${d} | 이계 ${v.laby}, 명결 ${v.duel}${v.past?' (패널티)':''}</div>`).join("")
-    : "아직 출석 기록이 없습니다.";
 }
 </script>
-
 </body>
 </html>
