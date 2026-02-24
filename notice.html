@@ -1,116 +1,164 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-     <link rel="stylesheet" href="header_standard.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK Journey: Homestead ROIDER Guild Management</title>
+  <title>ROIDER 길드 - 공지사항</title>
+
+  <link rel="stylesheet" href="header_standard.css">
+
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase_config.js"></script>
+
   <style>
-    body { margin:0; font-family:Pretendard, system-ui; background:#0f1015; color:#e6e6e6; }
-    header { padding:14px 20px; background:#121721; display:flex; justify-content:space-between; align-items:center; }
-    .logo { color:#f4c430; font-weight:900; }
-    .container { max-width:1000px; margin:0 auto; padding:30px 20px; }
-    h1 { color:#f4c430; }
-    .card { background:#1c1f2a; border-radius:14px; padding:20px; margin-bottom:20px; border:1px solid #2a3242; }
-    textarea { width:100%; min-height:80px; padding:10px; border-radius:8px; background:#121721; color:white; border:1px solid #444; }
-    button { padding:8px 14px; border-radius:10px; border:none; background:#f4c430; color:#000; font-weight:bold; cursor:pointer; }
-    .notice-item { padding:12px; border-bottom:1px solid #333; }
-    .notice-header { display:flex; justify-content:space-between; font-size:13px; opacity:.7; }
-    .delete-btn { background:#ff5252; color:white; font-size:12px; margin-left:10px; }
+    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    .wrap { max-width: 800px; margin: 40px auto; padding: 20px; }
+    
+    .admin-box { 
+      background: #1b2333; border: 1px solid #f4c430; border-radius: 12px; 
+      padding: 20px; margin-bottom: 30px; display: none; 
+    }
+    .admin-box h3 { color: #f4c430; margin-top: 0; }
+    textarea { 
+      width: 100%; height: 80px; padding: 10px; border-radius: 8px; 
+      border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; resize: none;
+    }
+    .btn-write { 
+      margin-top: 10px; padding: 10px 20px; background: #f4c430; color: #111; 
+      border: none; border-radius: 8px; font-weight: bold; cursor: pointer; float: right;
+    }
+    .clearfix::after { content: ""; display: table; clear: both; }
+
+    .notice-item { 
+      background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px; 
+      padding: 20px; margin-bottom: 15px; 
+    }
+    .notice-header { 
+      display: flex; justify-content: space-between; align-items: center; 
+      margin-bottom: 15px; border-bottom: 1px dashed #444; padding-bottom: 10px;
+    }
+    .notice-date { color: #f4c430; font-size: 14px; font-weight: bold; }
+    .btn-delete { 
+      background: transparent; color: #ff5252; border: 1px solid #ff5252; 
+      padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn-delete:hover { background: #ff5252; color: #fff; }
+    .notice-content { line-height: 1.6; white-space: pre-wrap; }
   </style>
-
-<style>
-/* Header standardization */
-header { min-height: 60px; }
-header .user-box { align-items: center; }
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
-}
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
-}
-</style>
-
 </head>
 <body>
-<header>
-    <div class="logo" id="appTitle">ROIDER</div>
+
+  <header>
+    <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
+      <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
+      <span id="userName">로딩중...</span>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
   </header>
-<div class="container">
-  <h1 id="pageTitle">📢 공지사항</h1>
-  <div class="card" id="adminWrite" style="display:none;">
-    <h3>✏️ 공지 작성</h3>
-    <textarea id="noticeInput" placeholder="공지 내용을 입력하세요"></textarea>
-    <button onclick="addNotice()">등록</button>
+
+  <div class="wrap">
+    <h2>📢 길드 공지사항</h2>
+    <p>길드의 주요 소식과 안내 사항을 확인하세요.</p>
+
+    <div class="admin-box clearfix" id="adminWriteBox">
+      <h3>📝 공지사항 작성 (관리자 전용)</h3>
+      <textarea id="noticeInput" placeholder="길드원들에게 전달할 공지사항을 입력하세요..."></textarea>
+      <button class="btn-write" onclick="addNotice()">공지 등록</button>
+    </div>
+
+    <div id="noticeList">
+      <p style="color:#aaa;">공지사항을 불러오는 중입니다...</p>
+    </div>
   </div>
-  <div class="card">
-    <h3>📌 공지 목록</h3>
-    <div id="noticeList"></div>
-  </div>
-</div>
-<script>
-  const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management", storageBucket: "roider-guild-management.firebasestorage.app", messagingSenderId: "1012249034459", appId: "1:1012249034459:web:ec0f821f29170446af96fe", measurementId: "G-J7W4LFLHPP" };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  document.addEventListener("DOMContentLoaded", () => {
-    const title = document.getElementById("appTitle");
-    if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
-  });
-  let isAdmin = false;
-  auth.onAuthStateChanged(async user => {
-    if (!user) location.href = "login.html";
-    const userPhoto = document.getElementById("userPhoto");
-    const userName = document.getElementById("userName");
-    if (user.photoURL) userPhoto.src = user.photoURL;
-    const snap = await db.collection("users").doc(user.uid).get();
-    if (snap.exists) {
-      const data = snap.data();
-      userName.innerText = data.nickname || user.displayName || user.email;
-    }
-    const roleSnap = await db.collection("roles").doc(user.uid).get();
-    isAdmin = roleSnap.exists && roleSnap.data().role === "admin";
-    if (isAdmin) document.getElementById("adminWrite").style.display = "block";
-    loadNotices();
-  });
-  async function loadNotices() {
-    const list = document.getElementById("noticeList");
-    list.innerHTML = "";
-    const snap = await db.collection("notices").orderBy("createdAt", "desc").get();
-    snap.forEach(doc => {
-      const d = doc.data();
-      const div = document.createElement("div");
-      div.className = "notice-item";
-      div.innerHTML = `<div class="notice-header"><span>${new Date(d.createdAt.seconds*1000).toLocaleString()}</span>${isAdmin ? `<button class="delete-btn" onclick="deleteNotice('${doc.id}')">삭제</button>` : ""}</div><div>${d.text}</div>`;
-      list.appendChild(div);
+
+  <script>
+    let isAdmin = false;
+
+    // 인증 및 권한 확인
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return location.replace("login.html");
+      
+      const docSnap = await db.collection("users").doc(user.uid).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById("userName").textContent = data.nickname || "User";
+        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
+
+        if (data.role === "admin") {
+          isAdmin = true;
+          document.getElementById("adminWriteBox").style.display = "block";
+        }
+      }
+      loadNotices();
     });
-  }
-  async function addNotice() {
-    const text = document.getElementById("noticeInput").value.trim();
-    if (!text) return;
-    await db.collection("notices").add({ text, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    document.getElementById("noticeInput").value = "";
-    loadNotices();
-  }
-  async function deleteNotice(id) {
-    if (!confirm("삭제하시겠습니까?")) return;
-    await db.collection("notices").doc(id).delete();
-    loadNotices();
-  }
-  function logout() { auth.signOut().then(()=>location.href="login.html"); }
-</script>
-</body></html>
+
+    // 1. 공지사항 불러오기
+    async function loadNotices() {
+      const list = document.getElementById("noticeList");
+      list.innerHTML = ""; 
+
+      const snap = await db.collection("notices").orderBy("createdAt", "desc").get();
+      
+      if (snap.empty) {
+        list.innerHTML = "<p style='color:#aaa;'>등록된 공지사항이 없습니다.</p>";
+        return;
+      }
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        const dateStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString() : "방금 전";
+        
+        const div = document.createElement("div");
+        div.className = "notice-item";
+        div.innerHTML = `
+          <div class="notice-header">
+            <span class="notice-date">📅 ${dateStr}</span>
+            ${isAdmin ? `<button class="btn-delete" onclick="deleteNotice('${doc.id}')">삭제</button>` : ""}
+          </div>
+          <div class="notice-content">${d.text}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // 2. 공지사항 작성 (웹훅 제거됨)
+    async function addNotice() {
+      if (!isAdmin) return alert("관리자만 작성할 수 있습니다.");
+      
+      const text = document.getElementById("noticeInput").value.trim();
+      if (!text) return alert("내용을 입력해주세요!");
+
+      try {
+        await db.collection("notices").add({
+          text: text,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        document.getElementById("noticeInput").value = ""; 
+        loadNotices(); 
+        alert("공지사항이 성공적으로 등록되었습니다!");
+
+      } catch (error) {
+        alert("작성 실패: " + error.message);
+      }
+    }
+
+    // 3. 공지사항 삭제
+    async function deleteNotice(id) {
+      if (!isAdmin) return;
+      if (!confirm("정말로 이 공지사항을 삭제하시겠습니까?")) return;
+
+      try {
+        await db.collection("notices").doc(id).delete();
+        loadNotices();
+      } catch (error) {
+        alert("삭제 실패: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
