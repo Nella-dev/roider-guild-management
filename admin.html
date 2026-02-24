@@ -1,134 +1,229 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-     <link rel="stylesheet" href="header_standard.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER · 관리자 승인 관리</title>
+  <title>ROIDER 길드 - 인원 및 권한 관리</title>
+
+  <link rel="stylesheet" href="header_standard.css">
+
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase_config.js"></script>
+
   <style>
-    body { margin: 0; font-family: Pretendard, system-ui, sans-serif; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: linear-gradient(135deg, #1f2933, #121721); border-bottom: 1px solid #2a3242; }
-    .logo { font-weight: 900; letter-spacing: 0.5px; color: #f4c430; }
-    .user-box { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc; }
-    .user-box img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #444; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px 60px; }
-    h1 { color: #f4c430; margin: 20px 0 10px; }
-    .tabs { display: flex; gap: 10px; margin: 20px 0; }
-    .tab { padding: 8px 14px; border: 1px solid #2a3242; border-radius: 20px; cursor: pointer; opacity: 0.8; }
-    .tab.active { border-color: #f4c430; color: #f4c430; opacity: 1; }
-    .list { display: grid; gap: 10px; margin-top: 10px; }
-    .row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.2fr; gap: 10px; align-items: center; background: linear-gradient(180deg, #1f2736, #161b26); border: 1px solid #2a3242; border-radius: 12px; padding: 12px 14px; }
-    .badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; border: 1px solid #444; width: fit-content; }
-    .badge.pending { border-color: #777; }
-    .badge.member { border-color: #4caf50; color: #9be7a5; }
-    .badge.admin { border-color: #f4c430; color: #f4c430; }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    button { background: transparent; border: 1px solid #555; color: #ccc; border-radius: 16px; padding: 6px 12px; cursor: pointer; }
-    button.primary { border-color: #4caf50; color: #9be7a5; }
-    button.warn { border-color: #f4c430; color: #f4c430; }
-    button.danger { border-color: #e57373; color: #e57373; }
-    button:hover { opacity: 0.85; }
-    .footer { opacity: 0.5; font-size: 12px; margin-top: 30px; text-align: center; }
+    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
+    
+    h2 { color: #f4c430; margin-top: 0; }
+    .desc { color: #aaa; margin-bottom: 30px; line-height: 1.5; }
+    
+    /* 필터 버튼 스타일 */
+    .filter-group { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .filter-btn { 
+      padding: 10px 18px; border: 1px solid #444; background: #1c1f2a; 
+      color: #ccc; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px;
+    }
+    .filter-btn.active, .filter-btn:hover { 
+      background: #f4c430; color: #111; border-color: #f4c430; font-weight: bold; 
+    }
+    
+    /* 유저 카드 스타일 */
+    .user-card { 
+      background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px; 
+      padding: 18px 20px; margin-bottom: 12px; display: flex; 
+      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+    }
+    .user-info { display: flex; flex-direction: column; gap: 6px; }
+    .user-name { font-size: 18px; font-weight: bold; color: #fff; }
+    .user-email { font-size: 13px; color: #aaa; }
+    
+    /* 권한 뱃지 */
+    .role-badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+    .role-pending { background: #555; color: #fff; }
+    .role-member { background: #00e676; color: #000; }
+    .role-manager { background: #00b0ff; color: #fff; } /* 운영진 파란색 */
+    .role-admin { background: #ff5252; color: #fff; }
+
+    /* 액션 버튼 */
+    .action-group { display: flex; gap: 8px; }
+    .btn-action { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .btn-approve { background: #00e676; color: #000; }
+    .btn-manager { background: #00b0ff; color: #fff; }
+    .btn-admin { background: #ff5252; color: #fff; }
+    .btn-demote { background: #444; color: #fff; }
+    .btn-action:hover { opacity: 0.8; }
   </style>
-
-<style>
-/* 🔒 Header profile image standard (force main style) */
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
-}
-/* 🔒 Logout button standard (prevent green override) */
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
-}
-</style>
-
 </head>
 <body>
-<header>
-    <div class="logo" id="appTitle">ROIDER</div>
+
+  <header>
+    <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
+      <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
+      <span id="userName">로딩중...</span>
+      <span id="myRoleBadge" class="role-badge"></span>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
   </header>
-<div class="container">
-  <h1>유저 관리</h1>
-  <div class="tabs">
-    <div class="tab active" data-role="all" onclick="filterRole('all')">전체</div>
-    <div class="tab" data-role="pending" onclick="filterRole('pending')">대기</div>
-    <div class="tab" data-role="member" onclick="filterRole('member')">멤버</div>
-    <div class="tab" data-role="admin" onclick="filterRole('admin')">관리자</div>
+
+  <div class="wrap">
+    <h2>🛠️ 인원 승인 및 권한 관리</h2>
+    <p class="desc">
+      <b>내 권한에 따라 가능한 작업이 다릅니다.</b><br>
+      - 👑 관리자: 모든 직책 임명 및 강등 가능<br>
+      - 🛡️ 운영진: 승인 대기자 길드원 승인 및 길드원 강등만 가능
+    </p>
+
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="filterUsers('all', this)">전체 보기</button>
+      <button class="filter-btn" onclick="filterUsers('pending', this)">⏳ 승인 대기</button>
+      <button class="filter-btn" onclick="filterUsers('member', this)">⚔️ 일반 멤버</button>
+      <button class="filter-btn" onclick="filterUsers('manager', this)">🛡️ 운영진</button>
+      <button class="filter-btn" onclick="filterUsers('admin', this)">👑 관리자</button>
+    </div>
+
+    <div id="userList">
+      <p style="color:#aaa;">유저 목록을 불러오는 중입니다...</p>
+    </div>
   </div>
-  <div id="list" class="list"></div>
-  <div class="footer">ROIDER Guild Admin Console</div>
-</div>
-<script>
-  const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management", storageBucket: "roider-guild-management.firebasestorage.app", messagingSenderId: "1012249034459", appId: "1:1012249034459:web:ec0f821f29170446af96fe" };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  document.addEventListener("DOMContentLoaded", () => {
-    const title = document.getElementById("appTitle");
-    if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
-  });
-  let currentFilter = "all";
-  let unsubscribe = null;
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) { location.replace("login.html"); return; }
-    const userPhoto = document.getElementById("userPhoto");
-    const userName = document.getElementById("userName");
-    if (user.photoURL) userPhoto.src = user.photoURL;
-    const meRef = db.collection("users").doc(user.uid);
-    const meSnap = await meRef.get();
-    if (!meSnap.exists || meSnap.data().role !== "admin") {
-      alert("관리자만 접근할 수 있습니다.");
-      location.replace("main.html");
-      return;
-    }
-    const me = meSnap.data();
-    userName.innerText = me.nickname || user.displayName || user.email || "Admin";
-    subscribeUsers();
-  });
-  function subscribeUsers() {
-    if (unsubscribe) unsubscribe();
-    unsubscribe = db.collection("users").onSnapshot((snap) => {
-      const rows = [];
-      snap.forEach(doc => {
-        const data = doc.data();
-        const role = data.role || "pending";
-        if (currentFilter !== "all" && role !== currentFilter) return;
-        rows.push(renderRow(doc.id, data));
-      });
-      const list = document.getElementById("list");
-      list.innerHTML = rows.join("") || "<p style='opacity:.6'>표시할 유저가 없습니다.</p>";
+
+  <script>
+    let allUsers = [];
+    let currentFilter = 'all';
+    let myRole = ''; // 현재 로그인한 유저의 권한 저장
+
+    // 1. 인증 및 권한 확인
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return location.replace("login.html");
+      
+      const docSnap = await db.collection("users").doc(user.uid).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById("userName").textContent = data.nickname || "User";
+        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
+
+        myRole = data.role;
+
+        // 🔥 관리자(admin)나 운영진(manager)이 아니면 쫓아냄
+        if (myRole !== "admin" && myRole !== "manager") {
+          alert("접근 권한이 없습니다. 관리자나 운영진만 이용 가능합니다.");
+          location.replace("main.html");
+          return;
+        }
+
+        // 헤더에 내 권한 뱃지 달아주기
+        const badgeEl = document.getElementById("myRoleBadge");
+        if(myRole === 'admin') { badgeEl.textContent = '최고 관리자'; badgeEl.className = 'role-badge role-admin'; }
+        if(myRole === 'manager') { badgeEl.textContent = '운영진'; badgeEl.className = 'role-badge role-manager'; }
+        
+        loadUsersRealtime();
+      }
     });
-  }
-  function renderRow(uid, data) {
-    const nickname = data.nickname || "(닉네임 없음)";
-    const email = data.email || "-";
-    const role = data.role || "pending";
-    return `<div class="row"><div><div><b>${nickname}</b></div><div style="opacity:.6; font-size:12px">${email}</div></div><div><span class="badge ${role}">${role}</span></div><div class="actions">${role !== "member" ? `<button class="primary" onclick="setRole('${uid}','member')">멤버 승인</button>` : ""}${role !== "admin" ? `<button class="warn" onclick="setRole('${uid}','admin')">관리자</button>` : ""}${role !== "pending" ? `<button class="danger" onclick="setRole('${uid}','pending')">대기</button>` : ""}</div><div style="font-size:12px; opacity:.5">${uid.slice(0,6)}...</div></div>`;
-  }
-  async function setRole(uid, role) {
-    if (!confirm(`권한을 '${role}'(으)로 변경할까요?`)) return;
-    await db.collection("users").doc(uid).set({ role }, { merge: true });
-  }
-  function filterRole(role) {
-    currentFilter = role;
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelector(`.tab[data-role="${role}"]`).classList.add("active");
-    subscribeUsers();
-  }
-  function logout() { auth.signOut().then(() => location.replace("login.html")); }
-</script>
-</body></html>
+
+    // 2. 실시간 유저 목록 불러오기
+    function loadUsersRealtime() {
+      db.collection("users").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        allUsers = [];
+        snapshot.forEach((doc) => {
+          allUsers.push({ id: doc.id, ...doc.data() });
+        });
+        renderUsers();
+      });
+    }
+
+    // 3. 필터링 함수
+    function filterUsers(role, btnElement) {
+      currentFilter = role;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderUsers();
+    }
+
+    // 4. 권한 체계에 따른 UI 렌더링
+    function renderUsers() {
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+
+      const filteredUsers = currentFilter === 'all' 
+        ? allUsers 
+        : allUsers.filter(u => u.role === currentFilter);
+
+      if (filteredUsers.length === 0) {
+        list.innerHTML = "<p style='color:#aaa;'>조건에 맞는 유저가 없습니다.</p>";
+        return;
+      }
+
+      filteredUsers.forEach(u => {
+        // 뱃지 이름 매핑
+        const roleNames = { admin: '관리자', manager: '운영진', member: '일반멤버', pending: '승인대기' };
+        const roleName = roleNames[u.role] || u.role;
+        const roleClass = `role-${u.role}`;
+
+        let actionButtons = '';
+
+        // [핵심 로직] 내 권한과 타겟 유저의 권한에 따라 버튼을 다르게 노출
+        if (u.role === 'pending') {
+          // 대기자는 관리자/운영진 모두 승인 가능
+          actionButtons = `<button class="btn-action btn-approve" onclick="changeRole('${u.id}', 'member')">멤버 승인</button>`;
+        } 
+        else if (u.role === 'member') {
+          // 멤버는 관리자/운영진 모두 대기(강등) 가능
+          actionButtons += `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'pending')">대기 강등</button> `;
+          // 최고 관리자만 운영진/관리자 임명 가능
+          if (myRole === 'admin') {
+            actionButtons += `<button class="btn-action btn-manager" onclick="changeRole('${u.id}', 'manager')">운영진 임명</button> `;
+            actionButtons += `<button class="btn-action btn-admin" onclick="changeRole('${u.id}', 'admin')">관리자 임명</button>`;
+          }
+        } 
+        else if (u.role === 'manager') {
+          // 운영진은 최고 관리자만 조작 가능 (일반멤버 강등)
+          if (myRole === 'admin') {
+            actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'member')">멤버로 강등</button>`;
+          }
+        } 
+        else if (u.role === 'admin') {
+          // 관리자는 최고 관리자 본인(또는 다른 관리자)만 조작 가능
+          // (스스로 강등하는 것도 가능하게 둠, 필요시 u.id !== currentUser.uid 조건 추가 가능)
+          if (myRole === 'admin') {
+            actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'manager')">운영진으로 강등</button>`;
+          }
+        }
+
+        const div = document.createElement("div");
+        div.className = "user-card";
+        div.innerHTML = `
+          <div class="user-info">
+            <span class="user-name">${u.nickname || '이름 없음'} <span class="role-badge ${roleClass}">${roleName}</span></span>
+            <span class="user-email">${u.email}</span>
+          </div>
+          <div class="action-group">
+            ${actionButtons}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // 5. 권한 변경 실행 (DB 업데이트)
+    async function changeRole(uid, newRole) {
+      const roleNames = { member: "일반 멤버", manager: "운영진", admin: "관리자", pending: "승인 대기" };
+      
+      // 보안 2차 체크 (화면 밖에서 임의로 조작하려는 시도 차단)
+      if (myRole === 'manager' && (newRole === 'admin' || newRole === 'manager')) {
+        return alert("운영진은 해당 권한을 부여할 수 없습니다.");
+      }
+
+      if (!confirm(`정말로 이 유저의 권한을 [${roleNames[newRole]}](으)로 변경하시겠습니까?`)) return;
+
+      try {
+        await db.collection("users").doc(uid).update({ role: newRole });
+      } catch (error) {
+        alert("권한 변경 실패: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
