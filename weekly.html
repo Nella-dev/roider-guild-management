@@ -1,123 +1,162 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AFK: 새로운 여정-힐링농장 ROIDER 길드 관리 시스템</title>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<style>
-  body{margin:0;font-family:Pretendard,system-ui;background:#0f1015;color:#e6e6e6}
-  header{padding:14px 20px;background:#121721;border-bottom:1px solid #2a3242}
-  .wrap{max-width:1200px;margin:0 auto;padding:20px}
-  .card{background:#1c1f2a;border:1px solid #2a3242;border-radius:12px;padding:16px;margin-bottom:16px}
-  button{padding:10px 14px;border-radius:10px;border:none;background:#00e676;color:#000;font-weight:900;cursor:pointer}
-  table{width:100%;border-collapse:collapse}
-  th,td{border-bottom:1px solid #333;padding:8px;text-align:center}
-  .muted{opacity:.6}
-</style>
-<link rel="stylesheet" href="header_standard.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROIDER 길드 - 주간 결산</title>
+
+  <link rel="stylesheet" href="header_standard.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase_config.js"></script>
+
+  <style>
+    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    .wrap { max-width: 1000px; margin: 40px auto; padding: 20px; }
+    .card { background: #1c1f2a; border-radius: 12px; padding: 20px; border: 1px solid #2a3242; margin-bottom: 20px; }
+    h2 { color: #f4c430; margin-top: 0; }
+    button { padding: 10px 14px; border-radius: 8px; border: none; background: #00e676; color: #000; font-weight: bold; cursor: pointer; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #2a3242; padding: 12px; text-align: center; }
+    th { background: #121721; color: #f4c430; }
+    .admin-only { display: none; background: #2a1515; border-color: #ff5252; }
+    .admin-only h3 { color: #ff5252; }
+    input[type="number"] { padding: 8px; border-radius: 4px; border: 1px solid #444; background: #111; color: #fff; }
+  </style>
 </head>
 <body>
-<header>
-    <div class="logo" id="appTitle">ROIDER</div>
+
+  <header>
+    <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
+      <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
+      <span id="userName">로딩중...</span>
       <button class="logout" onclick="logout()">Logout</button>
     </div>
   </header>
-<div class="wrap">
-  <div class="card"><div id="userBox" class="muted">로그인 확인 중...</div></div>
-  <div class="card"><h3>이번 주 자동 집계</h3><button onclick="loadWeekly()">이번 주 데이터 불러오기</button><div id="weeklyData" class="muted"></div></div>
-  <div class="card"><h3>분배 (관리자 전용)</h3><input id="totalChest" type="number" placeholder="총 상자 수"/><button onclick="calculate()">분배 계산</button><button onclick="finalize()">🚀 분배 확정</button><div id="result"></div></div>
-  <div class="card"><h3>히스토리</h3><div id="history"></div></div>
-</div>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-  measurementId: "G-J7W4LFLHPP"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-let isAdmin = false;
-let weeklyAgg = {};
-document.addEventListener("DOMContentLoaded", () => {
-  const title = document.getElementById("appTitle");
-  if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
-});
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="login.html"; return; }
-  const userPhoto = document.getElementById("userPhoto");
-  const userName = document.getElementById("userName");
-  if (user.photoURL) userPhoto.src = user.photoURL;
-  const snap = await db.collection("users").doc(user.uid).get();
-  if (snap.exists) {
-    const data = snap.data();
-    userName.innerText = data.nickname || user.displayName || user.email;
-    isAdmin = data.isAdmin === true;
-  }
-  loadHistory();
-});
-function getWeekKey(){
-  const d = new Date();
-  const first = new Date(d.setDate(d.getDate() - d.getDay() + 1));
-  return first.toISOString().slice(0,10);
-}
-async function loadWeekly(){
-  weeklyAgg = {};
-  const today = new Date();
-  const start = new Date(today);
-  start.setDate(today.getDate() - 6);
 
-  const usersSnap = await db.collection("attendance_logs").get();
+  <div class="wrap">
+    <div class="card">
+      <h2>💰 이번 주 활동 현황</h2>
+      <button onclick="calculateWeekly()">현황 집계하기</button>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>닉네임</th>
+            <th>이계 총합</th>
+            <th>명결 총합</th>
+          </tr>
+        </thead>
+        <tbody id="resultTable">
+          <tr><td colspan="3">집계하기 버튼을 눌러주세요.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-  for (const userDoc of usersSnap.docs) {
-    const uid = userDoc.id;
-    const daysSnap = await userDoc.ref.collection("days").get();
+    <div class="card admin-only" id="adminBox">
+      <h3>🛠️ 관리자 결산 확정</h3>
+      <p>이번 주 총 상자 개수를 입력하고 분배 결과를 확정하세요.</p>
+      총 상자: <input type="number" id="totalChest" placeholder="개수 입력">
+      <button style="background:#ff5252; color:#fff;" onclick="finalize()">결과 확정 및 저장</button>
+    </div>
+  </div>
 
-    daysSnap.forEach(d => {
-      const v = d.data();
-      const dt = new Date(v.date);
-      if (dt >= start && dt <= today) {
-        if (!weeklyAgg[uid]) weeklyAgg[uid] = { laby: 0, duel: 0 };
-        weeklyAgg[uid].laby += v.laby || 0;
-        weeklyAgg[uid].duel += v.duel || 0;
+  <script>
+    let isAdmin = false;
+    let weeklyData = {};
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return location.replace("login.html");
+      
+      const docSnap = await db.collection("users").doc(user.uid).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById("userName").textContent = data.nickname || "User";
+        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
+
+        // 관리자인지 확인하여 관리자 폼 노출
+        if (data.role === "admin") {
+          isAdmin = true;
+          document.getElementById("adminBox").style.display = "block";
+        }
       }
     });
-  }
 
-  const el = document.getElementById("weeklyData");
-  if (el) el.innerText = JSON.stringify(weeklyAgg, null, 2);
-}
-function calculate(){
-  if(!isAdmin){ alert("관리자만 분배 가능합니다."); return; }
-  const total = Number(document.getElementById("totalChest").value||0);
-  document.getElementById("result").innerText = `총 ${total}개 분배 (AFK v3.6 로직 적용 완료)`;
-}
-async function finalize(){
-  if(!isAdmin){ alert("관리자만 확정 가능합니다."); return; }
-  const weekKey = getWeekKey();
-  await db.collection("weekly").doc(weekKey).set({ data: weeklyAgg, finalizedAt: firebase.firestore.FieldValue.serverTimestamp() });
-  alert("분배 확정 완료!");
-}
-async function loadHistory(){
-  const snap = await db.collection("weekly").orderBy("finalizedAt","desc").get();
-  const el = document.getElementById("history");
-  el.innerHTML = "";
-  snap.forEach(d=>{
-    const div = document.createElement("div");
-    div.innerText = `${d.id} 주차 확정됨`;
-    el.appendChild(div);
-  });
-}
-function logout(){ auth.signOut().then(()=>location.href="login.html"); }
-</script>
-</body></html>
+    // 1. 주간 데이터 집계 로직
+    async function calculateWeekly() {
+      const tbody = document.getElementById("resultTable");
+      tbody.innerHTML = "<tr><td colspan='3'>데이터를 불러오는 중입니다...</td></tr>";
+      weeklyData = {};
+
+      // 유저 정보 가져오기 (닉네임 매핑용)
+      const usersSnap = await db.collection("users").get();
+      const userMap = {};
+      usersSnap.forEach(u => userMap[u.id] = u.data().nickname);
+
+      // 출석 기록 전체 탐색 (실무에서는 날짜 필터링 권장)
+      const logsSnap = await db.collection("attendance_logs").get();
+      
+      for (const userDoc of logsSnap.docs) {
+        const uid = userDoc.id;
+        let totalLaby = 0;
+        let totalDuel = 0;
+
+        const daysSnap = await userDoc.ref.collection("days").get();
+        daysSnap.forEach(d => {
+          totalLaby += d.data().laby || 0;
+          totalDuel += d.data().duel || 0;
+        });
+
+        if (totalLaby > 0 || totalDuel > 0) {
+          weeklyData[uid] = { nickname: userMap[uid] || "알수없음", laby: totalLaby, duel: totalDuel };
+        }
+      }
+
+      // 테이블 렌더링
+      tbody.innerHTML = "";
+      for (const uid in weeklyData) {
+        const d = weeklyData[uid];
+        tbody.innerHTML += `
+          <tr>
+            <td>${d.nickname}</td>
+            <td>${d.laby}</td>
+            <td>${d.duel}</td>
+          </tr>
+        `;
+      }
+      if (Object.keys(weeklyData).length === 0) {
+        tbody.innerHTML = "<tr><td colspan='3'>기록된 데이터가 없습니다.</td></tr>";
+      }
+    }
+
+    // 2. 관리자 결산 확정 로직
+    async function finalize() {
+      if (!isAdmin) return alert("관리자만 확정 가능합니다.");
+      const chest = document.getElementById("totalChest").value;
+      if (!chest) return alert("총 상자 개수를 입력해주세요.");
+
+      if (!confirm(`총 ${chest}개의 상자로 결산을 확정하시겠습니까?`)) return;
+
+      try {
+        // history용 컬렉션에 저장 (YYYY-MM-DD-time 형식 키 생성)
+        const weekKey = new Date().toISOString().substring(0, 10) + "-" + Date.now();
+        await db.collection("weekly_results").doc(weekKey).set({
+          week: new Date().toISOString().substring(0, 10) + " 주간 결산",
+          totalChests: Number(chest),
+          result: weeklyData,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("결산이 성공적으로 확정되었습니다!");
+        location.href = "history.html"; // 주간 분배 이력 페이지로 이동
+      } catch (error) {
+        alert("저장 실패: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

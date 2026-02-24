@@ -1,317 +1,130 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ROIDER 출석부</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROIDER 길드 - 출석부</title>
 
-<!-- Firebase (기존 다른 페이지와 동일하게 추가) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="./firebase.js"></script>
-<script src="./auth.js"></script>
+  <link rel="stylesheet" href="header_standard.css">
 
-<style>
-  body {
-    margin: 0;
-    font-family: Pretendard, system-ui, sans-serif;
-    background: #0f1015;
-    color: #e6e6e6;
-  }
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase_config.js"></script>
 
-  header {
-    height: 72px;
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(180deg, #1b2431, #0f131b);
-    border-bottom: 1px solid #2a3242;
-  }
-
-  .logo {
-    font-size: 22px;
-    font-weight: 900;
-    color: #ffc928;
-    cursor: pointer;
-  }
-
-  .user-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logout {
-    padding: 8px 14px;
-    border-radius: 10px;
-    border: 1px solid #444;
-    background: #121826;
-    color: #fff;
-    cursor: pointer;
-  }
-
-  .wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  .card {
-    background: linear-gradient(180deg, #1b1f2b, #151924);
-    border: 1px solid #2a3242;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-
-  .weekday-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    margin-top: 12px;
-    font-weight: 800;
-    text-align: center;
-  }
-
-  .weekday.sun { color: #ff6b6b; }
-  .weekday.sat { color: #4da3ff; }
-
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .day {
-    min-height: 110px;
-    border-radius: 12px;
-    background: #0f131b;
-    border: 1px solid #2a3242;
-    padding: 8px;
-    position: relative;
-  }
-
-  .day.past { opacity: 0.6; }
-  .day.today { outline: 2px solid #ffc928; }
-
-  .day.sun .date { color: #ff6b6b; }
-  .day.sat .date { color: #4da3ff; }
-
-  .date {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 6px;
-  }
-
-  .attend-btn {
-    position: absolute;
-    bottom: 8px;
-    left: 12%;
-    right: 12%;
-    padding: 12px;
-    border-radius: 14px;
-    background: linear-gradient(180deg, #ffd84d, #ffb700);
-    border: none;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 6px 0 #c89000;
-  }
-
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-  }
-
-  .modal {
-    width: 360px;
-    background: #151924;
-    border-radius: 18px;
-    padding: 24px;
-    border: 1px solid #2a3242;
-    position: relative;
-  }
-
-  .modal h3 {
-    margin: 0 0 14px;
-    text-align: center;
-  }
-
-  .close {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    cursor: pointer;
-    font-size: 20px;
-  }
-
-  .modal input {
-    width: 85%;
-    display: block;
-    margin: 0 auto 10px;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: #0f1015;
-    color: #fff;
-  }
-
-  .modal button {
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(180deg, #ffd84d, #ffb700);
-    font-weight: 900;
-    cursor: pointer;
-  }
-
-  /* 내 출석 기록 카드 UI */
-  .log-item {
-    padding: 12px;
-    border-radius: 12px;
-    background: #0f131b;
-    border: 1px solid #2a3242;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    font-weight: 700;
-  }
-</style>
+  <style>
+    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    .wrap { max-width: 800px; margin: 40px auto; padding: 20px; }
+    .card { background: #1c1f2a; border-radius: 12px; padding: 20px; border: 1px solid #2a3242; }
+    h2 { color: #f4c430; margin-top: 0; }
+    
+    .input-group { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+    input[type="number"], input[type="date"] {
+      padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2a3242; color: #fff;
+    }
+    button.submit-btn {
+      padding: 10px 20px; border-radius: 8px; border: none; background: #f4c430; color: #111; font-weight: bold; cursor: pointer;
+    }
+    .log-list { margin-top: 20px; }
+    .log-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #2a3242; }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="logo" onclick="location.href='main.html'">ROIDER</div>
-  <div class="user-box">
-    <span id="userName">...</span>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="card">
-    <h2 id="monthTitle"></h2>
-    <div class="weekday-row">
-      <div class="weekday sun">일</div>
-      <div class="weekday">월</div>
-      <div class="weekday">화</div>
-      <div class="weekday">수</div>
-      <div class="weekday">목</div>
-      <div class="weekday">금</div>
-      <div class="weekday sat">토</div>
+  <header>
+    <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
+    <div class="user-box">
+      <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
+      <span id="userName">로딩중...</span>
+      <button class="logout" onclick="logout()">Logout</button>
     </div>
-    <div class="calendar-grid" id="calendar"></div>
-  </div>
+  </header>
 
-  <div class="card">
-    <h2>내 출석 기록</h2>
-    <div id="log">아직 출석 기록이 없습니다.</div>
-  </div>
+  <div class="wrap">
+    <div class="card">
+      <h2>📅 오늘의 활동 기록</h2>
+      <p>날짜를 선택하고 이계/명결 점수를 입력해주세요.</p>
+      
+      <div class="input-group">
+        <input type="date" id="dateInput">
+        <input type="number" id="labyInput" placeholder="이계 점수" min="0">
+        <input type="number" id="duelInput" placeholder="명결 점수" min="0">
+        <button class="submit-btn" onclick="saveAttendance()">기록 저장</button>
+      </div>
 
-  <div class="card" id="adminPanel" style="display:none;">
-    <h2>📊 관리자 출석 모니터링 (오늘)</h2>
-    <div id="adminToday">데이터 없음</div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modal">
-  <div class="modal">
-    <div class="close" onclick="closeModal()">✕</div>
-    <h3 id="modalDate"></h3>
-    <input id="laby" placeholder="이계 점수" type="number">
-    <input id="duel" placeholder="명결 점수" type="number">
-    <button onclick="save()">출석 저장</button>
-  </div>
-</div>
-
-<script>
-const today = new Date();
-const IS_ADMIN = true; // 권한 연동 가능
-let selected = null;
-const data = JSON.parse(localStorage.getItem("attendance") || "{}");
-
-/* Firebase 인증 연동 */
-const auth = firebase.auth();
-auth.onAuthStateChanged((user) => {
-  if (!user) location.href = "login.html";
-  document.getElementById("userName").innerText = user.displayName || user.email;
-});
-
-function logout() {
-  auth.signOut().then(() => location.href = "login.html");
-}
-
-/* 기존 캘린더 로직 유지 */
-function renderCalendar() {
-  const grid = document.getElementById("calendar");
-  grid.innerHTML = "";
-  const y = today.getFullYear();
-  const m = today.getMonth();
-  document.getElementById("monthTitle").innerText = `${y}년 ${m+1}월`;
-
-  const firstDay = new Date(y, m, 1).getDay();
-  const last = new Date(y, m+1, 0).getDate();
-
-  for(let i=0;i<firstDay;i++) grid.appendChild(document.createElement("div"));
-
-  for(let d=1; d<=last; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const box = document.createElement("div");
-    box.className = "day";
-    box.innerHTML = `<div class="date">${d}일</div>`;
-    const btn = document.createElement("button");
-    btn.className = "attend-btn";
-    btn.innerText = "출석하기";
-    btn.onclick = () => openModal(dateStr);
-    box.appendChild(btn);
-    grid.appendChild(box);
-  }
-
-  renderLog();
-  renderAdmin();
-}
-
-function openModal(d){ selected=d; modalDate.innerText=d; modal.style.display="flex"; }
-function closeModal(){ modal.style.display="none"; }
-
-function save() {
-  const laby = Number(document.getElementById("laby").value||0);
-  const duel = Number(document.getElementById("duel").value||0);
-  data[selected] = { laby, duel };
-  localStorage.setItem("attendance", JSON.stringify(data));
-  closeModal();
-  renderLog();
-  renderAdmin();
-}
-
-function renderLog() {
-  const log = document.getElementById("log");
-  const items = Object.entries(data).map(([d,v]) => `
-    <div class="log-item">
-      <span>${d}</span>
-      <span>이계 ${v.laby} / 명결 ${v.duel}</span>
+      <h3>나의 최근 출석 기록</h3>
+      <div id="log" class="log-list">불러오는 중...</div>
     </div>
-  `).join("");
-  log.innerHTML = items || "아직 출석 기록이 없습니다.";
-}
+  </div>
 
-function renderAdmin() {
-  if (!IS_ADMIN) return;
-  adminPanel.style.display="block";
-  const key = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-  adminToday.innerText = data[key] ? "✅ 오늘 출석 완료" : "❌ 미출석";
-}
+  <script>
+    let currentUser = null;
 
-renderCalendar();
-</script>
+    // 오늘 날짜를 기본값으로 세팅
+    document.getElementById("dateInput").value = new Date().toISOString().substring(0, 10);
 
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return location.replace("login.html");
+      currentUser = user;
+
+      // 헤더 프로필 업데이트
+      const docSnap = await db.collection("users").doc(user.uid).get();
+      if (docSnap.exists) {
+        document.getElementById("userName").textContent = docSnap.data().nickname || "User";
+        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
+      }
+      
+      loadMyLogs();
+    });
+
+    // 1. 출석 저장 로직 (Firestore 연동)
+    async function saveAttendance() {
+      if (!currentUser) return;
+      
+      const date = document.getElementById("dateInput").value;
+      const laby = Number(document.getElementById("labyInput").value || 0);
+      const duel = Number(document.getElementById("duelInput").value || 0);
+
+      if (!date) return alert("날짜를 선택해주세요.");
+
+      try {
+        await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(date).set({
+          date: date,
+          laby: laby,
+          duel: duel,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("성공적으로 기록되었습니다!");
+        loadMyLogs(); // 목록 새로고침
+      } catch (error) {
+        alert("기록 중 오류 발생: " + error.message);
+      }
+    }
+
+    // 2. 내 출석 기록 불러오기
+    async function loadMyLogs() {
+      const logContainer = document.getElementById("log");
+      const snap = await db.collection("attendance_logs").doc(currentUser.uid)
+                           .collection("days").orderBy("date", "desc").limit(7).get();
+      
+      if (snap.empty) {
+        logContainer.innerHTML = "<p style='color:#aaa'>아직 출석 기록이 없습니다.</p>";
+        return;
+      }
+
+      let html = "";
+      snap.forEach(doc => {
+        const data = doc.data();
+        html += `
+          <div class="log-item">
+            <span>${data.date}</span>
+            <span>이계: <b style="color:#f4c430">${data.laby}</b> / 명결: <b style="color:#00e676">${data.duel}</b></span>
+          </div>
+        `;
+      });
+      logContainer.innerHTML = html;
+    }
+  </script>
 </body>
 </html>
