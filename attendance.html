@@ -3,31 +3,40 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER 길드 - 출석부</title>
+  <title>ROIDER 길드 - 캘린더 출석부</title>
 
   <link rel="stylesheet" href="header_standard.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  
   <script src="firebase_config.js"></script>
 
   <style>
     body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
-    .wrap { max-width: 800px; margin: 40px auto; padding: 20px; }
-    .card { background: #1c1f2a; border-radius: 12px; padding: 20px; border: 1px solid #2a3242; }
-    h2 { color: #f4c430; margin-top: 0; }
+    .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
     
-    .input-group { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
-    input[type="number"], input[type="date"] {
-      padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2a3242; color: #fff;
-    }
-    button.submit-btn {
-      padding: 10px 20px; border-radius: 8px; border: none; background: #f4c430; color: #111; font-weight: bold; cursor: pointer;
-    }
-    .log-list { margin-top: 20px; }
-    .log-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #2a3242; }
+    /* 캘린더 스타일 커스텀 */
+    #calendar { background: #1c1f2a; padding: 20px; border-radius: 12px; border: 1px solid #2a3242; }
+    .fc-theme-standard th { background: #121721; color: #f4c430; padding: 10px 0; border-color: #2a3242; }
+    .fc-theme-standard td, .fc-theme-standard .fc-scrollgrid { border-color: #2a3242; }
+    .fc-day-today { background: rgba(244, 196, 48, 0.1) !important; }
+    .fc-daygrid-day:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
+    .fc-h-event { background: #00e676; border: none; color: #000; font-weight: bold; padding: 2px 4px; border-radius: 4px; text-align: center;}
+    
+    /* 모달(팝업) 스타일 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+    .modal { background: #1c1f2a; padding: 30px; border-radius: 12px; width: 90%; max-width: 350px; border: 1px solid #f4c430; }
+    .modal h3 { color: #f4c430; margin-top: 0; text-align: center; }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: #aaa; }
+    .input-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-save { background: #f4c430; color: #111; }
+    .btn-close { background: #444; color: #fff; }
   </style>
 </head>
 <body>
@@ -42,88 +51,120 @@
   </header>
 
   <div class="wrap">
-    <div class="card">
-      <h2>📅 오늘의 활동 기록</h2>
-      <p>날짜를 선택하고 이계/명결 점수를 입력해주세요.</p>
+    <h2 style="color: #f4c430;">📅 활동 캘린더</h2>
+    <p style="color: #aaa; margin-bottom: 20px;">출석할 날짜(칸)를 클릭하여 점수를 입력하세요.</p>
+    
+    <div id="calendar"></div>
+  </div>
+
+  <div class="modal-overlay" id="attendanceModal">
+    <div class="modal">
+      <h3 id="modalDateTitle">0000-00-00 출석</h3>
       
       <div class="input-group">
-        <input type="date" id="dateInput">
-        <input type="number" id="labyInput" placeholder="이계 점수" min="0">
-        <input type="number" id="duelInput" placeholder="명결 점수" min="0">
-        <button class="submit-btn" onclick="saveAttendance()">기록 저장</button>
+        <label>⚔️ 이계 점수</label>
+        <input type="number" id="labyScore" placeholder="점수 입력" min="0">
+      </div>
+      <div class="input-group">
+        <label>🛡️ 명결 점수</label>
+        <input type="number" id="duelScore" placeholder="점수 입력" min="0">
+      </div>
+      <div class="input-group">
+        <label>🔥 길드 활약도 점수</label>
+        <input type="number" id="activityScore" placeholder="점수 입력" min="0">
       </div>
 
-      <h3>나의 최근 출석 기록</h3>
-      <div id="log" class="log-list">불러오는 중...</div>
+      <div class="modal-btns">
+        <button class="btn-close" onclick="closeModal()">취소</button>
+        <button class="btn-save" onclick="saveAttendance()">기록 저장</button>
+      </div>
     </div>
   </div>
 
   <script>
     let currentUser = null;
-
-    // 오늘 날짜를 기본값으로 세팅
-    document.getElementById("dateInput").value = new Date().toISOString().substring(0, 10);
+    let calendar = null;
+    let selectedDate = "";
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
       currentUser = user;
-
-      // 헤더 프로필 업데이트
+      
       const docSnap = await db.collection("users").doc(user.uid).get();
       if (docSnap.exists) {
         document.getElementById("userName").textContent = docSnap.data().nickname || "User";
         if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
       }
-      
-      loadMyLogs();
+
+      initCalendar();
     });
 
-    // 1. 출석 저장 로직 (Firestore 연동)
-    async function saveAttendance() {
-      if (!currentUser) return;
-      
-      const date = document.getElementById("dateInput").value;
-      const laby = Number(document.getElementById("labyInput").value || 0);
-      const duel = Number(document.getElementById("duelInput").value || 0);
-
-      if (!date) return alert("날짜를 선택해주세요.");
-
-      try {
-        await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(date).set({
-          date: date,
-          laby: laby,
-          duel: duel,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("성공적으로 기록되었습니다!");
-        loadMyLogs(); // 목록 새로고침
-      } catch (error) {
-        alert("기록 중 오류 발생: " + error.message);
-      }
+    // 1. 달력 초기화 및 렌더링
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ko',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+        height: 'auto',
+        dateClick: function(info) {
+          // 날짜 칸을 클릭하면 모달 팝업 열기
+          openModal(info.dateStr);
+        },
+        events: async function(info, successCallback, failureCallback) {
+          // 내 출석 기록을 불러와서 달력에 라벨(Event)로 표시
+          const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
+          const events = [];
+          snap.forEach(doc => {
+            events.push({
+              title: '✅ 완료',
+              start: doc.id,
+              allDay: true
+            });
+          });
+          successCallback(events);
+        }
+      });
+      calendar.render();
     }
 
-    // 2. 내 출석 기록 불러오기
-    async function loadMyLogs() {
-      const logContainer = document.getElementById("log");
-      const snap = await db.collection("attendance_logs").doc(currentUser.uid)
-                           .collection("days").orderBy("date", "desc").limit(7).get();
+    // 2. 모달 제어 함수
+    function openModal(dateStr) {
+      selectedDate = dateStr;
+      document.getElementById("modalDateTitle").textContent = dateStr + " 활동 기록";
+      // 입력창 초기화
+      document.getElementById("labyScore").value = "";
+      document.getElementById("duelScore").value = "";
+      document.getElementById("activityScore").value = "";
       
-      if (snap.empty) {
-        logContainer.innerHTML = "<p style='color:#aaa'>아직 출석 기록이 없습니다.</p>";
-        return;
-      }
+      document.getElementById("attendanceModal").style.display = "flex";
+    }
 
-      let html = "";
-      snap.forEach(doc => {
-        const data = doc.data();
-        html += `
-          <div class="log-item">
-            <span>${data.date}</span>
-            <span>이계: <b style="color:#f4c430">${data.laby}</b> / 명결: <b style="color:#00e676">${data.duel}</b></span>
-          </div>
-        `;
-      });
-      logContainer.innerHTML = html;
+    function closeModal() {
+      document.getElementById("attendanceModal").style.display = "none";
+    }
+
+    // 3. 파이어베이스에 점수 저장
+    async function saveAttendance() {
+      const laby = Number(document.getElementById("labyScore").value || 0);
+      const duel = Number(document.getElementById("duelScore").value || 0);
+      const activity = Number(document.getElementById("activityScore").value || 0);
+
+      try {
+        await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(selectedDate).set({
+          date: selectedDate,
+          laby: laby,
+          duel: duel,
+          activity: activity,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert("성공적으로 기록되었습니다!");
+        closeModal();
+        calendar.refetchEvents(); // 달력 이벤트 새로고침 (✅ 마크 띄우기)
+      } catch (error) {
+        alert("기록 저장 실패: " + error.message);
+      }
     }
   </script>
 </body>

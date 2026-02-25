@@ -3,29 +3,36 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER 길드 - 주간 결산</title>
+  <title>ROIDER 길드 - 주간 평균 결산</title>
 
   <link rel="stylesheet" href="header_standard.css">
-
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  
   <script src="firebase_config.js"></script>
 
   <style>
     body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
-    .wrap { max-width: 1000px; margin: 40px auto; padding: 20px; }
+    .wrap { max-width: 1100px; margin: 40px auto; padding: 20px; }
     .card { background: #1c1f2a; border-radius: 12px; padding: 20px; border: 1px solid #2a3242; margin-bottom: 20px; }
-    h2 { color: #f4c430; margin-top: 0; }
-    button { padding: 10px 14px; border-radius: 8px; border: none; background: #00e676; color: #000; font-weight: bold; cursor: pointer; }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #2a3242; padding: 12px; text-align: center; }
-    th { background: #121721; color: #f4c430; }
-    .admin-only { display: none; background: #2a1515; border-color: #ff5252; }
-    .admin-only h3 { color: #ff5252; }
-    input[type="number"] { padding: 8px; border-radius: 4px; border: 1px solid #444; background: #111; color: #fff; }
+    h2 { color: #f4c430; margin-top: 0; }
+    .control-panel { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; background: #121721; padding: 15px; border-radius: 8px; }
+    .control-panel input[type="number"] { padding: 10px; border-radius: 8px; border: 1px solid #444; background: #2a3242; color: #fff; width: 150px;}
+    button { padding: 10px 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-calc { background: #00e676; color: #000; }
+    .btn-calc:hover { background: #00c853; }
+    
+    /* 결산 테이블 */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+    th, td { border: 1px solid #2a3242; padding: 12px 8px; }
+    th { background: #121721; color: #f4c430; font-weight: bold; }
+    .highlight { color: #00e676; font-weight: bold; }
+    .total-row { background: rgba(244, 196, 48, 0.1); font-weight: bold; color: #f4c430; }
+
+    .admin-only { display: none; background: #2a1515; border-color: #ff5252; margin-top: 20px; }
+    .admin-only h3 { color: #ff5252; margin-top: 0; }
+    .btn-save { background: #ff5252; color: #fff; }
   </style>
 </head>
 <body>
@@ -41,120 +48,178 @@
 
   <div class="wrap">
     <div class="card">
-      <h2>💰 이번 주 활동 현황</h2>
-      <button onclick="calculateWeekly()">현황 집계하기</button>
+      <h2>💰 주간 평균 결산 및 분배</h2>
+      <p style="color:#aaa;">일주일(7일) 동안의 점수 합산을 7로 나눈 <b>'일일 평균 점수'</b>를 기준으로 분배합니다.</p>
       
-      <table>
-        <thead>
-          <tr>
-            <th>닉네임</th>
-            <th>이계 총합</th>
-            <th>명결 총합</th>
-          </tr>
-        </thead>
-        <tbody id="resultTable">
-          <tr><td colspan="3">집계하기 버튼을 눌러주세요.</td></tr>
-        </tbody>
-      </table>
+      <div class="control-panel">
+        <div>
+          <label style="display:block; font-size:12px; margin-bottom:4px; color:#aaa;">분배할 총 상자/골드량</label>
+          <input type="number" id="totalReward" placeholder="예: 10000" min="0">
+        </div>
+        <button class="btn-calc" onclick="calculateWeekly()" style="margin-top: 18px;">집계 및 분배 계산하기</button>
+      </div>
+      
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>닉네임</th>
+              <th>이계 (1주평균)</th>
+              <th>명결 (1주평균)</th>
+              <th>활약도 (1주평균)</th>
+              <th>합산 평균점수</th>
+              <th>기여 지분율</th>
+              <th style="color:#00e676;">예상 분배량</th>
+            </tr>
+          </thead>
+          <tbody id="resultTable">
+            <tr><td colspan="7" style="padding:30px; color:#aaa;">상단 버튼을 눌러 집계를 시작하세요.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card admin-only" id="adminBox">
       <h3>🛠️ 관리자 결산 확정</h3>
-      <p>이번 주 총 상자 개수를 입력하고 분배 결과를 확정하세요.</p>
-      총 상자: <input type="number" id="totalChest" placeholder="개수 입력">
-      <button style="background:#ff5252; color:#fff;" onclick="finalize()">결과 확정 및 저장</button>
+      <p>위의 분배 결과를 이번 주 공식 기록으로 저장합니다.</p>
+      <button class="btn-save" onclick="finalize()">이대로 결산 확정 및 이력 저장</button>
     </div>
   </div>
 
   <script>
     let isAdmin = false;
-    let weeklyData = {};
+    let finalWeeklyData = {};
+    let totalRewardToDistribute = 0;
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
-      
       const docSnap = await db.collection("users").doc(user.uid).get();
       if (docSnap.exists) {
         const data = docSnap.data();
         document.getElementById("userName").textContent = data.nickname || "User";
         if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
 
-        // 관리자인지 확인하여 관리자 폼 노출
-        if (data.role === "admin") {
+        if (data.role === "admin" || data.role === "manager") {
           isAdmin = true;
-          document.getElementById("adminBox").style.display = "block";
+          if(data.role === "admin") document.getElementById("adminBox").style.display = "block"; // 최고관리자만 저장 가능하게 하려면 분기
         }
       }
     });
 
-    // 1. 주간 데이터 집계 로직
     async function calculateWeekly() {
-      const tbody = document.getElementById("resultTable");
-      tbody.innerHTML = "<tr><td colspan='3'>데이터를 불러오는 중입니다...</td></tr>";
-      weeklyData = {};
+      const rewardInput = document.getElementById("totalReward").value;
+      if (!rewardInput) return alert("분배할 총 상자 또는 골드량을 입력해주세요!");
+      totalRewardToDistribute = Number(rewardInput);
 
-      // 유저 정보 가져오기 (닉네임 매핑용)
+      const tbody = document.getElementById("resultTable");
+      tbody.innerHTML = "<tr><td colspan='7'>데이터를 분석 중입니다...</td></tr>";
+      finalWeeklyData = {};
+
       const usersSnap = await db.collection("users").get();
       const userMap = {};
       usersSnap.forEach(u => userMap[u.id] = u.data().nickname);
 
-      // 출석 기록 전체 탐색 (실무에서는 날짜 필터링 권장)
       const logsSnap = await db.collection("attendance_logs").get();
       
+      let guildTotalAverageScore = 0; // 길드 전체 합산 평균 점수 (지분율 계산용)
+      const parsedData = [];
+
+      // 1. 데이터 취합 및 평균 계산
       for (const userDoc of logsSnap.docs) {
         const uid = userDoc.id;
-        let totalLaby = 0;
-        let totalDuel = 0;
+        let sumLaby = 0, sumDuel = 0, sumActivity = 0;
 
         const daysSnap = await userDoc.ref.collection("days").get();
         daysSnap.forEach(d => {
-          totalLaby += d.data().laby || 0;
-          totalDuel += d.data().duel || 0;
+          const v = d.data();
+          sumLaby += (v.laby || 0);
+          sumDuel += (v.duel || 0);
+          sumActivity += (v.activity || 0);
         });
 
-        if (totalLaby > 0 || totalDuel > 0) {
-          weeklyData[uid] = { nickname: userMap[uid] || "알수없음", laby: totalLaby, duel: totalDuel };
+        if (sumLaby > 0 || sumDuel > 0 || sumActivity > 0) {
+          // 1주(7일) 기준 평균 계산 (소수점 1자리까지)
+          const avgLaby = (sumLaby / 7).toFixed(1);
+          const avgDuel = (sumDuel / 7).toFixed(1);
+          const avgActivity = (sumActivity / 7).toFixed(1);
+          
+          // 개인별 합산 평균 점수
+          const totalAvgScore = Number(avgLaby) + Number(avgDuel) + Number(avgActivity);
+          guildTotalAverageScore += totalAvgScore;
+
+          parsedData.push({
+            uid: uid,
+            nickname: userMap[uid] || "알수없음",
+            avgLaby: Number(avgLaby),
+            avgDuel: Number(avgDuel),
+            avgActivity: Number(avgActivity),
+            totalAvg: totalAvgScore
+          });
         }
       }
 
-      // 테이블 렌더링
+      // 2. 지분율 및 분배량 계산, 테이블 렌더링
       tbody.innerHTML = "";
-      for (const uid in weeklyData) {
-        const d = weeklyData[uid];
+      if (parsedData.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>이번 주 기록된 데이터가 없습니다.</td></tr>";
+        return;
+      }
+
+      // 점수 높은 순 정렬
+      parsedData.sort((a, b) => b.totalAvg - a.totalAvg);
+
+      parsedData.forEach(d => {
+        // 지분율(%) = (개인 합산 / 길드 총 합산) * 100
+        const shareRatio = guildTotalAverageScore > 0 ? (d.totalAvg / guildTotalAverageScore) : 0;
+        const sharePercent = (shareRatio * 100).toFixed(2);
+        
+        // 최종 분배량 = 총 보상량 * 지분율 (소수점 버림 처리)
+        const myReward = Math.floor(totalRewardToDistribute * shareRatio);
+
+        // 확정용 데이터 저장
+        finalWeeklyData[d.uid] = { nickname: d.nickname, sharePercent: sharePercent, reward: myReward };
+
         tbody.innerHTML += `
           <tr>
-            <td>${d.nickname}</td>
-            <td>${d.laby}</td>
-            <td>${d.duel}</td>
+            <td><b>${d.nickname}</b></td>
+            <td>${d.avgLaby}</td>
+            <td>${d.avgDuel}</td>
+            <td>${d.avgActivity}</td>
+            <td style="color:#f4c430; font-weight:bold;">${d.totalAvg.toFixed(1)}</td>
+            <td>${sharePercent}%</td>
+            <td class="highlight">${myReward.toLocaleString()}</td>
           </tr>
         `;
-      }
-      if (Object.keys(weeklyData).length === 0) {
-        tbody.innerHTML = "<tr><td colspan='3'>기록된 데이터가 없습니다.</td></tr>";
-      }
+      });
+
+      // 총합계 줄 추가
+      tbody.innerHTML += `
+        <tr class="total-row">
+          <td colspan="4">길드 총 합산 점수</td>
+          <td>${guildTotalAverageScore.toFixed(1)}</td>
+          <td>100.00%</td>
+          <td>${totalRewardToDistribute.toLocaleString()}</td>
+        </tr>
+      `;
     }
 
-    // 2. 관리자 결산 확정 로직
+    // 3. 결산 기록 파이어베이스에 저장 (history 연동용)
     async function finalize() {
-      if (!isAdmin) return alert("관리자만 확정 가능합니다.");
-      const chest = document.getElementById("totalChest").value;
-      if (!chest) return alert("총 상자 개수를 입력해주세요.");
-
-      if (!confirm(`총 ${chest}개의 상자로 결산을 확정하시겠습니까?`)) return;
+      if (Object.keys(finalWeeklyData).length === 0) return alert("먼저 집계를 완료해주세요.");
+      if (!confirm(`총 보상 ${totalRewardToDistribute}개로 결산을 확정하시겠습니까?\n확정 후 이력 페이지로 넘어갑니다.`)) return;
 
       try {
-        // history용 컬렉션에 저장 (YYYY-MM-DD-time 형식 키 생성)
-        const weekKey = new Date().toISOString().substring(0, 10) + "-" + Date.now();
+        const weekKey = new Date().toISOString().substring(0, 10) + "-W" + Date.now().toString().slice(-4);
         await db.collection("weekly_results").doc(weekKey).set({
-          week: new Date().toISOString().substring(0, 10) + " 주간 결산",
-          totalChests: Number(chest),
-          result: weeklyData,
+          week: new Date().toISOString().substring(0, 10) + " 분배 결산",
+          totalReward: totalRewardToDistribute,
+          result: finalWeeklyData,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("결산이 성공적으로 확정되었습니다!");
-        location.href = "history.html"; // 주간 분배 이력 페이지로 이동
+        alert("성공적으로 결산이 확정되었습니다!");
+        location.href = "history.html"; 
       } catch (error) {
-        alert("저장 실패: " + error.message);
+        alert("저장 중 오류 발생: " + error.message);
       }
     }
   </script>
