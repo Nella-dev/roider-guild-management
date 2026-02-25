@@ -1,32 +1,108 @@
-/* ===== Navigation Bar Styles ===== */
+/* =========================================
+   ROIDER 공통 헤더 및 네비게이션 스타일 
+   ========================================= */
+
+/* 헤더 기본 컨테이너 */
+header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 14px 20px !important;
+  background: linear-gradient(135deg, #1f2933, #121721) !important;
+  border-bottom: 1px solid #2a3242 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+/* 로고 영역 */
+#appTitle, .logo {
+  font-weight: 900 !important;
+  font-size: 22px !important;
+  letter-spacing: 0.5px !important;
+  color: #f4c430 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
+/* 유저 정보 박스 */
+header .user-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 14px !important;
+  color: #ccc !important;
+}
+
+/* 프로필 이미지 */
+header .user-box img {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  border: 1px solid #444 !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* 로그아웃 버튼 */
+button.logout {
+  background: transparent !important;
+  border: 1px solid #555 !important;
+  color: #ccc !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+  font-size: 12px !important;
+  transition: 0.2s !important;
+}
+button.logout:hover {
+  border-color: #f4c430 !important;
+  color: #f4c430 !important;
+}
+
+/* 직책 뱃지 */
+.role-badge { 
+  display: inline-block !important; 
+  padding: 4px 8px !important; 
+  border-radius: 6px !important; 
+  font-size: 11px !important; 
+  font-weight: bold !important; 
+  vertical-align: middle !important; 
+}
+.role-member { background: #00e676 !important; color: #000 !important; }
+.role-manager { background: #00b0ff !important; color: #fff !important; }
+.role-admin { background: #ff5252 !important; color: #fff !important; }
+
+/* 네비게이션 바 (메뉴) */
 .top-nav {
-  background: #121721;
-  border-bottom: 1px solid #2a3242;
-  overflow-x: auto; /* 모바일에서 메뉴가 많으면 스와이프 가능 */
-  white-space: nowrap;
+  background: #121721 !important;
+  border-bottom: 1px solid #2a3242 !important;
+  overflow-x: auto !important; 
+  white-space: nowrap !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
 }
 .nav-container {
-  display: flex;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  gap: 10px;
+  display: flex !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 20px !important;
+  gap: 10px !important;
+  align-items: center !important;
 }
 .nav-link {
-  color: #aaa;
-  text-decoration: none;
-  padding: 14px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s;
-  border-bottom: 3px solid transparent;
+  color: #aaa !important;
+  text-decoration: none !important;
+  padding: 14px 16px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+  border-bottom: 3px solid transparent !important;
+  display: inline-block !important;
 }
 .nav-link:hover, .nav-link.active {
-  color: #f4c430;
-  border-bottom: 3px solid #f4c430;
+  color: #f4c430 !important;
+  border-bottom: 3px solid #f4c430 !important;
 }
-/* 직책 뱃지 (헤더용 공통) */
-.role-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
-.role-member { background: #00e676; color: #000; }
-.role-manager { background: #00b0ff; color: #fff; }
-.role-admin { background: #ff5252; color: #fff; }
