@@ -7,6 +7,8 @@
 
   <link rel="stylesheet" href="header_standard.css">
   
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -15,26 +17,40 @@
   <script src="firebase_config.js"></script>
 
   <style>
-    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    /* 💡 전체 폰트 적용 및 자간, 줄간격 최적화 */
+    body { 
+      margin: 0; 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+      background: #0f1015; color: #e6e6e6; 
+      letter-spacing: -0.3px; line-height: 1.5;
+    }
     .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
     
     /* 캘린더 스타일 커스텀 */
-    #calendar { background: #1c1f2a; padding: 20px; border-radius: 12px; border: 1px solid #2a3242; }
-    .fc-theme-standard th { background: #121721; color: #f4c430; padding: 10px 0; border-color: #2a3242; }
+    #calendar { background: #1c1f2a; padding: 20px; border-radius: 12px; border: 1px solid #2a3242; font-weight: 500; }
+    .fc-theme-standard th { background: #121721; color: #f4c430; padding: 10px 0; border-color: #2a3242; font-weight: 700; }
     .fc-theme-standard td, .fc-theme-standard .fc-scrollgrid { border-color: #2a3242; }
-    .fc-day-today { background: rgba(244, 196, 48, 0.1) !important; }
+    .fc-day-today { background: rgba(244, 196, 48, 0.08) !important; }
     .fc-daygrid-day:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     
-    /* 💡 출석 버튼 스타일 (이벤트 블록을 버튼처럼 꾸밈) */
+    /* 💡 출석 버튼 스타일 세분화 및 가독성 향상 */
     .event-pending { 
       background: #f4c430 !important; border: none !important; color: #111 !important; 
-      font-weight: bold; text-align: center; padding: 6px 2px; border-radius: 6px; 
-      cursor: pointer; margin-top: 5px; font-size: 13px;
+      font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; 
+      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px;
     }
+    /* 💡 과거 출석 버튼 (어둡고 차분하게) */
+    .event-past-pending { 
+      background: #2a3242 !important; border: 1px solid #444 !important; color: #aaa !important; 
+      font-weight: 600; text-align: center; padding: 5px 2px; border-radius: 6px; 
+      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px; transition: 0.2s;
+    }
+    .event-past-pending:hover { background: #3a445a !important; color: #fff !important; }
+    
     .event-completed { 
       background: #00e676 !important; border: none !important; color: #000 !important; 
-      font-weight: bold; text-align: center; padding: 6px 2px; border-radius: 6px; 
-      cursor: pointer; margin-top: 5px; font-size: 13px;
+      font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; 
+      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px;
     }
     .event-pending:hover { background: #d4a924 !important; }
     .event-completed:hover { background: #00c853 !important; }
@@ -45,15 +61,15 @@
     /* 모달(팝업) 스타일 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #1c1f2a; padding: 30px; border-radius: 12px; width: 90%; max-width: 350px; border: 1px solid #f4c430; }
-    .modal h3 { color: #f4c430; margin-top: 0; text-align: center; }
+    .modal h3 { color: #f4c430; margin-top: 0; text-align: center; font-weight: 800; }
     
-    .penalty-warning { display: none; background: rgba(255, 82, 82, 0.1); color: #ff5252; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 15px; border: 1px solid #ff5252; }
+    .penalty-warning { display: none; background: rgba(255, 82, 82, 0.1); color: #ff5252; padding: 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; text-align: center; margin-bottom: 15px; border: 1px solid #ff5252; line-height: 1.4; }
 
     .input-group { margin-bottom: 15px; }
-    .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: #aaa; }
-    .input-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; }
-    .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .input-group label { display: block; font-size: 14px; margin-bottom: 6px; color: #bbb; font-weight: 600; }
+    .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; font-family: 'Pretendard', sans-serif; font-size: 15px; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 24px; }
+    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-family: 'Pretendard', sans-serif; font-size: 15px; }
     .btn-save { background: #f4c430; color: #111; }
     .btn-close { background: #444; color: #fff; }
   </style>
@@ -70,8 +86,8 @@
   </header>
 
   <div class="wrap">
-    <h2 style="color: #f4c430;">📅 활동 캘린더 (리셋: UTC 00시)</h2>
-    <p style="color: #aaa; margin-bottom: 20px;">'출석하기' 버튼을 눌러 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
+    <h2 style="color: #f4c430; font-weight: 800; letter-spacing: -0.5px;">📅 활동 캘린더 (리셋: UTC 00시)</h2>
+    <p style="color: #aaa; margin-bottom: 20px; font-weight: 500;">'출석하기' 버튼을 눌러 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
     
     <div id="calendar"></div>
   </div>
@@ -111,11 +127,10 @@
     let isPastDate = false;
     let todayGameDateStr = "";
 
-    // [UTC 기준 날짜 계산 로직]
     function getGameDate() {
       const now = new Date();
       const utcTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
-      utcTime.setDate(utcTime.getDate() - 1); // 00시 기준 어제
+      utcTime.setDate(utcTime.getDate() - 1); 
       
       const y = utcTime.getFullYear();
       const m = String(utcTime.getMonth() + 1).padStart(2, '0');
@@ -138,7 +153,6 @@
       initCalendar();
     });
 
-    // 달력 초기화
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
@@ -154,27 +168,21 @@
           }
         },
 
-        // 달력 빈칸 클릭 시
         dateClick: function(info) {
           handleDateClick(info.dateStr);
         },
         
-        // 생성된 버튼(이벤트) 클릭 시
         eventClick: function(info) {
           handleDateClick(info.event.startStr);
         },
 
-        // 💡 [핵심] 달력에 '출석하기' 및 '출석완료' 버튼을 그리는 로직
         events: async function(info, successCallback, failureCallback) {
           try {
-            // 내 기록을 전부 가져옴
             const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
             const completedDays = new Set();
             snap.forEach(doc => { completedDays.add(doc.id); });
 
             const events = [];
-            
-            // 달력에 표시되는 첫날부터 끝날까지 돌면서 버튼 생성
             let currentDate = new Date(info.start);
             const endDate = new Date(info.end);
 
@@ -184,14 +192,16 @@
               const d = String(currentDate.getDate()).padStart(2, '0');
               const dateStr = `${y}-${m}-${d}`;
 
-              // 게임 기준일(오늘)까지만 버튼을 표시
               if (dateStr <= todayGameDateStr) {
                 if (completedDays.has(dateStr)) {
-                  // 이미 출석한 날 -> 초록색 완료 버튼
                   events.push({ title: '✅ 출석완료', start: dateStr, allDay: true, className: 'event-completed' });
                 } else {
-                  // 출석 안 한 날 -> 노란색 출석 버튼
-                  events.push({ title: '👆 출석하기', start: dateStr, allDay: true, className: 'event-pending' });
+                  // 💡 오늘 날짜인지 과거 날짜인지에 따라 버튼 디자인과 텍스트 분리
+                  if (dateStr < todayGameDateStr) {
+                    events.push({ title: '👆 과거 출석', start: dateStr, allDay: true, className: 'event-past-pending' });
+                  } else {
+                    events.push({ title: '👆 출석하기', start: dateStr, allDay: true, className: 'event-pending' });
+                  }
                 }
               }
               currentDate.setDate(currentDate.getDate() + 1);
@@ -206,7 +216,6 @@
       calendar.render();
     }
 
-    // 날짜 클릭 처리 공통 함수
     function handleDateClick(clickedDate) {
       if (clickedDate > todayGameDateStr) {
         return alert("아직 오픈되지 않은 미래의 날짜는 출석할 수 없습니다.");
@@ -241,7 +250,6 @@
       let duel = Number(document.getElementById("duelScore").value || 0);
       let activity = Number(document.getElementById("activityScore").value || 0);
 
-      // 과거 출석 패널티 50%
       if (isPastDate) {
         laby = laby * 0.5;
         duel = duel * 0.5;
@@ -263,7 +271,6 @@
         
         alert(msg);
         closeModal();
-        // 💡 저장 성공 시 달력 버튼을 새로고침하여 노란 버튼을 초록 버튼으로 바꿈
         calendar.refetchEvents();
       } catch (error) {
         alert("기록 저장 실패: " + error.message);
