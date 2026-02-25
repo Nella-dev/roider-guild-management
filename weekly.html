@@ -19,7 +19,7 @@
       color: #e6e6e6; 
       min-height: 100vh; 
     }
-    
+
     .wrap { max-width: 1100px; margin: 40px auto; padding: 20px; }
     .card { background: #1c1f2a; border-radius: 12px; padding: 24px; border: 1px solid #2a3242; margin-bottom: 20px; }
     
@@ -73,44 +73,46 @@
 </head>
 <body>
 
-  <header>
+<header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      <button class="logout" onclick="logout()">Logout</button>
+      
+      <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
+      <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
   </header>
   
   <nav class="top-nav">
     <div class="nav-container">
-      <a href="main.html" class="nav-link">홈</a>
-      <a href="notice.html" class="nav-link">공지사항</a>
-      <a href="attendance.html" class="nav-link">활동 캘린더</a>
-      <a href="weekly.html" class="nav-link">주간 결산</a>
-      <a href="members.html" class="nav-link">길드원 목록</a>
-      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;">권한 관리</a>
+      <a href="main.html" class="nav-link" data-i18n="menu_home">홈</a>
+      <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
+      <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
+      <a href="weekly.html" class="nav-link" data-i18n="menu_weekly">주간 결산</a>
+      <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
+      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;" data-i18n="menu_admin">권한 관리</a>
     </div>
   </nav>
   <div class="wrap">
     
-    <div class="card">
-      <h2>🏆 주간 길드 활동 랭킹 (실시간)</h2>
-      <p class="desc">일주일 평균 점수 합산을 기준으로 순위가 매겨집니다. 상위권에 도전하세요!</p>
+<div class="card">
+      <h2 data-i18n="weekly_title">🏆 주간 길드 활동 랭킹 (실시간)</h2>
+      <p class="desc" data-i18n="weekly_desc">일주일 평균 점수 합산을 기준으로 순위가 매겨집니다. 상위권에 도전하세요!</p>
       
       <div style="overflow-x: auto;">
         <table>
           <thead>
             <tr>
-              <th>순위</th>
-              <th>닉네임</th>
-              <th>이계 (평균)</th>
-              <th>명결 (평균)</th>
-              <th>활약도 (평균)</th>
-              <th>합산 평균점수</th>
-              <th>기여 지분율</th>
-              <th class="col-reward" style="color:#00e676;">예상 분배량</th>
+              <th data-i18n="col_rank">순위</th>
+              <th data-i18n="col_nickname">닉네임</th>
+              <th data-i18n="col_laby">이계 (평균)</th>
+              <th data-i18n="col_duel">명결 (평균)</th>
+              <th data-i18n="col_activity">활약도 (평균)</th>
+              <th data-i18n="col_total">합산 평균점수</th>
+              <th data-i18n="col_share">기여 지분율</th>
+              <th class="col-reward" style="color:#00e676;" data-i18n="col_reward">예상 분배량</th>
             </tr>
           </thead>
           <tbody id="resultTable">

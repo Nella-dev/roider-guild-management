@@ -76,24 +76,26 @@
 </head>
 <body>
 
-  <header>
+<header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      <button class="logout" onclick="logout()">Logout</button>
+      
+      <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
+      <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
   </header>
   
   <nav class="top-nav">
     <div class="nav-container">
-      <a href="main.html" class="nav-link">홈</a>
-      <a href="notice.html" class="nav-link">공지사항</a>
-      <a href="attendance.html" class="nav-link">활동 캘린더</a>
-      <a href="weekly.html" class="nav-link">주간 결산</a>
-      <a href="members.html" class="nav-link">길드원 목록</a>
-      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;">권한 관리</a>
+      <a href="main.html" class="nav-link" data-i18n="menu_home">홈</a>
+      <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
+      <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
+      <a href="weekly.html" class="nav-link" data-i18n="menu_weekly">주간 결산</a>
+      <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
+      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;" data-i18n="menu_admin">권한 관리</a>
     </div>
   </nav>
 
