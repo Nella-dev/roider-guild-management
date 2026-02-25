@@ -133,7 +133,7 @@ const i18n = {
     "main_card_admin": "Member Approval & Roles", "main_card_admin_desc": "Approve new members or manage guild roles.",
 
     "weekly_title": "🏆 Weekly Guild Ranking (Live)", "weekly_desc": "Rankings are based on the 7-day average score. Aim for the top!",
-    "col_rank": "Rank", "col_nickname": "Nickname", "col_laby": "Dream Realm (Avg)", "col_duel": "Duel honor (Avg)", "col_activity": "Activity (Avg)", "col_total": "Total Avg Score", "col_share": "Share (%)", "col_reward": "Est. Reward",
+    "col_rank": "Rank", "col_nickname": "Nickname", "col_laby": "Arcane Labyrinth (Avg)", "col_duel": "honor Duel (Avg)", "col_activity": "Activity (Avg)", "col_total": "Total Avg Score", "col_share": "Share (%)", "col_reward": "Est. Reward",
     "msg_loading": "Loading live data...", "msg_calc": "Calculating rewards...", "msg_nodata": "No data recorded for this week.", "msg_total": "Guild Total Score",
     "admin_title": "🛡️ Manager Settlement & Distribution", "admin_desc": "Enter total chests to preview, then confirm the official record.", "admin_label": "📦 Total Chests to Distribute", "btn_preview": "Preview Distribution", "btn_confirm": "Confirm Settlement & Save",
 
@@ -141,7 +141,7 @@ const i18n = {
     "att_desc": "Click 'Attend' to enter scores. (50% penalty for past dates)",
     "att_modal_title": " Activity Record",
     "att_warning": "⚠️ Past date.<br>Only 50% of the entered score will be applied.",
-    "att_laby": "⚔️ Dream Realm Score", "att_duel": "🛡️ Arena Score", "att_activity": "🔥 Guild Activity Score",
+    "att_laby": "⚔️ Arcane Labyrinth Score", "att_duel": "🛡️ honor Duel Score", "att_activity": "🔥 Guild Activity Score",
     "att_btn_cancel": "Cancel", "att_btn_save": "Save Record",
     "att_btn_past": "👆 Past Attend", "att_btn_today": "👆 Attend", "att_btn_done": "✅ Completed"
   }
