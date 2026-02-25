@@ -13,20 +13,13 @@
   <script src="firebase_config.js"></script>
 
   <style>
-    body { 
-      margin: 0; 
-      background: radial-gradient(circle at top, #1b2333, #0f1015 60%); 
-      color: #e6e6e6; 
-      min-height: 100vh; 
-    }
-
+    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
     .wrap { max-width: 1100px; margin: 40px auto; padding: 20px; }
     .card { background: #1c1f2a; border-radius: 12px; padding: 24px; border: 1px solid #2a3242; margin-bottom: 20px; }
     
     h2 { color: #f4c430; margin-top: 0; font-weight: 800; }
     .desc { color: #aaa; margin-bottom: 24px; font-weight: 500; }
     
-    /* 💡 결산 테이블 및 랭킹 특수 효과 스타일 */
     table { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 14.5px; text-align: center; }
     th { background: #121721; color: #f4c430; font-weight: 700; font-size: 14px; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
     td { background: #1c1f2a; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; transition: all 0.3s; }
@@ -36,26 +29,21 @@
     .highlight { color: #00e676; font-weight: 800; font-size: 16px; }
     .total-row td { background: rgba(244, 196, 48, 0.08); font-weight: 800; color: #f4c430; border-color: #f4c430; }
 
-    /* 👑 1위 효과 (Gold) */
     .rank-1 td { background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #fff; font-weight: 800; box-shadow: 0px 4px 15px rgba(255, 215, 0, 0.2); }
     .rank-1 .rank-icon { font-size: 22px; text-shadow: 0 0 10px #ffd700; }
     .rank-1 .score-text { color: #ffd700; font-size: 18px; }
 
-    /* 🥈 2위 효과 (Silver) */
     .rank-2 td { background: rgba(192, 192, 192, 0.1); border-color: #c0c0c0; color: #fff; font-weight: 700; }
     .rank-2 .rank-icon { font-size: 20px; text-shadow: 0 0 8px #c0c0c0; }
     .rank-2 .score-text { color: #e0e0e0; font-size: 17px; }
 
-    /* 🥉 3위 효과 (Bronze) */
     .rank-3 td { background: rgba(205, 127, 50, 0.1); border-color: #cd7f32; color: #fff; font-weight: 700; }
     .rank-3 .rank-icon { font-size: 18px; text-shadow: 0 0 8px #cd7f32; }
     .rank-3 .score-text { color: #cd7f32; font-size: 16px; }
 
-    /* 일반 순위 */
     .rank-normal .rank-icon { font-size: 15px; color: #888; font-weight: 800; }
     .rank-normal .score-text { color: #f4c430; font-weight: 800; }
 
-    /* 운영진 전용 박스 스타일 */
     .admin-only { display: none; background: #2a1515; border-color: #ff5252; margin-top: 30px; }
     .admin-only h3 { color: #ff5252; margin-top: 0; font-weight: 800; margin-bottom: 10px; }
     .control-panel { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; background: #1c1212; padding: 18px; border-radius: 10px; border: 1px solid #ff5252; }
@@ -67,13 +55,12 @@
     .btn-save { background: #ff5252; color: #fff; padding: 14px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 15px; font-family: inherit; width: 100%; margin-top: 10px; }
     .btn-save:hover { background: #e04848; }
 
-    /* 운영진 전용 분배량 컬럼 (기본 숨김) */
     .col-reward { display: none; }
   </style>
 </head>
 <body>
 
-<header>
+  <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
@@ -97,7 +84,7 @@
   </nav>
   <div class="wrap">
     
-<div class="card">
+    <div class="card">
       <h2 data-i18n="weekly_title">🏆 주간 길드 활동 랭킹 (실시간)</h2>
       <p class="desc" data-i18n="weekly_desc">일주일 평균 점수 합산을 기준으로 순위가 매겨집니다. 상위권에 도전하세요!</p>
       
@@ -116,25 +103,25 @@
             </tr>
           </thead>
           <tbody id="resultTable">
-            <tr><td colspan="8" style="padding:40px; color:#aaa; font-weight: 500;">실시간 데이터를 불러오는 중입니다...</td></tr>
+            <tr><td colspan="8" style="padding:40px; color:#aaa; font-weight: 500;" data-i18n="msg_loading">실시간 데이터를 불러오는 중입니다...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <div class="card admin-only" id="adminBox">
-      <h3>🛡️ 운영진 결산 및 분배 관리</h3>
-      <p style="color:#aaa; font-weight: 500; margin-bottom: 20px;">상자 개수를 입력하여 분배량을 미리보기 한 뒤, 이번 주 공식 기록으로 확정하세요.</p>
+      <h3 data-i18n="admin_title">🛡️ 운영진 결산 및 분배 관리</h3>
+      <p style="color:#aaa; font-weight: 500; margin-bottom: 20px;" data-i18n="admin_desc">상자 개수를 입력하여 분배량을 미리보기 한 뒤, 이번 주 공식 기록으로 확정하세요.</p>
       
       <div class="control-panel">
         <div>
-          <label>📦 분배할 총 상자 개수</label>
+          <label data-i18n="admin_label">📦 분배할 총 상자 개수</label>
           <input type="number" id="totalReward" placeholder="예: 10000" min="0">
         </div>
-        <button class="btn-calc" onclick="calculateWeekly(false)">분배 계산 미리보기</button>
+        <button class="btn-calc" onclick="calculateWeekly(false)" data-i18n="btn_preview">분배 계산 미리보기</button>
       </div>
 
-      <button class="btn-save" onclick="finalize()">이대로 결산 확정 및 이력 저장</button>
+      <button class="btn-save" onclick="finalize()" data-i18n="btn_confirm">이대로 결산 확정 및 이력 저장</button>
     </div>
   </div>
 
@@ -153,7 +140,6 @@
           document.getElementById("adminBox").style.display = "block";
         }
       }
-      // 접속 시 무조건 랭킹부터 자동으로 렌더링
       calculateWeekly(true);
     });
 
@@ -162,15 +148,17 @@
         const rewardInput = document.getElementById("totalReward").value;
         if (!rewardInput) return alert("분배할 총 상자 개수를 입력해주세요!");
         totalRewardToDistribute = Number(rewardInput);
-        
-        // 운영진이 계산 버튼을 누르면 분배량 열(Column) 보이기
         document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
       } else {
         totalRewardToDistribute = 0; 
       }
 
       const tbody = document.getElementById("resultTable");
-      if (!isAutoLoad) tbody.innerHTML = "<tr><td colspan='8' style='padding:20px;'>분배량을 계산 중입니다...</td></tr>";
+      if (!isAutoLoad) tbody.innerHTML = `<tr><td colspan='8' style='padding:20px;' data-i18n="msg_calc">분배량을 계산 중입니다...</td></tr>`;
+      
+      // 💡 표 내용이 바뀌었으므로 즉시 번역 적용
+      applyLanguage(); 
+      
       finalWeeklyData = {};
 
       const usersSnap = await db.collection("users").get();
@@ -215,29 +203,25 @@
 
       tbody.innerHTML = "";
       if (parsedData.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='8' style='padding:40px; color:#aaa;'>이번 주 기록된 데이터가 없습니다.</td></tr>";
+        tbody.innerHTML = `<tr><td colspan='8' style='padding:40px; color:#aaa;' data-i18n="msg_nodata">이번 주 기록된 데이터가 없습니다.</td></tr>`;
+        applyLanguage(); // 데이터 없음 번역
         return;
       }
 
-      // 점수 높은 순으로 정렬 (랭킹)
       parsedData.sort((a, b) => b.totalAvg - a.totalAvg);
 
       parsedData.forEach((d, index) => {
-        const rank = index + 1; // 순위 계산
-        
-        // 💡 1, 2, 3위에게 특수 클래스 및 아이콘 부여
+        const rank = index + 1; 
         let rankClass = "rank-normal";
-        let rankIcon = `${rank}위`;
-        if (rank === 1) { rankClass = "rank-1"; rankIcon = "🥇 1위"; }
-        else if (rank === 2) { rankClass = "rank-2"; rankIcon = "🥈 2위"; }
-        else if (rank === 3) { rankClass = "rank-3"; rankIcon = "🥉 3위"; }
+        let rankIcon = `${rank}`;
+        if (rank === 1) { rankClass = "rank-1"; rankIcon = "🥇 1"; }
+        else if (rank === 2) { rankClass = "rank-2"; rankIcon = "🥈 2"; }
+        else if (rank === 3) { rankClass = "rank-3"; rankIcon = "🥉 3"; }
 
         const shareRatio = guildTotalAverageScore > 0 ? (d.totalAvg / guildTotalAverageScore) : 0;
         const sharePercent = (shareRatio * 100).toFixed(2);
-        
         const myReward = Math.floor(totalRewardToDistribute * shareRatio);
         
-        // 데이터 저장
         finalWeeklyData[d.uid] = { nickname: d.nickname, sharePercent: sharePercent, reward: myReward };
 
         tbody.innerHTML += `
@@ -258,23 +242,24 @@
       
       tbody.innerHTML += `
         <tr class="total-row">
-          <td colspan="5">길드 총 합산 점수</td>
+          <td colspan="5" data-i18n="msg_total">길드 총 합산 점수</td>
           <td>${guildTotalAverageScore.toFixed(1)}</td>
           <td>100.00%</td>
           <td class="col-reward">${totalRewardText}</td>
         </tr>
       `;
       
-      // 만약 이미 수동 계산 모드라면 분배량 열 보이게 유지
       if (!isAutoLoad) {
         document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
       }
+
+      // 💡 자바스크립트로 표를 다 그린 후 무조건 번역 함수를 한 번 더 실행합니다!
+      applyLanguage(); 
     }
 
     async function finalize() {
       if (!isAdmin) return;
       if (totalRewardToDistribute <= 0) return alert("먼저 총 상자 개수를 입력하고 '분배 계산 미리보기'를 눌러주세요.");
-      
       if (!confirm(`총 상자 ${totalRewardToDistribute}개로 결산을 확정하시겠습니까?\n확정 후 이력 페이지로 넘어갑니다.`)) return;
 
       try {
