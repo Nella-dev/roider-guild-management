@@ -26,10 +26,17 @@
     .fc-daygrid-day:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     .fc-h-event { background: #00e676; border: none; color: #000; font-weight: bold; padding: 2px 4px; border-radius: 4px; text-align: center;}
     
+    /* 미래 날짜 비활성화 스타일 */
+    .fc-day-future { background: rgba(255, 255, 255, 0.02) !important; cursor: not-allowed !important; opacity: 0.4; }
+
     /* 모달(팝업) 스타일 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #1c1f2a; padding: 30px; border-radius: 12px; width: 90%; max-width: 350px; border: 1px solid #f4c430; }
     .modal h3 { color: #f4c430; margin-top: 0; text-align: center; }
+    
+    /* 과거 출석 패널티 경고문 */
+    .penalty-warning { display: none; background: rgba(255, 82, 82, 0.1); color: #ff5252; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 15px; border: 1px solid #ff5252; }
+
     .input-group { margin-bottom: 15px; }
     .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: #aaa; }
     .input-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; }
@@ -51,8 +58,8 @@
   </header>
 
   <div class="wrap">
-    <h2 style="color: #f4c430;">📅 활동 캘린더</h2>
-    <p style="color: #aaa; margin-bottom: 20px;">출석할 날짜(칸)를 클릭하여 점수를 입력하세요.</p>
+    <h2 style="color: #f4c430;">📅 활동 캘린더 (리셋: 오전 09시)</h2>
+    <p style="color: #aaa; margin-bottom: 20px;">출석할 날짜(칸)를 클릭하여 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
     
     <div id="calendar"></div>
   </div>
@@ -60,6 +67,10 @@
   <div class="modal-overlay" id="attendanceModal">
     <div class="modal">
       <h3 id="modalDateTitle">0000-00-00 출석</h3>
+      
+      <div id="penaltyWarning" class="penalty-warning">
+        ⚠️ 과거 날짜입니다.<br>입력하신 점수의 50%만 반영됩니다.
+      </div>
       
       <div class="input-group">
         <label>⚔️ 이계 점수</label>
@@ -85,6 +96,27 @@
     let currentUser = null;
     let calendar = null;
     let selectedDate = "";
+    let isPastDate = false; // 과거 여부 판별 변수
+    let todayGameDateStr = "";
+
+    // [핵심] 한국 시각(KST) 오전 9시 기준 '오늘(게임 날짜)' 계산 로직
+    function getGameDate() {
+      const now = new Date();
+      // 브라우저 시간을 UTC로 변환 후, 한국 시간(+9시간)으로 맞춤
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const kstTime = new Date(utc + (9 * 3600000));
+      
+      // KST 시간이 오전 9시 이전이면, 게임 상 날짜는 어제입니다.
+      if (kstTime.getHours() < 9) {
+        kstTime.setDate(kstTime.getDate() - 1);
+      }
+      
+      // YYYY-MM-DD 형태로 변환
+      const y = kstTime.getFullYear();
+      const m = String(kstTime.getMonth() + 1).padStart(2, '0');
+      const d = String(kstTime.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
@@ -96,10 +128,11 @@
         if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
       }
 
+      todayGameDateStr = getGameDate(); // 접속 시 게임 기준 오늘 날짜 계산
       initCalendar();
     });
 
-    // 1. 달력 초기화 및 렌더링
+    // 달력 초기화
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
@@ -107,20 +140,35 @@
         locale: 'ko',
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
         height: 'auto',
-        dateClick: function(info) {
-          // 날짜 칸을 클릭하면 모달 팝업 열기
-          openModal(info.dateStr);
+        
+        // [추가 기능] 날짜 셀을 그릴 때 미래 날짜면 CSS 클래스를 추가하여 비활성화
+        dayCellDidMount: function(info) {
+          const cellDateStr = info.date.getFullYear() + '-' + String(info.date.getMonth() + 1).padStart(2, '0') + '-' + String(info.date.getDate()).padStart(2, '0');
+          if (cellDateStr > todayGameDateStr) {
+            info.el.classList.add('fc-day-future'); // CSS에서 클릭 불가 및 어둡게 처리됨
+          }
         },
+
+        // 클릭 이벤트 제어
+        dateClick: function(info) {
+          const clickedDate = info.dateStr;
+          
+          // 1. 미래 날짜 차단
+          if (clickedDate > todayGameDateStr) {
+            return alert("아직 오픈되지 않은 미래의 날짜는 출석할 수 없습니다.");
+          }
+          
+          // 2. 모달 열기 (과거 날짜인지 여부 판별)
+          isPastDate = (clickedDate < todayGameDateStr);
+          openModal(clickedDate);
+        },
+
+        // 내 출석 기록 불러오기 (기존과 동일)
         events: async function(info, successCallback, failureCallback) {
-          // 내 출석 기록을 불러와서 달력에 라벨(Event)로 표시
           const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
           const events = [];
           snap.forEach(doc => {
-            events.push({
-              title: '✅ 완료',
-              start: doc.id,
-              allDay: true
-            });
+            events.push({ title: '✅ 완료', start: doc.id, allDay: true });
           });
           successCallback(events);
         }
@@ -128,15 +176,23 @@
       calendar.render();
     }
 
-    // 2. 모달 제어 함수
+    // 모달 제어 함수
     function openModal(dateStr) {
       selectedDate = dateStr;
       document.getElementById("modalDateTitle").textContent = dateStr + " 활동 기록";
+      
       // 입력창 초기화
       document.getElementById("labyScore").value = "";
       document.getElementById("duelScore").value = "";
       document.getElementById("activityScore").value = "";
       
+      // 과거 출석일 경우 경고문 표시
+      if (isPastDate) {
+        document.getElementById("penaltyWarning").style.display = "block";
+      } else {
+        document.getElementById("penaltyWarning").style.display = "none";
+      }
+
       document.getElementById("attendanceModal").style.display = "flex";
     }
 
@@ -144,11 +200,18 @@
       document.getElementById("attendanceModal").style.display = "none";
     }
 
-    // 3. 파이어베이스에 점수 저장
+    // 파이어베이스에 점수 저장 (패널티 계산 적용)
     async function saveAttendance() {
-      const laby = Number(document.getElementById("labyScore").value || 0);
-      const duel = Number(document.getElementById("duelScore").value || 0);
-      const activity = Number(document.getElementById("activityScore").value || 0);
+      let laby = Number(document.getElementById("labyScore").value || 0);
+      let duel = Number(document.getElementById("duelScore").value || 0);
+      let activity = Number(document.getElementById("activityScore").value || 0);
+
+      // [핵심] 과거 출석일 경우 점수 50% 차감 로직
+      if (isPastDate) {
+        laby = laby * 0.5;
+        duel = duel * 0.5;
+        activity = activity * 0.5;
+      }
 
       try {
         await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(selectedDate).set({
@@ -156,12 +219,16 @@
           laby: laby,
           duel: duel,
           activity: activity,
+          isPenaltyApplied: isPastDate, // 나중에 데이터를 볼 때 패널티가 적용되었는지 확인하기 위한 플래그
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        alert("성공적으로 기록되었습니다!");
+        let msg = "성공적으로 기록되었습니다!";
+        if(isPastDate) msg += "\n(과거 출석으로 인해 점수가 50% 반영되었습니다.)";
+        
+        alert(msg);
         closeModal();
-        calendar.refetchEvents(); // 달력 이벤트 새로고침 (✅ 마크 띄우기)
+        calendar.refetchEvents();
       } catch (error) {
         alert("기록 저장 실패: " + error.message);
       }
