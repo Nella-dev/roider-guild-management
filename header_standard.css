@@ -2,6 +2,24 @@
    ROIDER 공통 헤더 및 네비게이션 스타일 
    ========================================= */
 
+/* =========================================
+   최상단 추가: 넥슨 고딕 웹 폰트 글로벌 적용
+   ========================================= */
+@font-face {
+    font-family: 'NEXON Lv1 Gothic OTF';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/NEXON Lv1 Gothic OTF.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 모든 텍스트 요소에 예쁜 폰트 강제 적용 */
+body, button, input, textarea, select, table, th, td, div, span, p, h1, h2, h3, a, nav {
+  font-family: 'NEXON Lv1 Gothic OTF', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  letter-spacing: -0.3px !important; /* 글씨 간격을 살짝 좁혀서 더 세련되게 만듭니다 */
+}
+/* ========================================= */
+
+
 /* 헤더 기본 컨테이너 */
 header {
   display: flex !important;
