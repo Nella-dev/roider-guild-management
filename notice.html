@@ -107,7 +107,6 @@
         myRole = docSnap.data().role;
         myNickname = docSnap.data().nickname || "Manager";
 
-        // 운영진(Manager) 이상만 글쓰기 버튼 활성화
         if (myRole === "admin" || myRole === "manager") {
           document.getElementById("btnWriteNotice").style.display = "block";
         }
@@ -121,20 +120,20 @@
         list.innerHTML = "";
 
         if (snapshot.empty) {
-          list.innerHTML = `<p style="color:#aaa;" data-i18n="noti_empty">${i18n[currentLang]["noti_empty"]}</p>`;
+          // 💡 undefined 방지
+          const textEmpty = i18n[currentLang]?.noti_empty || "등록된 공지사항이 없습니다.";
+          list.innerHTML = `<p style="color:#aaa;">${textEmpty}</p>`;
           return;
         }
 
-        const tDelete = i18n[currentLang]["noti_btn_delete"];
+        // 💡 undefined 방지
+        const tDelete = i18n[currentLang]?.noti_btn_delete || "삭제";
 
         snapshot.forEach(doc => {
           const data = doc.data();
           const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : "";
-          
-          // 작성자 직책 번역
-          const authorRole = i18n[currentLang]["role_" + data.authorRole] || data.authorRole;
+          const authorRole = i18n[currentLang]?.[`role_${data.authorRole}`] || data.authorRole;
 
-          // 삭제 버튼 (운영진 전용)
           let deleteBtn = "";
           if (myRole === "admin" || myRole === "manager") {
             deleteBtn = `<button class="btn-delete" onclick="deleteNotice('${doc.id}')">${tDelete}</button>`;
@@ -169,25 +168,17 @@
 
       try {
         await db.collection("notices").add({
-          title: title,
-          content: content,
-          author: myNickname,
-          authorRole: myRole,
+          title: title, content: content, author: myNickname, authorRole: myRole,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         closeModal();
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
+      } catch (error) { alert("Error: " + error.message); }
     }
 
     async function deleteNotice(id) {
       if (!confirm("정말로 이 공지사항을 삭제하시겠습니까? (Are you sure you want to delete this notice?)")) return;
-      try {
-        await db.collection("notices").doc(id).delete();
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
+      try { await db.collection("notices").doc(id).delete(); } 
+      catch (error) { alert("Error: " + error.message); }
     }
   </script>
 </body>

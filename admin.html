@@ -117,22 +117,23 @@
       const filteredUsers = currentFilter === 'all' ? allUsers : allUsers.filter(u => u.role === currentFilter);
 
       if (filteredUsers.length === 0) {
-        list.innerHTML = `<p style='color:#aaa;' data-i18n='adm_empty'>${i18n[currentLang]["adm_empty"]}</p>`;
+        const textEmpty = i18n[currentLang]?.adm_empty || "조건에 맞는 유저가 없습니다.";
+        list.innerHTML = `<p style='color:#aaa;'>${textEmpty}</p>`;
         return;
       }
 
       filteredUsers.forEach(u => {
-        const roleName = i18n[currentLang]["role_" + u.role] || u.role;
+        const roleName = i18n[currentLang]?.[`role_${u.role}`] || u.role;
         const roleClass = `role-${u.role}`;
         let actionButtons = '';
 
-        // 💡 다국어 사전을 참조하여 버튼 텍스트 생성
-        const tApprove = i18n[currentLang]["adm_btn_approve"];
-        const tDemoteP = i18n[currentLang]["adm_btn_demote_pending"];
-        const tManager = i18n[currentLang]["adm_btn_manager"];
-        const tAdmin = i18n[currentLang]["adm_btn_admin"];
-        const tDemoteM = i18n[currentLang]["adm_btn_demote_member"];
-        const tDemoteMg = i18n[currentLang]["adm_btn_demote_manager"];
+        // 💡 undefined 방지 장치 추가
+        const tApprove = i18n[currentLang]?.adm_btn_approve || "멤버 승인";
+        const tDemoteP = i18n[currentLang]?.adm_btn_demote_pending || "대기 강등";
+        const tManager = i18n[currentLang]?.adm_btn_manager || "운영진 임명";
+        const tAdmin = i18n[currentLang]?.adm_btn_admin || "관리자 임명";
+        const tDemoteM = i18n[currentLang]?.adm_btn_demote_member || "멤버 강등";
+        const tDemoteMg = i18n[currentLang]?.adm_btn_demote_manager || "운영진 강등";
 
         if (u.role === 'pending') {
           actionButtons = `<button class="btn-action btn-approve" onclick="changeRole('${u.id}', 'member')">${tApprove}</button>`;
@@ -167,7 +168,7 @@
 
     async function changeRole(uid, newRole) {
       if (myRole === 'manager' && (newRole === 'admin' || newRole === 'manager')) return;
-      if (!confirm(`Are you sure you want to change role to [${newRole}]?`)) return;
+      if (!confirm(`권한을 변경하시겠습니까? (Change role to [${newRole}]?)`)) return;
 
       try { await db.collection("users").doc(uid).update({ role: newRole }); } 
       catch (error) { alert("Error: " + error.message); }

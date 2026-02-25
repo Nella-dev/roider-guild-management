@@ -52,7 +52,7 @@
     <h2 data-i18n="mem_title">👥 길드원 목록</h2>
     <p class="desc" data-i18n="mem_desc">현재 ROIDER 길드에 소속된 자랑스러운 멤버들입니다.</p>
     
-    <div class="count-box" id="memberCount" data-i18n="msg_loading">로딩중...</div>
+    <div class="count-box" id="memberCount">로딩중...</div>
 
     <div id="memberList" class="member-grid"></div>
   </div>
@@ -86,17 +86,18 @@
       const countBox = document.getElementById("memberCount");
       list.innerHTML = "";
 
-      // 💡 다국어 사전을 참조하여 인원수 표기
-      countBox.textContent = i18n[currentLang]["mem_count"] + members.length;
+      // 💡 undefined 방지 코드 적용
+      const textCount = i18n[currentLang]?.mem_count || "총 인원: ";
+      countBox.textContent = textCount + members.length;
 
       if (members.length === 0) {
-        list.innerHTML = `<p style='color:#aaa;' data-i18n='mem_empty'>${i18n[currentLang]["mem_empty"]}</p>`;
+        const textEmpty = i18n[currentLang]?.mem_empty || "표시할 길드원이 없습니다.";
+        list.innerHTML = `<p style='color:#aaa;'>${textEmpty}</p>`;
         return;
       }
 
       members.forEach(m => {
-        // 💡 직책 이름도 사전에서 불러옴 (예: role_admin -> 최고 관리자 / Guild Master)
-        const roleName = i18n[currentLang]["role_" + m.role] || m.role;
+        const roleName = i18n[currentLang]?.[`role_${m.role}`] || m.role;
         const roleClass = `role-${m.role}`;
         const firstLetter = m.nickname ? m.nickname.charAt(0).toUpperCase() : "?";
 
@@ -111,7 +112,7 @@
         `;
         list.appendChild(div);
       });
-      applyLanguage(); // 데이터 렌더링 완료 후 번역 확정
+      applyLanguage(); 
     }
   </script>
 </body>
