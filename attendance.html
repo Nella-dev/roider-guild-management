@@ -24,7 +24,20 @@
     .fc-theme-standard td, .fc-theme-standard .fc-scrollgrid { border-color: #2a3242; }
     .fc-day-today { background: rgba(244, 196, 48, 0.1) !important; }
     .fc-daygrid-day:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
-    .fc-h-event { background: #00e676; border: none; color: #000; font-weight: bold; padding: 2px 4px; border-radius: 4px; text-align: center;}
+    
+    /* 💡 출석 버튼 스타일 (이벤트 블록을 버튼처럼 꾸밈) */
+    .event-pending { 
+      background: #f4c430 !important; border: none !important; color: #111 !important; 
+      font-weight: bold; text-align: center; padding: 6px 2px; border-radius: 6px; 
+      cursor: pointer; margin-top: 5px; font-size: 13px;
+    }
+    .event-completed { 
+      background: #00e676 !important; border: none !important; color: #000 !important; 
+      font-weight: bold; text-align: center; padding: 6px 2px; border-radius: 6px; 
+      cursor: pointer; margin-top: 5px; font-size: 13px;
+    }
+    .event-pending:hover { background: #d4a924 !important; }
+    .event-completed:hover { background: #00c853 !important; }
     
     /* 미래 날짜 비활성화 스타일 */
     .fc-day-future { background: rgba(255, 255, 255, 0.02) !important; cursor: not-allowed !important; opacity: 0.4; }
@@ -34,7 +47,6 @@
     .modal { background: #1c1f2a; padding: 30px; border-radius: 12px; width: 90%; max-width: 350px; border: 1px solid #f4c430; }
     .modal h3 { color: #f4c430; margin-top: 0; text-align: center; }
     
-    /* 과거 출석 패널티 경고문 */
     .penalty-warning { display: none; background: rgba(255, 82, 82, 0.1); color: #ff5252; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 15px; border: 1px solid #ff5252; }
 
     .input-group { margin-bottom: 15px; }
@@ -58,8 +70,8 @@
   </header>
 
   <div class="wrap">
-    <h2 style="color: #f4c430;">📅 활동 캘린더 (리셋: 오전 09시)</h2>
-    <p style="color: #aaa; margin-bottom: 20px;">출석할 날짜(칸)를 클릭하여 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
+    <h2 style="color: #f4c430;">📅 활동 캘린더 (리셋: UTC 00시)</h2>
+    <p style="color: #aaa; margin-bottom: 20px;">'출석하기' 버튼을 눌러 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
     
     <div id="calendar"></div>
   </div>
@@ -96,21 +108,15 @@
     let currentUser = null;
     let calendar = null;
     let selectedDate = "";
-    let isPastDate = false; // 과거 여부 판별 변수
+    let isPastDate = false;
     let todayGameDateStr = "";
 
-// [최종 완성 로직] 국제표준시(UTC) 00시 기준 '결산 날짜(어제)' 계산
+    // [UTC 기준 날짜 계산 로직]
     function getGameDate() {
       const now = new Date();
-      
-      // 1. 사용자의 접속 위치나 로컬 시간에 상관없이, 현재 시간을 국제표준시(UTC)로 변환합니다.
-      // (한국 시간 09:00가 되면 UTC는 자동으로 00:00 다음 날로 넘어갑니다)
       const utcTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
+      utcTime.setDate(utcTime.getDate() - 1); // 00시 기준 어제
       
-      // 2. 우리의 출석 기록은 '방금 00시가 되어 종료된 어제'의 기록이므로 하루(-1)를 빼줍니다.
-      utcTime.setDate(utcTime.getDate() - 1);
-      
-      // 3. YYYY-MM-DD 형태로 예쁘게 변환하여 반환합니다.
       const y = utcTime.getFullYear();
       const m = String(utcTime.getMonth() + 1).padStart(2, '0');
       const d = String(utcTime.getDate()).padStart(2, '0');
@@ -128,7 +134,7 @@
         if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
       }
 
-      todayGameDateStr = getGameDate(); // 접속 시 게임 기준 오늘 날짜 계산
+      todayGameDateStr = getGameDate(); 
       initCalendar();
     });
 
@@ -141,52 +147,82 @@
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
         height: 'auto',
         
-        // [추가 기능] 날짜 셀을 그릴 때 미래 날짜면 CSS 클래스를 추가하여 비활성화
         dayCellDidMount: function(info) {
           const cellDateStr = info.date.getFullYear() + '-' + String(info.date.getMonth() + 1).padStart(2, '0') + '-' + String(info.date.getDate()).padStart(2, '0');
           if (cellDateStr > todayGameDateStr) {
-            info.el.classList.add('fc-day-future'); // CSS에서 클릭 불가 및 어둡게 처리됨
+            info.el.classList.add('fc-day-future'); 
           }
         },
 
-        // 클릭 이벤트 제어
+        // 달력 빈칸 클릭 시
         dateClick: function(info) {
-          const clickedDate = info.dateStr;
-          
-          // 1. 미래 날짜 차단
-          if (clickedDate > todayGameDateStr) {
-            return alert("아직 오픈되지 않은 미래의 날짜는 출석할 수 없습니다.");
-          }
-          
-          // 2. 모달 열기 (과거 날짜인지 여부 판별)
-          isPastDate = (clickedDate < todayGameDateStr);
-          openModal(clickedDate);
+          handleDateClick(info.dateStr);
+        },
+        
+        // 생성된 버튼(이벤트) 클릭 시
+        eventClick: function(info) {
+          handleDateClick(info.event.startStr);
         },
 
-        // 내 출석 기록 불러오기 (기존과 동일)
+        // 💡 [핵심] 달력에 '출석하기' 및 '출석완료' 버튼을 그리는 로직
         events: async function(info, successCallback, failureCallback) {
-          const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
-          const events = [];
-          snap.forEach(doc => {
-            events.push({ title: '✅ 완료', start: doc.id, allDay: true });
-          });
-          successCallback(events);
+          try {
+            // 내 기록을 전부 가져옴
+            const snap = await db.collection("attendance_logs").doc(currentUser.uid).collection("days").get();
+            const completedDays = new Set();
+            snap.forEach(doc => { completedDays.add(doc.id); });
+
+            const events = [];
+            
+            // 달력에 표시되는 첫날부터 끝날까지 돌면서 버튼 생성
+            let currentDate = new Date(info.start);
+            const endDate = new Date(info.end);
+
+            while (currentDate < endDate) {
+              const y = currentDate.getFullYear();
+              const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+              const d = String(currentDate.getDate()).padStart(2, '0');
+              const dateStr = `${y}-${m}-${d}`;
+
+              // 게임 기준일(오늘)까지만 버튼을 표시
+              if (dateStr <= todayGameDateStr) {
+                if (completedDays.has(dateStr)) {
+                  // 이미 출석한 날 -> 초록색 완료 버튼
+                  events.push({ title: '✅ 출석완료', start: dateStr, allDay: true, className: 'event-completed' });
+                } else {
+                  // 출석 안 한 날 -> 노란색 출석 버튼
+                  events.push({ title: '👆 출석하기', start: dateStr, allDay: true, className: 'event-pending' });
+                }
+              }
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+            successCallback(events);
+          } catch (error) {
+            console.error(error);
+            failureCallback(error);
+          }
         }
       });
       calendar.render();
     }
 
-    // 모달 제어 함수
+    // 날짜 클릭 처리 공통 함수
+    function handleDateClick(clickedDate) {
+      if (clickedDate > todayGameDateStr) {
+        return alert("아직 오픈되지 않은 미래의 날짜는 출석할 수 없습니다.");
+      }
+      isPastDate = (clickedDate < todayGameDateStr);
+      openModal(clickedDate);
+    }
+
     function openModal(dateStr) {
       selectedDate = dateStr;
       document.getElementById("modalDateTitle").textContent = dateStr + " 활동 기록";
       
-      // 입력창 초기화
       document.getElementById("labyScore").value = "";
       document.getElementById("duelScore").value = "";
       document.getElementById("activityScore").value = "";
       
-      // 과거 출석일 경우 경고문 표시
       if (isPastDate) {
         document.getElementById("penaltyWarning").style.display = "block";
       } else {
@@ -200,13 +236,12 @@
       document.getElementById("attendanceModal").style.display = "none";
     }
 
-    // 파이어베이스에 점수 저장 (패널티 계산 적용)
     async function saveAttendance() {
       let laby = Number(document.getElementById("labyScore").value || 0);
       let duel = Number(document.getElementById("duelScore").value || 0);
       let activity = Number(document.getElementById("activityScore").value || 0);
 
-      // [핵심] 과거 출석일 경우 점수 50% 차감 로직
+      // 과거 출석 패널티 50%
       if (isPastDate) {
         laby = laby * 0.5;
         duel = duel * 0.5;
@@ -219,7 +254,7 @@
           laby: laby,
           duel: duel,
           activity: activity,
-          isPenaltyApplied: isPastDate, // 나중에 데이터를 볼 때 패널티가 적용되었는지 확인하기 위한 플래그
+          isPenaltyApplied: isPastDate,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
@@ -228,6 +263,7 @@
         
         alert(msg);
         closeModal();
+        // 💡 저장 성공 시 달력 버튼을 새로고침하여 노란 버튼을 초록 버튼으로 바꿈
         calendar.refetchEvents();
       } catch (error) {
         alert("기록 저장 실패: " + error.message);
