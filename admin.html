@@ -3,53 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER 길드 - 인원 및 권한 관리</title>
-
+  <title>ROIDER 길드 - 권한 관리</title>
   <link rel="stylesheet" href="header_standard.css">
-
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  
   <script src="firebase_config.js"></script>
 
   <style>
-    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
     .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
-    
-    h2 { color: #f4c430; margin-top: 0; }
-    .desc { color: #aaa; margin-bottom: 30px; line-height: 1.5; }
-    
-    /* 필터 버튼 스타일 */
+    h2 { color: #f4c430; margin-top: 0; font-weight: 800; }
+    .desc { color: #aaa; margin-bottom: 30px; line-height: 1.6; font-weight: 500; font-size: 15px;}
     .filter-group { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .filter-btn { 
-      padding: 10px 18px; border: 1px solid #444; background: #1c1f2a; 
-      color: #ccc; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px;
-    }
-    .filter-btn.active, .filter-btn:hover { 
-      background: #f4c430; color: #111; border-color: #f4c430; font-weight: bold; 
-    }
+    .filter-btn { padding: 10px 18px; border: 1px solid #444; background: #1c1f2a; color: #ccc; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 700; font-family: inherit;}
+    .filter-btn.active, .filter-btn:hover { background: #f4c430; color: #111; border-color: #f4c430; }
     
-    /* 유저 카드 스타일 */
-    .user-card { 
-      background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px; 
-      padding: 18px 20px; margin-bottom: 12px; display: flex; 
-      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
-    }
+    .user-card { background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
     .user-info { display: flex; flex-direction: column; gap: 6px; }
-    .user-name { font-size: 18px; font-weight: bold; color: #fff; }
-    .user-email { font-size: 13px; color: #aaa; }
-    
-    /* 권한 뱃지 */
-    .role-badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
-    .role-pending { background: #555; color: #fff; }
-    .role-member { background: #00e676; color: #000; }
-    .role-manager { background: #00b0ff; color: #fff; } /* 운영진 파란색 */
-    .role-admin { background: #ff5252; color: #fff; }
-
-    /* 액션 버튼 */
+    .user-name { font-size: 18px; font-weight: 800; color: #fff; }
+    .user-email { font-size: 13.5px; color: #aaa; font-weight: 500; }
     .action-group { display: flex; gap: 8px; }
-    .btn-action { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .btn-action { padding: 8px 14px; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 13.5px; font-family: inherit; }
     .btn-approve { background: #00e676; color: #000; }
     .btn-manager { background: #00b0ff; color: #fff; }
     .btn-admin { background: #ff5252; color: #fff; }
@@ -59,13 +34,12 @@
 </head>
 <body>
 
-<header>
+  <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      
       <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
       <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
@@ -83,71 +57,52 @@
   </nav>
 
   <div class="wrap">
-    <h2>🛠️ 인원 승인 및 권한 관리</h2>
-    <p class="desc">
+    <h2 data-i18n="adm_page_title">🛠️ 인원 승인 및 권한 관리</h2>
+    <p class="desc" data-i18n="adm_page_desc">
       <b>내 권한에 따라 가능한 작업이 다릅니다.</b><br>
       - 👑 관리자: 모든 직책 임명 및 강등 가능<br>
       - 🛡️ 운영진: 승인 대기자 길드원 승인 및 길드원 강등만 가능
     </p>
 
     <div class="filter-group">
-      <button class="filter-btn active" onclick="filterUsers('all', this)">전체 보기</button>
-      <button class="filter-btn" onclick="filterUsers('pending', this)">⏳ 승인 대기</button>
-      <button class="filter-btn" onclick="filterUsers('member', this)">⚔️ 일반 멤버</button>
-      <button class="filter-btn" onclick="filterUsers('manager', this)">🛡️ 운영진</button>
-      <button class="filter-btn" onclick="filterUsers('admin', this)">👑 관리자</button>
+      <button class="filter-btn active" onclick="filterUsers('all', this)" data-i18n="adm_filter_all">전체 보기</button>
+      <button class="filter-btn" onclick="filterUsers('pending', this)" data-i18n="adm_filter_pending">⏳ 승인 대기</button>
+      <button class="filter-btn" onclick="filterUsers('member', this)" data-i18n="adm_filter_member">⚔️ 일반 멤버</button>
+      <button class="filter-btn" onclick="filterUsers('manager', this)" data-i18n="adm_filter_manager">🛡️ 운영진</button>
+      <button class="filter-btn" onclick="filterUsers('admin', this)" data-i18n="adm_filter_admin">👑 관리자</button>
     </div>
 
     <div id="userList">
-      <p style="color:#aaa;">유저 목록을 불러오는 중입니다...</p>
+      <p style="color:#aaa;" data-i18n="msg_loading">유저 목록을 불러오는 중입니다...</p>
     </div>
   </div>
 
   <script>
     let allUsers = [];
     let currentFilter = 'all';
-    let myRole = ''; // 현재 로그인한 유저의 권한 저장
+    let myRole = '';
 
-    // 1. 인증 및 권한 확인
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
-      
       const docSnap = await db.collection("users").doc(user.uid).get();
       if (docSnap.exists) {
-        const data = docSnap.data();
-        document.getElementById("userName").textContent = data.nickname || "User";
-        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
-
-        myRole = data.role;
-
-        // 🔥 관리자(admin)나 운영진(manager)이 아니면 쫓아냄
+        myRole = docSnap.data().role;
         if (myRole !== "admin" && myRole !== "manager") {
-          alert("접근 권한이 없습니다. 관리자나 운영진만 이용 가능합니다.");
           location.replace("main.html");
           return;
         }
-
-        // 헤더에 내 권한 뱃지 달아주기
-        const badgeEl = document.getElementById("myRoleBadge");
-        if(myRole === 'admin') { badgeEl.textContent = '최고 관리자'; badgeEl.className = 'role-badge role-admin'; }
-        if(myRole === 'manager') { badgeEl.textContent = '운영진'; badgeEl.className = 'role-badge role-manager'; }
-        
         loadUsersRealtime();
       }
     });
 
-    // 2. 실시간 유저 목록 불러오기
     function loadUsersRealtime() {
       db.collection("users").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         allUsers = [];
-        snapshot.forEach((doc) => {
-          allUsers.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach((doc) => { allUsers.push({ id: doc.id, ...doc.data() }); });
         renderUsers();
       });
     }
 
-    // 3. 필터링 함수
     function filterUsers(role, btnElement) {
       currentFilter = role;
       document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -155,87 +110,67 @@
       renderUsers();
     }
 
-    // 4. 권한 체계에 따른 UI 렌더링
     function renderUsers() {
       const list = document.getElementById("userList");
       list.innerHTML = "";
 
-      const filteredUsers = currentFilter === 'all' 
-        ? allUsers 
-        : allUsers.filter(u => u.role === currentFilter);
+      const filteredUsers = currentFilter === 'all' ? allUsers : allUsers.filter(u => u.role === currentFilter);
 
       if (filteredUsers.length === 0) {
-        list.innerHTML = "<p style='color:#aaa;'>조건에 맞는 유저가 없습니다.</p>";
+        list.innerHTML = `<p style='color:#aaa;' data-i18n='adm_empty'>${i18n[currentLang]["adm_empty"]}</p>`;
         return;
       }
 
       filteredUsers.forEach(u => {
-        // 뱃지 이름 매핑
-        const roleNames = { admin: '관리자', manager: '운영진', member: '일반멤버', pending: '승인대기' };
-        const roleName = roleNames[u.role] || u.role;
+        const roleName = i18n[currentLang]["role_" + u.role] || u.role;
         const roleClass = `role-${u.role}`;
-
         let actionButtons = '';
 
-        // [핵심 로직] 내 권한과 타겟 유저의 권한에 따라 버튼을 다르게 노출
+        // 💡 다국어 사전을 참조하여 버튼 텍스트 생성
+        const tApprove = i18n[currentLang]["adm_btn_approve"];
+        const tDemoteP = i18n[currentLang]["adm_btn_demote_pending"];
+        const tManager = i18n[currentLang]["adm_btn_manager"];
+        const tAdmin = i18n[currentLang]["adm_btn_admin"];
+        const tDemoteM = i18n[currentLang]["adm_btn_demote_member"];
+        const tDemoteMg = i18n[currentLang]["adm_btn_demote_manager"];
+
         if (u.role === 'pending') {
-          // 대기자는 관리자/운영진 모두 승인 가능
-          actionButtons = `<button class="btn-action btn-approve" onclick="changeRole('${u.id}', 'member')">멤버 승인</button>`;
+          actionButtons = `<button class="btn-action btn-approve" onclick="changeRole('${u.id}', 'member')">${tApprove}</button>`;
         } 
         else if (u.role === 'member') {
-          // 멤버는 관리자/운영진 모두 대기(강등) 가능
-          actionButtons += `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'pending')">대기 강등</button> `;
-          // 최고 관리자만 운영진/관리자 임명 가능
+          actionButtons += `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'pending')">${tDemoteP}</button> `;
           if (myRole === 'admin') {
-            actionButtons += `<button class="btn-action btn-manager" onclick="changeRole('${u.id}', 'manager')">운영진 임명</button> `;
-            actionButtons += `<button class="btn-action btn-admin" onclick="changeRole('${u.id}', 'admin')">관리자 임명</button>`;
+            actionButtons += `<button class="btn-action btn-manager" onclick="changeRole('${u.id}', 'manager')">${tManager}</button> `;
+            actionButtons += `<button class="btn-action btn-admin" onclick="changeRole('${u.id}', 'admin')">${tAdmin}</button>`;
           }
         } 
-        else if (u.role === 'manager') {
-          // 운영진은 최고 관리자만 조작 가능 (일반멤버 강등)
-          if (myRole === 'admin') {
-            actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'member')">멤버로 강등</button>`;
-          }
+        else if (u.role === 'manager' && myRole === 'admin') {
+          actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'member')">${tDemoteM}</button>`;
         } 
-        else if (u.role === 'admin') {
-          // 관리자는 최고 관리자 본인(또는 다른 관리자)만 조작 가능
-          // (스스로 강등하는 것도 가능하게 둠, 필요시 u.id !== currentUser.uid 조건 추가 가능)
-          if (myRole === 'admin') {
-            actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'manager')">운영진으로 강등</button>`;
-          }
+        else if (u.role === 'admin' && myRole === 'admin') {
+          actionButtons = `<button class="btn-action btn-demote" onclick="changeRole('${u.id}', 'manager')">${tDemoteMg}</button>`;
         }
 
         const div = document.createElement("div");
         div.className = "user-card";
         div.innerHTML = `
           <div class="user-info">
-            <span class="user-name">${u.nickname || '이름 없음'} <span class="role-badge ${roleClass}">${roleName}</span></span>
+            <span class="user-name">${u.nickname || 'Unknown'} <span class="role-badge ${roleClass}">${roleName}</span></span>
             <span class="user-email">${u.email}</span>
           </div>
-          <div class="action-group">
-            ${actionButtons}
-          </div>
+          <div class="action-group">${actionButtons}</div>
         `;
         list.appendChild(div);
       });
+      applyLanguage();
     }
 
-    // 5. 권한 변경 실행 (DB 업데이트)
     async function changeRole(uid, newRole) {
-      const roleNames = { member: "일반 멤버", manager: "운영진", admin: "관리자", pending: "승인 대기" };
-      
-      // 보안 2차 체크 (화면 밖에서 임의로 조작하려는 시도 차단)
-      if (myRole === 'manager' && (newRole === 'admin' || newRole === 'manager')) {
-        return alert("운영진은 해당 권한을 부여할 수 없습니다.");
-      }
+      if (myRole === 'manager' && (newRole === 'admin' || newRole === 'manager')) return;
+      if (!confirm(`Are you sure you want to change role to [${newRole}]?`)) return;
 
-      if (!confirm(`정말로 이 유저의 권한을 [${roleNames[newRole]}](으)로 변경하시겠습니까?`)) return;
-
-      try {
-        await db.collection("users").doc(uid).update({ role: newRole });
-      } catch (error) {
-        alert("권한 변경 실패: " + error.message);
-      }
+      try { await db.collection("users").doc(uid).update({ role: newRole }); } 
+      catch (error) { alert("Error: " + error.message); }
     }
   </script>
 </body>

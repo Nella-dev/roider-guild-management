@@ -4,67 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ROIDER 길드 - 길드원 목록</title>
-
   <link rel="stylesheet" href="header_standard.css">
-
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  
   <script src="firebase_config.js"></script>
 
   <style>
-    body { margin: 0; font-family: Pretendard, system-ui; background: #0f1015; color: #e6e6e6; }
+    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
     .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
-    
-    h2 { color: #f4c430; margin-top: 0; margin-bottom: 10px; }
-    .desc { color: #aaa; margin-bottom: 30px; line-height: 1.5; font-size: 15px; }
-
-    /* 멤버 그리드 레이아웃 */
-    .member-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-    }
-
-    /* 멤버 카드 스타일 */
-    .member-card {
-      background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px;
-      padding: 20px; display: flex; align-items: center; gap: 15px;
-      transition: transform 0.2s;
-    }
+    h2 { color: #f4c430; margin-top: 0; margin-bottom: 10px; font-weight: 800; }
+    .desc { color: #aaa; margin-bottom: 30px; line-height: 1.5; font-size: 15px; font-weight: 500; }
+    .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .member-card { background: #1c1f2a; border: 1px solid #2a3242; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.2s; }
     .member-card:hover { transform: translateY(-3px); border-color: #444; }
-
-    /* 임시 프로필 이미지 */
-    .profile-img {
-      width: 50px; height: 50px; border-radius: 50%;
-      background: #2a3242; display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: bold; color: #fff; flex-shrink: 0;
-    }
-
-    /* 텍스트 영역 */
+    .profile-img { width: 50px; height: 50px; border-radius: 50%; background: #2a3242; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fff; flex-shrink: 0; }
     .info-box { display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
-    .nickname { font-size: 18px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    /* 직책 뱃지 */
-    .role-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; width: max-content; }
-    .role-member { background: #00e676; color: #000; }
-    .role-manager { background: #00b0ff; color: #fff; }
-    .role-admin { background: #ff5252; color: #fff; }
-
-    /* 총 인원수 카운트 */
-    .count-box { font-size: 14px; color: #00e676; font-weight: bold; margin-bottom: 20px; }
+    .nickname { font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .count-box { font-size: 14.5px; color: #00e676; font-weight: 800; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-<header>
+  <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      
       <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
       <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
@@ -82,86 +49,55 @@
   </nav>
 
   <div class="wrap">
-    <h2>👥 길드원 목록</h2>
-    <p class="desc">현재 ROIDER 길드에 소속된 자랑스러운 멤버들입니다.</p>
+    <h2 data-i18n="mem_title">👥 길드원 목록</h2>
+    <p class="desc" data-i18n="mem_desc">현재 ROIDER 길드에 소속된 자랑스러운 멤버들입니다.</p>
     
-    <div class="count-box" id="memberCount">총 인원: 로딩중...</div>
+    <div class="count-box" id="memberCount" data-i18n="msg_loading">로딩중...</div>
 
-    <div id="memberList" class="member-grid">
-      <p style="color:#aaa;">길드원 정보를 불러오는 중입니다...</p>
-    </div>
+    <div id="memberList" class="member-grid"></div>
   </div>
 
   <script>
-    // 1. 인증 및 접근 권한 확인
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
-      
       const docSnap = await db.collection("users").doc(user.uid).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        document.getElementById("userName").textContent = data.nickname || "User";
-        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
-
-        // 🔥 승인 대기자(pending)는 목록을 볼 수 없도록 차단
-        if (data.role === "pending") {
-          alert("관리자의 승인이 완료되어야 길드원 목록을 볼 수 있습니다.");
-          location.replace("pending.html");
-          return;
-        }
-
-        // 권한 확인이 끝나면 멤버 목록 불러오기
+      if (docSnap.exists && docSnap.data().role !== "pending") {
         loadMembersRealtime();
       }
     });
 
-    // 2. 실시간 멤버 목록 불러오기
     function loadMembersRealtime() {
-      // 대기자(pending)를 제외한 모든 멤버 불러오기
       db.collection("users").where("role", "in", ["member", "manager", "admin"])
         .onSnapshot((snapshot) => {
           let members = [];
-          snapshot.forEach((doc) => {
-            members.push({ id: doc.id, ...doc.data() });
-          });
+          snapshot.forEach((doc) => { members.push({ id: doc.id, ...doc.data() }); });
 
-          // [핵심] 직책 순서대로 정렬 (관리자 -> 운영진 -> 일반멤버)
           const roleWeight = { "admin": 1, "manager": 2, "member": 3 };
           members.sort((a, b) => {
-            // 1순위: 직책
-            if (roleWeight[a.role] !== roleWeight[b.role]) {
-              return roleWeight[a.role] - roleWeight[b.role];
-            }
-            // 2순위: 닉네임 가나다순
-            const nickA = a.nickname || "";
-            const nickB = b.nickname || "";
-            return nickA.localeCompare(nickB);
+            if (roleWeight[a.role] !== roleWeight[b.role]) return roleWeight[a.role] - roleWeight[b.role];
+            return (a.nickname || "").localeCompare(b.nickname || "");
           });
-
           renderMembers(members);
         });
     }
 
-    // 3. 화면에 멤버 카드 그리기
     function renderMembers(members) {
       const list = document.getElementById("memberList");
       const countBox = document.getElementById("memberCount");
       list.innerHTML = "";
 
-      countBox.textContent = `현재 총 인원: ${members.length}명`;
+      // 💡 다국어 사전을 참조하여 인원수 표기
+      countBox.textContent = i18n[currentLang]["mem_count"] + members.length;
 
       if (members.length === 0) {
-        list.innerHTML = "<p style='color:#aaa;'>표시할 길드원이 없습니다.</p>";
+        list.innerHTML = `<p style='color:#aaa;' data-i18n='mem_empty'>${i18n[currentLang]["mem_empty"]}</p>`;
         return;
       }
 
       members.forEach(m => {
-        // 뱃지 이름 매핑
-        const roleNames = { admin: '👑 최고 관리자', manager: '🛡️ 운영진', member: '⚔️ 일반 멤버' };
-        const roleName = roleNames[m.role] || m.role;
+        // 💡 직책 이름도 사전에서 불러옴 (예: role_admin -> 최고 관리자 / Guild Master)
+        const roleName = i18n[currentLang]["role_" + m.role] || m.role;
         const roleClass = `role-${m.role}`;
-
-        // 이름 첫 글자를 가져와서 프로필 아바타로 사용
         const firstLetter = m.nickname ? m.nickname.charAt(0).toUpperCase() : "?";
 
         const div = document.createElement("div");
@@ -169,12 +105,13 @@
         div.innerHTML = `
           <div class="profile-img">${firstLetter}</div>
           <div class="info-box">
-            <span class="nickname">${m.nickname || '이름 없음'}</span>
+            <span class="nickname">${m.nickname || 'Unknown'}</span>
             <span class="role-badge ${roleClass}">${roleName}</span>
           </div>
         `;
         list.appendChild(div);
       });
+      applyLanguage(); // 데이터 렌더링 완료 후 번역 확정
     }
   </script>
 </body>
