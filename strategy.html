@@ -20,7 +20,6 @@
     
     .card { background: #1c1f2a; border-radius: 12px; padding: 20px; border: 1px solid #2a3242; margin-bottom: 20px; }
     
-    /* 선봉 및 컨트롤 영역 */
     .control-panel { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
     .input-group label { display: block; font-size: 14px; margin-bottom: 6px; color: #bbb; font-weight: 800; }
     .input-group input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; font-family: inherit; font-size: 15px; }
@@ -31,15 +30,12 @@
     .btn-save-strategy { background: #ff5252; color: #fff; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 16px; font-family: inherit; width: 100%; margin-top: 10px; }
     .btn-save-strategy:hover { background: #e04848; }
 
-    /* 💡 그리드 맵 핵심 CSS */
     .map-wrapper { position: relative; width: 100%; max-width: 1000px; background: #111; border: 2px solid #2a3242; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
     #mapImage { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
     
-    /* 8x8 오더 그리드 설정 */
     .grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); z-index: 10; }
     .grid-cell { border: 1px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; box-sizing: border-box; }
     
-    /* 상태별 그리드 색상 및 효과 */
     .cell-attack { background: rgba(255, 50, 50, 0.5); border: 2px solid #ff5252; text-shadow: 1px 1px 3px #000; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
     .cell-defense { background: rgba(50, 100, 255, 0.5); border: 2px solid #4dabf7; text-shadow: 1px 1px 3px #000; box-shadow: inset 0 0 10px rgba(0,100,255,0.5); }
     .cell-admin:hover { background: rgba(255, 255, 255, 0.2); cursor: pointer; }
@@ -47,7 +43,6 @@
     .marker-icon { font-size: 24px; font-weight: 900; }
     .marker-count { font-size: 14px; font-weight: 800; color: #fff; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
 
-    /* 모달 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #1c1f2a; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid #f4c430; }
     .modal h3 { color: #f4c430; margin-top: 0; font-weight: 800; }
@@ -63,7 +58,7 @@
   <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
+      <img id="userPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23aaa'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="profile" style="background:#2a3242;" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
       <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
@@ -77,12 +72,11 @@
       <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
       <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
       <a href="weekly.html" class="nav-link" data-i18n="menu_weekly">주간 결산</a>
-      <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
       <a href="strategy.html" class="nav-link active" data-i18n="menu_strategy">작전 지도</a>
+      <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
       <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;" data-i18n="menu_admin">권한 관리</a>
     </div>
   </nav>
-
   <div class="wrap">
     <h2 data-i18n="str_title">🗺️ 대항전 작전 지도</h2>
     <p class="desc" data-i18n="str_desc">그리드 맵을 확인하고 길드장의 오더(공격/방어/인원)에 맞춰 행동하세요.</p>
@@ -134,11 +128,7 @@
 
   <script>
     let isAdmin = false;
-    let currentStrategy = {
-      vanguard: "",
-      mapImageBase64: "", // Firestore 용량 제한을 위해 압축된 Base64 저장
-      gridData: {} // 예: { "12": { type: "attack", count: 3 } }
-    };
+    let currentStrategy = { vanguard: "", mapImageBase64: "", gridData: {} };
     let editingCellIndex = -1;
 
     auth.onAuthStateChanged(async (user) => {
@@ -149,14 +139,13 @@
         if (role === "admin" || role === "manager") {
           isAdmin = true;
           document.querySelectorAll(".admin-only").forEach(el => el.style.display = "block");
-          document.getElementById("vanguardInput").readOnly = false; // 관리자는 입력 가능
+          document.getElementById("vanguardInput").readOnly = false; 
         }
         initGrid();
         loadRealtimeStrategy();
       }
     });
 
-    // 1. 8x8 그리드 생성
     function initGrid() {
       const grid = document.getElementById("gridOverlay");
       grid.innerHTML = "";
@@ -172,19 +161,16 @@
       }
     }
 
-    // 2. 파이어베이스에서 실시간 작전 데이터 불러오기
     function loadRealtimeStrategy() {
       db.collection("guild_strategy").doc("main_order").onSnapshot(doc => {
         if (doc.exists) {
           currentStrategy = doc.data();
           if (!currentStrategy.gridData) currentStrategy.gridData = {};
           
-          // 선봉대 텍스트 업데이트 (본인이 입력 중이 아닐 때만)
           if(document.activeElement !== document.getElementById("vanguardInput")) {
             document.getElementById("vanguardInput").value = currentStrategy.vanguard || "";
           }
 
-          // 이미지 렌더링
           const imgEl = document.getElementById("mapImage");
           const emptyText = document.getElementById("emptyMapText");
           if (currentStrategy.mapImageBase64) {
@@ -195,18 +181,15 @@
             imgEl.style.display = "none";
             emptyText.style.display = "block";
           }
-
-          // 그리드 렌더링
           renderGrid();
         }
       });
     }
 
-    // 3. 그리드 칸 데이터 화면에 그리기
     function renderGrid() {
       for (let i = 0; i < 64; i++) {
         const cell = document.getElementById(`cell-${i}`);
-        cell.className = "grid-cell" + (isAdmin ? " cell-admin" : ""); // 초기화
+        cell.className = "grid-cell" + (isAdmin ? " cell-admin" : ""); 
         cell.innerHTML = "";
 
         const data = currentStrategy.gridData[i];
@@ -222,7 +205,6 @@
       }
     }
 
-    // 4. 모달 제어 로직 (관리자 전용)
     function openCellModal(index) {
       editingCellIndex = index;
       const data = currentStrategy.gridData[index] || { type: "none", count: 0 };
@@ -238,13 +220,11 @@
     function applyCellData() {
       const type = document.getElementById("cellType").value;
       const count = Number(document.getElementById("cellCount").value);
-      
       currentStrategy.gridData[editingCellIndex] = { type, count };
-      renderGrid(); // 임시로 화면에 먼저 그림
+      renderGrid(); 
       closeCellModal();
     }
 
-    // 5. 이미지 업로드 및 Canvas 리사이징 압축 (Firestore 1MB 용량 제한 회피용)
     function handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -255,24 +235,16 @@
         img.onload = function() {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
-          
-          // 가로 길이를 최대 1000px로 제한하여 용량 최적화
           const MAX_WIDTH = 1000;
           let width = img.width;
           let height = img.height;
 
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
+          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
 
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = width; canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          // 화질 70%의 JPEG 포맷으로 변환하여 Base64 텍스트 생성 (용량 대폭 감소)
           const base64String = canvas.toDataURL("image/jpeg", 0.7);
-          
           currentStrategy.mapImageBase64 = base64String;
           document.getElementById("mapImage").src = base64String;
           document.getElementById("mapImage").style.display = "block";
@@ -283,10 +255,8 @@
       reader.readAsDataURL(file);
     }
 
-    // 6. 작성한 전체 오더 파이어베이스에 최종 저장
     async function saveStrategy() {
       if (!isAdmin) return;
-      
       currentStrategy.vanguard = document.getElementById("vanguardInput").value;
       currentStrategy.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
