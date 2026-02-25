@@ -6,83 +6,50 @@
   <title>ROIDER 길드 - 캘린더 출석부</title>
 
   <link rel="stylesheet" href="header_standard.css">
-  
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="firebase_config.js"></script>
 
   <style>
-    /* 💡 전체 폰트 적용 및 자간, 줄간격 최적화 */
-    body { 
-      margin: 0; 
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
-      background: #0f1015; color: #e6e6e6; 
-      letter-spacing: -0.3px; line-height: 1.5;
-    }
+    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
     .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
     
-    /* 캘린더 스타일 커스텀 */
     #calendar { background: #1c1f2a; padding: 20px; border-radius: 12px; border: 1px solid #2a3242; font-weight: 500; }
     .fc-theme-standard th { background: #121721; color: #f4c430; padding: 10px 0; border-color: #2a3242; font-weight: 700; }
     .fc-theme-standard td, .fc-theme-standard .fc-scrollgrid { border-color: #2a3242; }
     .fc-day-today { background: rgba(244, 196, 48, 0.08) !important; }
     .fc-daygrid-day:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     
-    /* 💡 출석 버튼 스타일 세분화 및 가독성 향상 */
-    .event-pending { 
-      background: #f4c430 !important; border: none !important; color: #111 !important; 
-      font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; 
-      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px;
-    }
-    /* 💡 과거 출석 버튼 (어둡고 차분하게) */
-    .event-past-pending { 
-      background: #2a3242 !important; border: 1px solid #444 !important; color: #aaa !important; 
-      font-weight: 600; text-align: center; padding: 5px 2px; border-radius: 6px; 
-      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px; transition: 0.2s;
-    }
+    .event-pending { background: #f4c430 !important; border: none !important; color: #111 !important; font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; margin-top: 5px; font-size: 13.5px; }
+    .event-past-pending { background: #2a3242 !important; border: 1px solid #444 !important; color: #aaa !important; font-weight: 600; text-align: center; padding: 5px 2px; border-radius: 6px; cursor: pointer; margin-top: 5px; font-size: 13.5px; transition: 0.2s; }
     .event-past-pending:hover { background: #3a445a !important; color: #fff !important; }
-    
-    .event-completed { 
-      background: #00e676 !important; border: none !important; color: #000 !important; 
-      font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; 
-      cursor: pointer; margin-top: 5px; font-size: 13.5px; letter-spacing: -0.5px;
-    }
-    .event-pending:hover { background: #d4a924 !important; }
-    .event-completed:hover { background: #00c853 !important; }
-    
-    /* 미래 날짜 비활성화 스타일 */
+    .event-completed { background: #00e676 !important; border: none !important; color: #000 !important; font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer; margin-top: 5px; font-size: 13.5px; }
     .fc-day-future { background: rgba(255, 255, 255, 0.02) !important; cursor: not-allowed !important; opacity: 0.4; }
 
-    /* 모달(팝업) 스타일 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #1c1f2a; padding: 30px; border-radius: 12px; width: 90%; max-width: 350px; border: 1px solid #f4c430; }
     .modal h3 { color: #f4c430; margin-top: 0; text-align: center; font-weight: 800; }
     
     .penalty-warning { display: none; background: rgba(255, 82, 82, 0.1); color: #ff5252; padding: 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; text-align: center; margin-bottom: 15px; border: 1px solid #ff5252; line-height: 1.4; }
-
     .input-group { margin-bottom: 15px; }
     .input-group label { display: block; font-size: 14px; margin-bottom: 6px; color: #bbb; font-weight: 600; }
-    .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; font-family: 'Pretendard', sans-serif; font-size: 15px; }
+    .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; font-family: inherit; font-size: 15px; }
     .modal-btns { display: flex; gap: 10px; margin-top: 24px; }
-    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-family: 'Pretendard', sans-serif; font-size: 15px; }
+    .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-family: inherit; font-size: 15px; }
     .btn-save { background: #f4c430; color: #111; }
     .btn-close { background: #444; color: #fff; }
   </style>
 </head>
 <body>
 
-<header>
+  <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
       <img id="userPhoto" src="https://via.placeholder.com/32" alt="profile" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      
       <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
       <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
@@ -100,36 +67,36 @@
   </nav>
 
   <div class="wrap">
-    <h2 style="color: #f4c430; font-weight: 800; letter-spacing: -0.5px;">📅 활동 캘린더 (리셋: UTC 00시)</h2>
-    <p style="color: #aaa; margin-bottom: 20px; font-weight: 500;">'출석하기' 버튼을 눌러 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
+    <h2 style="color: #f4c430; font-weight: 800;" data-i18n="att_title">📅 활동 캘린더 (리셋: UTC 00시)</h2>
+    <p style="color: #aaa; margin-bottom: 20px;" data-i18n="att_desc">'출석하기' 버튼을 눌러 점수를 입력하세요. (과거 출석 시 50% 패널티)</p>
     
     <div id="calendar"></div>
   </div>
 
   <div class="modal-overlay" id="attendanceModal">
     <div class="modal">
-      <h3 id="modalDateTitle">0000-00-00 출석</h3>
+      <h3 id="modalDateTitle">0000-00-00 <span data-i18n="att_modal_title">활동 기록</span></h3>
       
-      <div id="penaltyWarning" class="penalty-warning">
+      <div id="penaltyWarning" class="penalty-warning" data-i18n="att_warning">
         ⚠️ 과거 날짜입니다.<br>입력하신 점수의 50%만 반영됩니다.
       </div>
       
       <div class="input-group">
-        <label>⚔️ 이계 점수</label>
-        <input type="number" id="labyScore" placeholder="점수 입력" min="0">
+        <label data-i18n="att_laby">⚔️ 이계 점수</label>
+        <input type="number" id="labyScore" min="0">
       </div>
       <div class="input-group">
-        <label>🛡️ 명결 점수</label>
-        <input type="number" id="duelScore" placeholder="점수 입력" min="0">
+        <label data-i18n="att_duel">🛡️ 명결 점수</label>
+        <input type="number" id="duelScore" min="0">
       </div>
       <div class="input-group">
-        <label>🔥 길드 활약도 점수</label>
-        <input type="number" id="activityScore" placeholder="점수 입력" min="0">
+        <label data-i18n="att_activity">🔥 길드 활약도 점수</label>
+        <input type="number" id="activityScore" min="0">
       </div>
 
       <div class="modal-btns">
-        <button class="btn-close" onclick="closeModal()">취소</button>
-        <button class="btn-save" onclick="saveAttendance()">기록 저장</button>
+        <button class="btn-close" onclick="closeModal()" data-i18n="att_btn_cancel">취소</button>
+        <button class="btn-save" onclick="saveAttendance()" data-i18n="att_btn_save">기록 저장</button>
       </div>
     </div>
   </div>
@@ -145,24 +112,15 @@
       const now = new Date();
       const utcTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
       utcTime.setDate(utcTime.getDate() - 1); 
-      
       const y = utcTime.getFullYear();
       const m = String(utcTime.getMonth() + 1).padStart(2, '0');
       const d = String(utcTime.getDate()).padStart(2, '0');
-      
       return `${y}-${m}-${d}`;
     }
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
       currentUser = user;
-      
-      const docSnap = await db.collection("users").doc(user.uid).get();
-      if (docSnap.exists) {
-        document.getElementById("userName").textContent = docSnap.data().nickname || "User";
-        if (user.photoURL) document.getElementById("userPhoto").src = user.photoURL;
-      }
-
       todayGameDateStr = getGameDate(); 
       initCalendar();
     });
@@ -171,7 +129,7 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        locale: 'ko',
+        locale: currentLang === 'en' ? 'en' : 'ko', // 💡 달력 언어 자동 변환
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
         height: 'auto',
         
@@ -182,13 +140,8 @@
           }
         },
 
-        dateClick: function(info) {
-          handleDateClick(info.dateStr);
-        },
-        
-        eventClick: function(info) {
-          handleDateClick(info.event.startStr);
-        },
+        dateClick: function(info) { handleDateClick(info.dateStr); },
+        eventClick: function(info) { handleDateClick(info.event.startStr); },
 
         events: async function(info, successCallback, failureCallback) {
           try {
@@ -200,6 +153,11 @@
             let currentDate = new Date(info.start);
             const endDate = new Date(info.end);
 
+            // 💡 달력의 버튼 텍스트도 번역 사전에서 가져옵니다!
+            const textDone = i18n[currentLang]["att_btn_done"];
+            const textPast = i18n[currentLang]["att_btn_past"];
+            const textToday = i18n[currentLang]["att_btn_today"];
+
             while (currentDate < endDate) {
               const y = currentDate.getFullYear();
               const m = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -208,13 +166,12 @@
 
               if (dateStr <= todayGameDateStr) {
                 if (completedDays.has(dateStr)) {
-                  events.push({ title: '✅ 출석완료', start: dateStr, allDay: true, className: 'event-completed' });
+                  events.push({ title: textDone, start: dateStr, allDay: true, className: 'event-completed' });
                 } else {
-                  // 💡 오늘 날짜인지 과거 날짜인지에 따라 버튼 디자인과 텍스트 분리
                   if (dateStr < todayGameDateStr) {
-                    events.push({ title: '👆 과거 출석', start: dateStr, allDay: true, className: 'event-past-pending' });
+                    events.push({ title: textPast, start: dateStr, allDay: true, className: 'event-past-pending' });
                   } else {
-                    events.push({ title: '👆 출석 하기', start: dateStr, allDay: true, className: 'event-pending' });
+                    events.push({ title: textToday, start: dateStr, allDay: true, className: 'event-pending' });
                   }
                 }
               }
@@ -222,7 +179,6 @@
             }
             successCallback(events);
           } catch (error) {
-            console.error(error);
             failureCallback(error);
           }
         }
@@ -231,27 +187,20 @@
     }
 
     function handleDateClick(clickedDate) {
-      if (clickedDate > todayGameDateStr) {
-        return alert("아직 오픈되지 않은 미래의 날짜는 출석할 수 없습니다.");
-      }
+      if (clickedDate > todayGameDateStr) return;
       isPastDate = (clickedDate < todayGameDateStr);
       openModal(clickedDate);
     }
 
     function openModal(dateStr) {
       selectedDate = dateStr;
-      document.getElementById("modalDateTitle").textContent = dateStr + " 활동 기록";
+      document.getElementById("modalDateTitle").innerHTML = `${dateStr} <span data-i18n="att_modal_title">${i18n[currentLang]["att_modal_title"]}</span>`;
       
       document.getElementById("labyScore").value = "";
       document.getElementById("duelScore").value = "";
       document.getElementById("activityScore").value = "";
       
-      if (isPastDate) {
-        document.getElementById("penaltyWarning").style.display = "block";
-      } else {
-        document.getElementById("penaltyWarning").style.display = "none";
-      }
-
+      document.getElementById("penaltyWarning").style.display = isPastDate ? "block" : "none";
       document.getElementById("attendanceModal").style.display = "flex";
     }
 
@@ -265,29 +214,18 @@
       let activity = Number(document.getElementById("activityScore").value || 0);
 
       if (isPastDate) {
-        laby = laby * 0.5;
-        duel = duel * 0.5;
-        activity = activity * 0.5;
+        laby = laby * 0.5; duel = duel * 0.5; activity = activity * 0.5;
       }
 
       try {
         await db.collection("attendance_logs").doc(currentUser.uid).collection("days").doc(selectedDate).set({
-          date: selectedDate,
-          laby: laby,
-          duel: duel,
-          activity: activity,
-          isPenaltyApplied: isPastDate,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          date: selectedDate, laby: laby, duel: duel, activity: activity,
+          isPenaltyApplied: isPastDate, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
-        let msg = "성공적으로 기록되었습니다!";
-        if(isPastDate) msg += "\n(과거 출석으로 인해 점수가 50% 반영되었습니다.)";
-        
-        alert(msg);
         closeModal();
         calendar.refetchEvents();
       } catch (error) {
-        alert("기록 저장 실패: " + error.message);
+        alert("Error: " + error.message);
       }
     }
   </script>
