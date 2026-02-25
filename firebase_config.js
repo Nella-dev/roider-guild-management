@@ -1,20 +1,9 @@
 // firebase_config.js
 // 파이어베이스 핵심 설정 및 공통 인증 로직을 담당합니다.
+// 💡 firebaseConfig 설정값은 외부 파일(firebase_key.json 등)에서 안전하게 불러옵니다.
 
-const firebaseConfig = {
-  // 올려주신 기존 키값들을 사용합니다. 
-  // (실제 운영 시 Github 같은 공개된 곳에 올리지 않도록 주의하세요!)
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe",
-  measurementId: "G-J7W4LFLHPP"
-};
-
-// 파이어베이스 초기화
-if (!firebase.apps.length) {
+// 파이어베이스 초기화 (미리 선언된 firebaseConfig를 사용하여 초기화)
+if (typeof firebaseConfig !== 'undefined' && !firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
@@ -30,8 +19,6 @@ function logout() {
     alert("로그아웃 실패: " + error.message);
   });
 }
-
-// [firebase_config.js 파일 맨 아래에 추가할 내용]
 
 // 1. 현재 접속 중인 페이지의 메뉴 버튼에 색상(active) 칠하기
 document.addEventListener("DOMContentLoaded", () => {
@@ -93,6 +80,8 @@ const i18n = {
     "main_card_members": "👥 길드원 목록", "main_card_members_desc": "현재 길드에 소속된 자랑스러운 멤버들의 상태를 확인하세요.",
     "main_admin_title_master": "👑 최고 관리자 메뉴", "main_admin_title_manager": "🛡️ 운영진 전용 메뉴", "main_admin_desc": "관리자 및 운영진에게만 보이는 특수 메뉴입니다.",
     "main_card_admin": "인원 승인 및 권한 관리", "main_card_admin_desc": "새로 가입한 대기자를 승인하거나 길드원의 직책을 설정합니다.",
+    "main_card_strategy": "🗺️ 대항전 작전 지도", 
+    "main_card_strategy_desc": "그리드 맵을 확인하고 길드장의 오더에 맞춰 행동하세요.",
 
     "weekly_title": "🏆 주간 길드 활동 랭킹 (실시간)", "weekly_desc": "일주일 평균 점수 합산을 기준으로 순위가 매겨집니다. 상위권에 도전하세요!",
     "col_rank": "순위", "col_nickname": "닉네임", "col_laby": "이계 (평균)", "col_duel": "명결 (평균)", "col_activity": "활약도 (평균)", "col_total": "합산 평균점수", "col_share": "기여 지분율", "col_reward": "예상 분배량",
@@ -107,11 +96,28 @@ const i18n = {
     "adm_filter_all": "전체 보기", "adm_filter_pending": "⏳ 승인 대기", "adm_filter_member": "⚔️ 일반 멤버", "adm_filter_manager": "🛡️ 운영진", "adm_filter_admin": "👑 관리자",
     "adm_btn_approve": "멤버 승인", "adm_btn_demote_pending": "대기 강등", "adm_btn_manager": "운영진 임명", "adm_btn_admin": "관리자 임명", "adm_btn_demote_member": "멤버 강등", "adm_btn_demote_manager": "운영진 강등", "adm_empty": "조건에 맞는 유저가 없습니다.",
 
-    // 💡 새롭게 추가된 공지사항(Notice) 단어
     "noti_title": "📢 길드 공지사항", "noti_desc": "길드의 주요 소식과 안내 사항을 확인하세요.",
     "noti_empty": "등록된 공지사항이 없습니다.", "noti_btn_write": "✍️ 공지 작성",
     "noti_modal_title": "새 공지사항 작성", "noti_label_title": "제목", "noti_label_content": "내용",
-    "noti_btn_cancel": "취소", "noti_btn_save": "공지 등록", "noti_btn_delete": "삭제"
+    "noti_btn_cancel": "취소", "noti_btn_save": "공지 등록", "noti_btn_delete": "삭제",
+
+    "menu_strategy": "작전 지도",
+    "str_title": "🗺️ 대항전 작전 지도",
+    "str_desc": "그리드 맵을 확인하고 길드장의 오더(공격/방어/인원)에 맞춰 행동하세요.",
+    "str_vanguard": "⚔️ 선봉 지정",
+    "str_vanguard_ph": "예: 길드원A, 길드원B (상단 루트 진행)",
+    "str_upload_map": "지도 이미지 업로드",
+    "str_btn_save": "💾 작전 저장 및 길드원에게 공유",
+    "str_modal_title": "해당 구역 오더 설정",
+    "str_order_type": "작전 명령",
+    "str_type_none": "무배치 (비워둠)",
+    "str_type_attack": "공격 (Attack)",
+    "str_type_defense": "방어 (Defense)",
+    "str_personnel": "투입 인원 (명)",
+    "str_btn_cancel": "취소",
+    "str_btn_apply": "적용",
+    "str_empty_map": "등록된 작전 지도가 없습니다."
+
   },
   en: {
     "menu_home": "Home", "menu_notice": "Notices", "menu_calendar": "Calendar", 
@@ -125,8 +131,9 @@ const i18n = {
     "main_card_members": "👥 Member List", "main_card_members_desc": "Check the status of proud guild members.",
     "main_admin_title_master": "👑 Guild Master Menu", "main_admin_title_manager": "🛡️ Manager Menu", "main_admin_desc": "Special menu visible only to Master and Managers.",
     "main_card_admin": "Member Approval & Roles", "main_card_admin_desc": "Approve new members or manage guild roles.",
+    "main_card_strategy": "🗺️ Battle Drill Strategy", 
+    "main_card_strategy_desc": "Check the grid map and follow the Master's orders.",
 
-    // 💡 Dream Realm -> Arcane Labyrinth / Arena -> Honor Duel 교체됨!
     "weekly_title": "🏆 Weekly Guild Ranking (Live)", "weekly_desc": "Rankings are based on the 7-day average score. Aim for the top!",
     "col_rank": "Rank", "col_nickname": "Nickname", "col_laby": "Arcane Labyrinth (Avg)", "col_duel": "Honor Duel (Avg)", "col_activity": "Activity (Avg)", "col_total": "Total Avg Score", "col_share": "Share (%)", "col_reward": "Est. Reward",
     "msg_loading": "Loading live data...", "msg_calc": "Calculating rewards...", "msg_nodata": "No data recorded for this week.", "msg_total": "Guild Total Score",
@@ -141,11 +148,27 @@ const i18n = {
     "adm_filter_all": "View All", "adm_filter_pending": "⏳ Pending", "adm_filter_member": "⚔️ Member", "adm_filter_manager": "🛡️ Manager", "adm_filter_admin": "👑 Master",
     "adm_btn_approve": "Approve", "adm_btn_demote_pending": "To Pending", "adm_btn_manager": "To Manager", "adm_btn_admin": "To Master", "adm_btn_demote_member": "To Member", "adm_btn_demote_manager": "To Manager", "adm_empty": "No users match the criteria.",
 
-    // 💡 새롭게 추가된 공지사항(Notice) 단어
     "noti_title": "📢 Guild Notices", "noti_desc": "Check important guild news and announcements.",
     "noti_empty": "No notices posted yet.", "noti_btn_write": "✍️ Write Notice",
     "noti_modal_title": "Write New Notice", "noti_label_title": "Title", "noti_label_content": "Content",
-    "noti_btn_cancel": "Cancel", "noti_btn_save": "Post Notice", "noti_btn_delete": "Delete"
+    "noti_btn_cancel": "Cancel", "noti_btn_save": "Post Notice", "noti_btn_delete": "Delete",
+
+    "menu_strategy": "Strategy Map",
+    "str_title": "🗺️ Battle Drill Strategy",
+    "str_desc": "Check the grid map and follow the Master's orders (Attack/Defense).",
+    "str_vanguard": "⚔️ Vanguard",
+    "str_vanguard_ph": "e.g., Member A, Member B (Top Route)",
+    "str_upload_map": "Upload Map Image",
+    "str_btn_save": "💾 Save & Share Strategy",
+    "str_modal_title": "Set Order for this Zone",
+    "str_order_type": "Command Type",
+    "str_type_none": "No Deployment",
+    "str_type_attack": "Attack",
+    "str_type_defense": "Defense",
+    "str_personnel": "Personnel Required",
+    "str_btn_cancel": "Cancel",
+    "str_btn_apply": "Apply",
+    "str_empty_map": "No strategy map uploaded yet."
   }
 };
 
