@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-     <link rel="stylesheet" href="header_standard.css">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>길드원 상태판</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROIDER 길드 - 길드원 목록</title>
+  <link rel="stylesheet" href="header_standard.css">
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -12,82 +12,106 @@
   <script src="firebase_config.js"></script>
   <script src="i18n.js"></script>
   <script src="calendar_patch.js"></script>
-<style>
-body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
-.container { max-width:1000px; margin:0 auto; padding:30px; }
-.row { background:#1c1f2a; border-radius:12px; padding:12px; display:grid; grid-template-columns: 2fr 1fr 1fr; margin-bottom:8px; align-items:center; }
-.online { color:#00e676; }
-.offline { color:#aaa; }
-.flag { font-size:20px; }
-</style>
-
-<style>
-/* Header standardization */
-header { min-height: 60px; }
-header .user-box { align-items: center; }
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
-}
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
-}
-</style>
-
+  <style>
+    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
+    .wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
+    h2 { color: #f4c430; margin-top: 0; font-weight: 800; }
+    .table-header {
+      background: #121721;
+      border-radius: 10px 10px 0 0;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      padding: 14px 16px;
+      font-weight: 700;
+      color: #f4c430;
+      border: 1px solid #2a3242;
+      border-bottom: none;
+    }
+    .row {
+      background: #1c1f2a;
+      border: 1px solid #2a3242;
+      border-top: none;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      padding: 14px 16px;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .row:hover { background: #222636; }
+    .row:last-child { border-radius: 0 0 10px 10px; }
+    .online { color: #00e676; font-weight: 700; }
+    .offline { color: #666; }
+    .flag { font-size: 18px; }
+    #emptyMsg { color: #aaa; text-align: center; padding: 40px; }
+  </style>
 </head>
 <body>
+
 <header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-<div class="container">
-  <h1>👥 길드원 상태판</h1>
-  <div class="row" style="font-weight:bold;">
-    <div>닉네임</div><div>접속 국가</div><div>접속 상태</div>
+  <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
+  <div class="user-box">
+    <img id="userPhoto" src="" alt="profile" />
+    <span id="userName">로딩중...</span>
+    <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
+    <button id="langToggleBtn" class="logout" onclick="toggleLanguage()">🌐 EN</button>
+    <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
+  </div>
+</header>
+
+<nav class="top-nav">
+  <div class="nav-container">
+    <a href="main.html" class="nav-link" data-i18n="menu_home">홈</a>
+    <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
+    <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
+    <a href="weekly.html" class="nav-link" data-i18n="menu_weekly">주간 결산</a>
+    <a href="strategy.html" class="nav-link" data-i18n="menu_strategy">작전 지도</a>
+    <a href="members.html" class="nav-link active" data-i18n="menu_members">길드원 목록</a>
+    <a href="admin.html" class="nav-link" id="navAdminMenu" style="display:none; color:#ff5252;" data-i18n="menu_admin">권한 관리</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h2 data-i18n="mem_title">👥 길드원 상태판</h2>
+  <div class="table-header">
+    <div data-i18n="mem_col_nickname">닉네임</div>
+    <div data-i18n="mem_col_country">접속 국가</div>
+    <div data-i18n="mem_col_status">접속 상태</div>
   </div>
   <div id="list"></div>
+  <p id="emptyMsg" style="display:none;" data-i18n="adm_empty">유저가 없습니다.</p>
 </div>
 
 <script>
-const auth = firebase.auth();
-const db = firebase.firestore();
-document.addEventListener("DOMContentLoaded", () => {
-  const title = document.getElementById("appTitle");
-  if (title) { title.style.cursor = "pointer"; title.onclick = () => location.href = "main.html"; }
-});
-auth.onAuthStateChanged(async user => {
-  if (!user) location.href = "login.html";
-  const userPhoto = document.getElementById("userPhoto");
-  const userName = document.getElementById("userName");
-  if (user.photoURL) userPhoto.src = user.photoURL;
-  const snap = await db.collection("users").doc(user.uid).get();
-  if (snap.exists) {
-    const data = snap.data();
-    userName.innerText = data.nickname || user.displayName || user.email;
-  }
-});
-db.collection("members").onSnapshot(snap => {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  snap.forEach(doc => {
-    const m = doc.data();
-    list.innerHTML += `
-      <div class="row">
-        <div>👤 ${m.nickname}</div>
-        <div class="flag">${m.country || "🌐"} ${m.countryCode || ""}</div>
-        <div class="${m.online ? "online" : "offline"}">${m.online ? "● 온라인" : "○ 오프라인"}</div>
-      </div>`;
+  auth.onAuthStateChanged(async user => {
+    if (!user) return location.replace("login.html");
+    // 승인 여부 체크
+    const snap = await db.collection("users").doc(user.uid).get();
+    if (!snap.exists || snap.data().role === "pending") return location.replace("pending.html");
   });
-});
-function logout(){ auth.signOut().then(()=>location.href="login.html"); }
+
+  db.collection("members").onSnapshot(snap => {
+    const list = document.getElementById("list");
+    const emptyMsg = document.getElementById("emptyMsg");
+    list.innerHTML = "";
+
+    if (snap.empty) {
+      emptyMsg.style.display = "block";
+      return;
+    }
+    emptyMsg.style.display = "none";
+
+    snap.forEach(doc => {
+      const m = doc.data();
+      const onlineText = i18n[currentLang]?.mem_online || "● 온라인";
+      const offlineText = i18n[currentLang]?.mem_offline || "○ 오프라인";
+      list.innerHTML += `
+        <div class="row">
+          <div>👤 ${m.nickname || "-"}</div>
+          <div class="flag">${m.country || "🌐"} ${m.countryCode || ""}</div>
+          <div class="${m.online ? "online" : "offline"}">${m.online ? onlineText : offlineText}</div>
+        </div>`;
+    });
+  });
 </script>
-</body></html>
+</body>
+</html>
