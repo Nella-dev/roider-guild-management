@@ -1,68 +1,108 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-     <link rel="stylesheet" href="header_standard.css">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AFK Journey: Homestead ROIDER Guild Management</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AFK Journey: ROIDER Guild</title>
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; }
-    .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; }
-    button { padding:12px 24px; border-radius:8px; border:none; background:#f4c430; font-weight:bold; cursor:pointer; }
-  </style>
+<!-- 🔥 분리된 키 + 공통 초기화 -->
+<script src="firebase_key.js"></script>
+<script src="firebase_config.js"></script>
 
 <style>
-/* 🔒 Header profile image standard (force main style) */
-header .user-box img {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  object-fit: cover !important;
-  border: 1px solid #444 !important;
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top, #1b2333, #0f1015 70%);
+  overflow: hidden;
 }
-/* 🔒 Logout button standard (prevent green override) */
-button.logout {
-  background: transparent !important;
-  border: 1px solid #555 !important;
-  color: #ccc !important;
+
+/* 배경 빛 효과 */
+body::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(244,196,48,0.15), transparent 70%);
+  top: -200px;
+  right: -200px;
+  filter: blur(80px);
+}
+
+.login-card {
+  position: relative;
+  background: rgba(28, 31, 42, 0.85);
+  backdrop-filter: blur(18px);
+  padding: 50px 60px;
+  border-radius: 20px;
+  border: 1px solid rgba(244,196,48,0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+.login-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #f4c430;
+  margin-bottom: 10px;
+}
+
+.login-sub {
+  color: #ccc;
+  margin-bottom: 35px;
+  font-size: 15px;
+}
+
+.google-btn {
+  display: inline-block;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.google-btn img {
+  width: 220px;
+  cursor: pointer;
+}
+
+.google-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.95;
+}
+
+.footer-text {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #777;
 }
 </style>
-
 </head>
 <body>
-<header>
-    <div class="logo" id="appTitle">ROIDER</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" />
-      <span id="userName">Loading...</span>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
-  </header>
-  <div class="card">
-    <h2>AFK Journey: Homestead ROIDER Guild Management</h2>
-    <p>구글 계정으로 로그인</p>
-    <button onclick="login()">Google Login</button>
+
+<div class="login-card">
+  <div class="login-title">ROIDER Guild Management</div>
+  <div class="login-sub">구글 계정으로 로그인</div>
+
+  <div class="google-btn" onclick="login()">
+    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" 
+         alt="Google 로그인">
   </div>
 
+  <div class="footer-text">
+    AFK Journey: Homestead
+  </div>
+</div>
+
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-  authDomain: "roider-guild-management.firebaseapp.com",
-  projectId: "roider-guild-management",
-  storageBucket: "roider-guild-management.firebasestorage.app",
-  messagingSenderId: "1012249034459",
-  appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider);
@@ -91,10 +131,12 @@ auth.onAuthStateChanged(async (user) => {
   }
 
   const data = snap.data();
+
   if (!data.nickname) location.replace("nickname.html");
   else if (data.role === "pending") location.replace("pending.html");
   else location.replace("main.html");
 });
 </script>
+
 </body>
 </html>
