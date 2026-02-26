@@ -5,198 +5,191 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ROIDER 길드 - 주간 결산</title>
   <link rel="stylesheet" href="header_standard.css">
+
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="firebase_key.js"></script>
   <script src="firebase_config.js"></script>
   <script src="i18n.js"></script>
-  <script src="calendar_patch.js"></script>
+
   <style>
-    body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
-    .wrap { max-width: 1100px; margin: 40px auto; padding: 20px; }
-    .card { background: #1c1f2a; border-radius: 12px; padding: 24px; border: 1px solid #2a3242; margin-bottom: 20px; }
-    h2 { color: #f4c430; margin-top: 0; font-weight: 800; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 14.5px; text-align: center; }
-    th { background: #121721; color: #f4c430; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
-    td { background: #1c1f2a; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
-    .admin-only { display: none; background: rgba(255, 82, 82, 0.05); border-color: #ff5252; margin-top: 30px; }
-    .col-reward { display: none; }
+    body { margin:0; background:#0f1015; color:#e6e6e6; }
+    .wrap { max-width:1100px; margin:40px auto; padding:20px; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { padding:10px; text-align:center; border:1px solid #2a3242; }
+    th { background:#121721; color:#f4c430; }
+    .admin-only { display:none; margin-top:30px; }
   </style>
 </head>
-<body>
-  <header>
-    <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
-    <div class="user-box">
-      <img id="userPhoto" src="" alt="profile" style="width:32px; height:32px; border-radius:50%;" />
-      <span id="userName">로딩중...</span>
-      <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      <button id="langToggleBtn" class="logout" onclick="toggleLanguage()">🌐 EN</button>
-      <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
-    </div>
-  </header>
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="main.html" class="nav-link" data-i18n="menu_home">홈</a>
-      <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
-      <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
-      <a href="weekly.html" class="nav-link active" data-i18n="menu_weekly">주간 결산</a>
-      <a href="strategy.html" class="nav-link" data-i18n="menu_strategy">작전 지도</a>
-      <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
-      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none;" data-i18n="menu_admin">권한 관리</a>
-    </div>
-  </nav>
-  <div class="wrap">
-    <div class="card">
-      <h2 data-i18n="weekly_title">🏆 주간 길드 활동 랭킹 (실시간)</h2>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th data-i18n="col_rank">순위</th>
-              <th data-i18n="col_nickname">닉네임</th>
-              <th data-i18n="col_laby">이계 (평균)</th>
-              <th data-i18n="col_duel">명결 (평균)</th>
-              <th data-i18n="col_activity">활약도 (평균)</th>
-              <th data-i18n="col_total">합산 평균점수</th>
-              <th data-i18n="col_share">기여 지분율</th>
-              <th class="col-reward" data-i18n="col_reward" style="color:#00e676;">예상 분배량</th>
-            </tr>
-          </thead>
-          <tbody id="resultTable">
-            <tr><td colspan="8" data-i18n="msg_loading">로딩중...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <div class="card admin-only" id="adminBox">
-      <h3 data-i18n="admin_title" style="color:#ff5252;">🛡️ 운영진 결산 및 분배 관리</h3>
-      <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:20px; background:#1c1212; padding:15px; border-radius:10px; border:1px solid #ff5252;">
-        <div>
-          <label id="adminLabelEl" style="display:block; font-size:12px; color:#bbb; margin-bottom:5px;"></label>
-          <input type="number" id="totalReward" style="padding:10px; border-radius:8px; border:1px solid #444; background:#111; color:#fff; width:160px;">
-        </div>
-        <button id="btnPreview" onclick="calculateWeekly(false)" style="padding:10px 20px; background:#f4c430; border:none; border-radius:8px; font-weight:800; cursor:pointer; color:#111;"></button>
-      </div>
-      <button id="btnConfirm" onclick="finalize()" style="width:100%; padding:15px; background:#ff5252; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;"></button>
-    </div>
+<body>
+
+<header>
+  <div class="logo" onclick="location.href='main.html'">ROIDER GUILD</div>
+  <div class="user-box">
+    <img id="userPhoto" />
+    <span id="userName"></span>
+    <span id="myRoleBadge" class="role-badge"></span>
+    <button class="logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2>🏆 주간 길드 활동 랭킹</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>순위</th>
+        <th>닉네임</th>
+        <th>합산 평균</th>
+        <th>예상 분배</th>
+      </tr>
+    </thead>
+    <tbody id="resultTable">
+      <tr><td colspan="4">로딩중...</td></tr>
+    </tbody>
+  </table>
+
+  <div class="admin-only" id="adminBox">
+    <h3>🛡️ 운영진 결산</h3>
+    <input type="number" id="totalReward" placeholder="총 분배 상자 입력">
+    <button onclick="calculateWeekly(false)">미리보기</button>
+    <button onclick="finalize()">확정 저장</button>
   </div>
 
-  <script>
-    let isAdmin = false, finalWeeklyData = {}, totalRewardToDistribute = 0;
+</div>
 
-    // 버튼 텍스트를 i18n으로 채우는 함수
-    function applyAdminButtonTexts() {
-      const label = document.getElementById("adminLabelEl");
-      const preview = document.getElementById("btnPreview");
-      const confirm = document.getElementById("btnConfirm");
-      const d = i18n[currentLang];
-      if (label) label.textContent = d.admin_label || "총 분배 골드 입력";
-      if (preview) preview.textContent = d.btn_preview || "미리보기";
-      if (confirm) confirm.textContent = d.btn_confirm || "✅ 결산 확정 (DB 저장)";
+<script>
+
+let isAdmin = false;
+let finalWeeklyData = {};
+let totalRewardToDistribute = 0;
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return location.replace("login.html");
+
+  const snap = await db.collection("users").doc(user.uid).get();
+  if (snap.exists) {
+    const role = snap.data().role;
+    if (role === "admin" || role === "manager") {
+      isAdmin = true;
+      document.getElementById("adminBox").style.display = "block";
     }
+  }
 
-    // 언어 변경 훅
-    window.onLanguageChanged = function() {
-      applyAdminButtonTexts();
-      calculateWeekly(true);
-    };
+  calculateWeekly(true);
+});
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return location.replace("login.html");
-      const docSnap = await db.collection("users").doc(user.uid).get();
-      if (docSnap.exists && (docSnap.data().role === "admin" || docSnap.data().role === "manager")) {
-        isAdmin = true;
-        document.getElementById("adminBox").style.display = "block";
-      }
-      applyAdminButtonTexts();
-      calculateWeekly(true);
+async function calculateWeekly(isAuto) {
+
+  if (!isAuto) {
+    totalRewardToDistribute = Number(document.getElementById("totalReward").value);
+    if (totalRewardToDistribute <= 0) {
+      alert("총 분배 상자를 입력하세요.");
+      return;
+    }
+  }
+
+  const tbody = document.getElementById("resultTable");
+  tbody.innerHTML = "<tr><td colspan='4'>계산중...</td></tr>";
+
+  const usersSnap = await db.collection("users").get();
+  const logsSnap = await db.collection("attendance_logs").get();
+
+  const nicknameMap = {};
+  usersSnap.forEach(doc => {
+    nicknameMap[doc.id] = doc.data().nickname;
+  });
+
+  let parsedData = [];
+
+  for (const userDoc of logsSnap.docs) {
+
+    let total = 0;
+    let count = 0;
+
+    const daysSnap = await userDoc.ref.collection("days").get();
+    daysSnap.forEach(d => {
+      const v = d.data();
+      total += (v.laby || 0) + (v.duel || 0) + (v.activity || 0);
+      count++;
     });
 
-    async function calculateWeekly(isAuto) {
-      if (!isAuto) {
-        totalRewardToDistribute = Number(document.getElementById("totalReward").value);
-      }
-      const tbody = document.getElementById("resultTable");
-      tbody.innerHTML = `<tr><td colspan="8" data-i18n="msg_loading">${i18n[currentLang].msg_loading}</td></tr>`;
-
-      const usersSnap = await db.collection("users").get();
-      const userMap = {};
-      usersSnap.forEach(u => { userMap[u.id] = u.data().nickname; });
-
-      const logsSnap = await db.collection("attendance_logs").get();
-      let guildTotalAverageScore = 0;
-      let parsedData = [];
-
-      for (const userDoc of logsSnap.docs) {
-        let sumLaby = 0, sumDuel = 0, sumActivity = 0, dayCount = 0;
-        const daysSnap = await userDoc.ref.collection("days").get();
-        daysSnap.forEach(d => {
-          const v = d.data();
-          sumLaby += v.laby || 0;
-          sumDuel += v.duel || 0;
-          sumActivity += v.activity || 0;
-          dayCount++;
-        });
-
-        if (sumLaby + sumDuel + sumActivity > 0) {
-          const divisor = dayCount > 0 ? dayCount : 7;
-          const avgLaby = Number((sumLaby / divisor).toFixed(1));
-          const avgDuel = Number((sumDuel / divisor).toFixed(1));
-          const avgActivity = Number((sumActivity / divisor).toFixed(1));
-          const totalAvg = avgLaby + avgDuel + avgActivity;
-          guildTotalAverageScore += totalAvg;
-          parsedData.push({
-            uid: userDoc.id,
-            nickname: userMap[userDoc.id] || "Unknown",
-            avgLaby, avgDuel, avgActivity, totalAvg
-          });
-        }
-      }
-
-      tbody.innerHTML = "";
-      parsedData.sort((a, b) => b.totalAvg - a.totalAvg).forEach((d, i) => {
-        const shareRatio = guildTotalAverageScore > 0 ? (d.totalAvg / guildTotalAverageScore) : 0;
-        const myReward = Math.floor(totalRewardToDistribute * shareRatio);
-        finalWeeklyData[d.uid] = { nickname: d.nickname, reward: myReward };
-        tbody.innerHTML += `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${d.nickname}</td>
-            <td>${d.avgLaby.toFixed(1)}</td>
-            <td>${d.avgDuel.toFixed(1)}</td>
-            <td>${d.avgActivity.toFixed(1)}</td>
-            <td>${d.totalAvg.toFixed(1)}</td>
-            <td>${(shareRatio * 100).toFixed(2)}%</td>
-            <td class="col-reward">${myReward.toLocaleString()}</td>
-          </tr>`;
+    if (total > 0) {
+      parsedData.push({
+        uid: userDoc.id,
+        nickname: nicknameMap[userDoc.id] || "Unknown",
+        avg: count > 0 ? (total / count) : 0
       });
+    }
+  }
 
-      if (parsedData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="color:#aaa;">${i18n[currentLang].adm_empty || "데이터 없음"}</td></tr>`;
-      }
+  parsedData.sort((a,b)=> b.avg - a.avg);
 
-      if (!isAuto) {
-        document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
-      }
-      applyLanguage();
+  tbody.innerHTML = "";
+  finalWeeklyData = {};
+
+  // 🔥 차등 분배 로직
+  if (!isAuto) {
+
+    const eligible = parsedData.slice(0,15);
+
+    if (eligible.length < 10) {
+      alert("분배는 최소 10명 이상 필요합니다.");
+      return;
     }
 
-    async function finalize() {
-      if (!isAdmin || totalRewardToDistribute <= 0) return;
-      const msg = currentLang === "en" ? "Settlement confirmed!" : "결산 확정!";
-      try {
-        await db.collection("weekly_results").add({
-          totalReward: totalRewardToDistribute,
-          result: finalWeeklyData,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(msg);
-      } catch (e) {
-        alert("Error: " + e.message);
-      }
-    }
-  </script>
+    const weights = eligible.map((m,i)=>{
+      if (i===0) return 1.6;
+      if (i===1) return 1.4;
+      if (i===2) return 1.2;
+      return 1.0;
+    });
+
+    const totalWeight = weights.reduce((a,b)=>a+b,0);
+
+    eligible.forEach((m,i)=>{
+      const reward = Math.floor(totalRewardToDistribute * (weights[i]/totalWeight));
+      finalWeeklyData[m.uid] = reward;
+    });
+  }
+
+  parsedData.forEach((d,i)=>{
+    const reward = finalWeeklyData[d.uid] || 0;
+    tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${d.nickname}</td>
+        <td>${d.avg.toFixed(1)}</td>
+        <td>${reward}</td>
+      </tr>
+    `;
+  });
+
+}
+
+async function finalize() {
+
+  if (!isAdmin) return;
+
+  if (Object.keys(finalWeeklyData).length === 0) {
+    alert("먼저 미리보기를 실행하세요.");
+    return;
+  }
+
+  await db.collection("weekly_results").add({
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    totalBoxes: totalRewardToDistribute,
+    results: finalWeeklyData
+  });
+
+  alert("결산 저장 완료!");
+}
+
+</script>
+
 </body>
 </html>
