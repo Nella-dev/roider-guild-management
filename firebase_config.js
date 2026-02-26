@@ -98,3 +98,25 @@ auth.onAuthStateChanged(user => {
     }, { merge: true });
   });
 });
+
+// 🔥 Online Status Unified (users 컬렉션 사용)
+
+auth.onAuthStateChanged(user => {
+  if (!user) return;
+
+  const userRef = db.collection("users").doc(user.uid);
+
+  // 로그인 시 online true
+  userRef.set({
+    online: true,
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  // 브라우저 종료 시 offline
+  window.addEventListener("beforeunload", () => {
+    userRef.set({
+      online: false,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+});

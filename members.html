@@ -89,29 +89,34 @@
     if (!snap.exists || snap.data().role === "pending") return location.replace("pending.html");
   });
 
-  db.collection("users").onSnapshot(snap => {
-    const list = document.getElementById("list");
-    const emptyMsg = document.getElementById("emptyMsg");
-    list.innerHTML = "";
+db.collection("users").onSnapshot(snap => {
+  const list = document.getElementById("list");
+  const emptyMsg = document.getElementById("emptyMsg");
+  list.innerHTML = "";
 
-    if (snap.empty) {
-      emptyMsg.style.display = "block";
-      return;
-    }
-    emptyMsg.style.display = "none";
+  if (snap.empty) {
+    emptyMsg.style.display = "block";
+    return;
+  }
 
-    snap.forEach(doc => {
-      const m = doc.data();
-      const onlineText = i18n[currentLang]?.mem_online || "● 온라인";
-      const offlineText = i18n[currentLang]?.mem_offline || "○ 오프라인";
-      list.innerHTML += `
-        <div class="row">
-          <div>👤 ${m.nickname || "-"}</div>
-          <div class="flag">${m.country || "🌐"} ${m.countryCode || ""}</div>
-          <div class="${m.online ? "online" : "offline"}">${m.online ? onlineText : offlineText}</div>
-        </div>`;
-    });
+  emptyMsg.style.display = "none";
+
+  snap.forEach(doc => {
+    const m = doc.data();
+    const onlineText = i18n[currentLang]?.mem_online || "● 온라인";
+    const offlineText = i18n[currentLang]?.mem_offline || "○ 오프라인";
+
+    list.innerHTML += `
+      <div class="row">
+        <div>👤 ${m.nickname || "-"}</div>
+        <div class="flag">${m.country || "🌐"}</div>
+        <div class="${m.online ? "online" : "offline"}">
+          ${m.online ? onlineText : offlineText}
+        </div>
+      </div>
+    `;
   });
+});
 </script>
 </body>
 </html>
