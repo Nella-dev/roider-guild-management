@@ -89,7 +89,7 @@
     if (!snap.exists || snap.data().role === "pending") return location.replace("pending.html");
   });
 
-  db.collection("members").onSnapshot(snap => {
+  db.collection("users").onSnapshot(snap => {
     const list = document.getElementById("list");
     const emptyMsg = document.getElementById("emptyMsg");
     list.innerHTML = "";

@@ -80,12 +80,21 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 
-// 🔥 onlineUsersPatch
+// 🔥 online status unified in users
 auth.onAuthStateChanged(user => {
   if (!user) return;
-  const ref = db.collection("members").doc(user.uid);
-  ref.set({ online: true }, { merge: true });
+
+  const userRef = db.collection("users").doc(user.uid);
+
+  userRef.set({
+    online: true,
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+
   window.addEventListener("beforeunload", () => {
-    ref.update({ online: false });
+    userRef.set({
+      online: false,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
   });
 });
