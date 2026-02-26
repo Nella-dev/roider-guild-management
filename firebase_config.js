@@ -78,3 +78,14 @@ auth.onAuthStateChanged(async (user) => {
     }
   }
 });
+
+
+// 🔥 onlineUsersPatch
+auth.onAuthStateChanged(user => {
+  if (!user) return;
+  const ref = db.collection("members").doc(user.uid);
+  ref.set({ online: true }, { merge: true });
+  window.addEventListener("beforeunload", () => {
+    ref.update({ online: false });
+  });
+});

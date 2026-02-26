@@ -124,3 +124,10 @@ button.logout:hover {
   color: #f4c430 !important;
   border-bottom: 3px solid #f4c430 !important;
 }
+
+/* 🔥 Responsive Patch */
+@media (max-width: 768px) {
+  .nav-container { flex-wrap: wrap !important; }
+  .wrap { margin: 20px auto !important; padding: 10px !important; }
+  table { font-size: 12px !important; }
+}

@@ -230,3 +230,12 @@
   </script>
 </body>
 </html>
+<script>
+// 🔥 calendarLocalePatch
+window.onLanguageChanged = function() {
+  if (calendar) {
+    calendar.setOption("locale", currentLang === "en" ? "en" : "ko");
+    calendar.refetchEvents();
+  }
+};
+</script>

@@ -23,7 +23,7 @@
     .btn-save-strategy { background: #ff5252; color: #fff; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 16px; width: 100%; margin-top: 10px; }
     .map-wrapper { position: relative; width: 100%; background: #111; border: 2px solid #2a3242; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
     #mapImage { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-    .grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); z-index: 10; }
+    .grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(40, 1fr); grid-template-rows: repeat(40, 1fr); z-index: 10; }
     .grid-cell { border: 1px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
     .cell-attack { background: rgba(255, 50, 50, 0.5); border: 2px solid #ff5252; }
     .cell-defense { background: rgba(50, 100, 255, 0.5); border: 2px solid #4dabf7; }
@@ -111,7 +111,7 @@
     function initGrid() {
       const grid = document.getElementById("gridOverlay");
       grid.innerHTML = "";
-      for (let i = 0; i < 64; i++) {
+      for (let i = 0; i < 1600; i++) {
         const cell = document.createElement("div");
         cell.className = "grid-cell" + (isAdmin ? " cell-admin" : "");
         cell.id = `cell-${i}`;
@@ -140,7 +140,7 @@
       });
     }
     function renderGrid() {
-      for (let i = 0; i < 64; i++) {
+      for (let i = 0; i < 1600; i++) {
         const cell = document.getElementById(`cell-${i}`);
         cell.className = "grid-cell" + (isAdmin ? " cell-admin" : "");
         cell.innerHTML = "";

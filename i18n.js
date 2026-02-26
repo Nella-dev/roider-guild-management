@@ -62,7 +62,7 @@
       col_share: "기여 지분율",
       col_reward: "예상 분배량",
       admin_title: "🛡️ 운영진 결산 및 분배 관리",
-      admin_label: "총 분배 골드 입력",
+      admin_label: "총 분배 상자 입력",
       btn_preview: "미리보기",
       btn_confirm: "✅ 결산 확정 (DB 저장)",
 
@@ -177,7 +177,7 @@
       col_share: "Contribution %",
       col_reward: "Est. Reward",
       admin_title: "🛡️ Admin Settlement & Distribution",
-      admin_label: "Enter Total Gold to Distribute",
+      admin_label: "Enter Total Boxes to Distribute",
       btn_preview: "Preview",
       btn_confirm: "✅ Confirm & Save to DB",
 
