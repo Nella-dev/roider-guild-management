@@ -11,6 +11,7 @@
   <script src="firebase_key.js"></script>
   <script src="firebase_config.js"></script>
   <script src="i18n.js"></script>
+  <script src="calendar_patch.js"></script>
 <style>
 body { margin:0; font-family:Pretendard; background:#0f1015; color:#fff; }
 .container { max-width:1000px; margin:0 auto; padding:30px; }
@@ -55,9 +56,8 @@ button.logout {
   </div>
   <div id="list"></div>
 </div>
+
 <script>
-const firebaseConfig = { apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc", authDomain: "roider-guild-management.firebaseapp.com", projectId: "roider-guild-management" };
-firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 document.addEventListener("DOMContentLoaded", () => {
