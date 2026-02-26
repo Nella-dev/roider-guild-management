@@ -156,8 +156,16 @@
       }
 
       tbody.innerHTML = "";
+      
+if (!isAuto && parsedData.length < 10) {
+  alert(currentLang === "en"
+    ? "At least 10 members required."
+    : "분배는 최소 10명 이상 필요합니다.");
+  return;
+}
+
       parsedData.sort((a, b) => b.totalAvg - a.totalAvg).forEach((d, i) => {
-        cconst shareRatio = guildTotalAverageScore > 0 
+const shareRatio = guildTotalAverageScore > 0 
   ? (d.totalAvg / guildTotalAverageScore) 
   : 0;
 
@@ -168,28 +176,25 @@ if (!isAuto && totalRewardToDistribute > 0) {
 
   const eligible = parsedData.slice(0, 15); // 상위 15명만
 
-  if (eligible.length < 10) {
-    alert(currentLang === "en"
-      ? "At least 10 members required."
-      : "분배는 최소 10명 이상 필요합니다.");
-    return;
-  }
+  // ⚠️ forEach 내부에서는 return 제거 (문법 안정)
+  if (eligible.length >= 10) {
 
-  const weights = eligible.map((m, idx) => {
-    if (idx === 0) return 1.6;
-    if (idx === 1) return 1.4;
-    if (idx === 2) return 1.2;
-    return 1.0;
-  });
+    const weights = eligible.map((m, idx) => {
+      if (idx === 0) return 1.6;
+      if (idx === 1) return 1.4;
+      if (idx === 2) return 1.2;
+      return 1.0;
+    });
 
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
 
-  const myIndex = eligible.findIndex(m => m.uid === d.uid);
+    const myIndex = eligible.findIndex(m => m.uid === d.uid);
 
-  if (myIndex !== -1) {
-    myReward = Math.floor(
-      totalRewardToDistribute * (weights[myIndex] / totalWeight)
-    );
+    if (myIndex !== -1) {
+      myReward = Math.floor(
+        totalRewardToDistribute * (weights[myIndex] / totalWeight)
+      );
+    }
   }
 }
 
