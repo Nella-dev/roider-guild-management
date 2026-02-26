@@ -32,6 +32,7 @@
     .marker-count { font-size: 14px; font-weight: 800; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; }
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
     .modal { background: #1c1f2a; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; border: 1px solid #f4c430; }
+    .grid-cell { border: 1px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; /* 🔥 모바일 터치 정확도 향상 */ touch-action: manipulation; }
   </style>
 </head>
 <body>
@@ -108,23 +109,43 @@
         loadRealtimeStrategy();
       }
     });
-    function initGrid() {
-      const grid = document.getElementById("gridOverlay");
-      grid.innerHTML = "";
-      for (let i = 0; i < 1600; i++) {
-        const cell = document.createElement("div");
-        cell.className = "grid-cell" + (isAdmin ? " cell-admin" : "");
-        cell.id = `cell-${i}`;
-        if (isAdmin) cell.onclick = () => { 
-          editingCellIndex = i; 
-          const data = currentStrategy.gridData[i] || {type:"none", count:0};
-          document.getElementById("cellType").value = data.type;
-          document.getElementById("cellCount").value = data.count;
-          document.getElementById("cellModal").style.display = "flex";
-        };
-        grid.appendChild(cell);
-      }
+   function initGrid() {
+
+  const grid = document.getElementById("gridOverlay");
+  grid.innerHTML = "";
+
+  const totalCells = 1600;
+
+  for (let i = 0; i < totalCells; i++) {
+
+    const cell = document.createElement("div");
+    cell.className = "grid-cell" + (isAdmin ? " cell-admin" : "");
+    cell.id = `cell-${i}`;
+    cell.dataset.index = i;
+
+    if (isAdmin) {
+
+      // 마우스 + 터치 모두 대응
+      cell.addEventListener("pointerdown", (e) => {
+
+        e.preventDefault();
+
+        const index = Number(cell.dataset.index);
+        editingCellIndex = index;
+
+        const data = currentStrategy.gridData[index] || { type: "none", count: 0 };
+
+        document.getElementById("cellType").value = data.type;
+        document.getElementById("cellCount").value = data.count;
+        document.getElementById("cellModal").style.display = "flex";
+
+      });
+
     }
+
+    grid.appendChild(cell);
+  }
+}
     function loadRealtimeStrategy() {
       db.collection("guild_strategy").doc("main_order").onSnapshot(doc => {
         if (doc.exists) {
