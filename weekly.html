@@ -1,85 +1,35 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER 길드 - 주간 결산</title>
-  <link rel="stylesheet" href="header_standard.css">
-
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="firebase_key.js"></script>
-  <script src="firebase_config.js"></script>
-  <script src="i18n.js"></script>
-
-  <style>
-    body { margin:0; background:#0f1015; color:#e6e6e6; }
-    .wrap { max-width:1100px; margin:40px auto; padding:20px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { padding:10px; text-align:center; border:1px solid #2a3242; }
-    th { background:#121721; color:#f4c430; }
-    .admin-only { display:none; margin-top:30px; }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <div class="logo" onclick="location.href='main.html'">ROIDER GUILD</div>
-  <div class="user-box">
-    <img id="userPhoto" />
-    <span id="userName"></span>
-    <span id="myRoleBadge" class="role-badge"></span>
-    <button class="logout" onclick="logout()">로그아웃</button>
-  </div>
-</header>
-
-<div class="wrap">
-
-  <h2>🏆 주간 길드 활동 랭킹</h2>
-
-  <table>
-    <thead>
-      <tr>
-        <th>순위</th>
-        <th>닉네임</th>
-        <th>합산 평균</th>
-        <th>예상 분배</th>
-      </tr>
-    </thead>
-    <tbody id="resultTable">
-      <tr><td colspan="4">로딩중...</td></tr>
-    </tbody>
-  </table>
-
-  <div class="admin-only" id="adminBox">
-    <h3>🛡️ 운영진 결산</h3>
-    <input type="number" id="totalReward" placeholder="총 분배 상자 입력">
-    <button onclick="calculateWeekly(false)">미리보기</button>
-    <button onclick="finalize()">확정 저장</button>
-  </div>
-
-</div>
-
 <script>
-
 let isAdmin = false;
 let finalWeeklyData = {};
 let totalRewardToDistribute = 0;
 
+// 버튼 텍스트 i18n 유지
+function applyAdminButtonTexts() {
+  const label = document.getElementById("adminLabelEl");
+  const preview = document.getElementById("btnPreview");
+  const confirm = document.getElementById("btnConfirm");
+  const d = i18n[currentLang];
+  if (label) label.textContent = d.admin_label || "총 분배 상자 입력";
+  if (preview) preview.textContent = d.btn_preview || "미리보기";
+  if (confirm) confirm.textContent = d.btn_confirm || "✅ 결산 확정 (DB 저장)";
+}
+
+window.onLanguageChanged = function() {
+  applyAdminButtonTexts();
+  calculateWeekly(true);
+};
+
 auth.onAuthStateChanged(async (user) => {
   if (!user) return location.replace("login.html");
 
-  const snap = await db.collection("users").doc(user.uid).get();
-  if (snap.exists) {
-    const role = snap.data().role;
-    if (role === "admin" || role === "manager") {
-      isAdmin = true;
-      document.getElementById("adminBox").style.display = "block";
-    }
+  const docSnap = await db.collection("users").doc(user.uid).get();
+  if (docSnap.exists && 
+     (docSnap.data().role === "admin" || docSnap.data().role === "manager")) {
+    isAdmin = true;
+    document.getElementById("adminBox").style.display = "block";
   }
 
+  applyAdminButtonTexts();
   calculateWeekly(true);
 });
 
@@ -94,102 +44,138 @@ async function calculateWeekly(isAuto) {
   }
 
   const tbody = document.getElementById("resultTable");
-  tbody.innerHTML = "<tr><td colspan='4'>계산중...</td></tr>";
+  tbody.innerHTML = `<tr><td colspan="8">${i18n[currentLang].msg_loading}</td></tr>`;
 
   const usersSnap = await db.collection("users").get();
+  const userMap = {};
+  usersSnap.forEach(u => { userMap[u.id] = u.data().nickname; });
+
   const logsSnap = await db.collection("attendance_logs").get();
 
-  const nicknameMap = {};
-  usersSnap.forEach(doc => {
-    nicknameMap[doc.id] = doc.data().nickname;
-  });
-
+  let guildTotalAverageScore = 0;
   let parsedData = [];
 
   for (const userDoc of logsSnap.docs) {
 
-    let total = 0;
-    let count = 0;
-
+    let sumLaby = 0, sumDuel = 0, sumActivity = 0, dayCount = 0;
     const daysSnap = await userDoc.ref.collection("days").get();
+
     daysSnap.forEach(d => {
       const v = d.data();
-      total += (v.laby || 0) + (v.duel || 0) + (v.activity || 0);
-      count++;
+      sumLaby += v.laby || 0;
+      sumDuel += v.duel || 0;
+      sumActivity += v.activity || 0;
+      dayCount++;
     });
 
-    if (total > 0) {
+    if (sumLaby + sumDuel + sumActivity > 0) {
+
+      const divisor = dayCount > 0 ? dayCount : 7;
+      const avgLaby = Number((sumLaby / divisor).toFixed(1));
+      const avgDuel = Number((sumDuel / divisor).toFixed(1));
+      const avgActivity = Number((sumActivity / divisor).toFixed(1));
+      const totalAvg = avgLaby + avgDuel + avgActivity;
+
+      guildTotalAverageScore += totalAvg;
+
       parsedData.push({
         uid: userDoc.id,
-        nickname: nicknameMap[userDoc.id] || "Unknown",
-        avg: count > 0 ? (total / count) : 0
+        nickname: userMap[userDoc.id] || "Unknown",
+        avgLaby, avgDuel, avgActivity, totalAvg
       });
     }
   }
 
-  parsedData.sort((a,b)=> b.avg - a.avg);
+  parsedData.sort((a, b) => b.totalAvg - a.totalAvg);
 
   tbody.innerHTML = "";
   finalWeeklyData = {};
 
-  // 🔥 차등 분배 로직
+  // 🔥 ======= 차등 가중치 분배 로직 =======
   if (!isAuto) {
 
-    const eligible = parsedData.slice(0,15);
+    const eligible = parsedData.slice(0, 15);
 
     if (eligible.length < 10) {
-      alert("분배는 최소 10명 이상 필요합니다.");
+      alert(currentLang === "en"
+        ? "At least 10 members required for distribution."
+        : "분배는 최소 10명 이상 필요합니다.");
       return;
     }
 
-    const weights = eligible.map((m,i)=>{
-      if (i===0) return 1.6;
-      if (i===1) return 1.4;
-      if (i===2) return 1.2;
+    const weights = eligible.map((m, i) => {
+      if (i === 0) return 1.6;
+      if (i === 1) return 1.4;
+      if (i === 2) return 1.2;
       return 1.0;
     });
 
-    const totalWeight = weights.reduce((a,b)=>a+b,0);
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
 
-    eligible.forEach((m,i)=>{
-      const reward = Math.floor(totalRewardToDistribute * (weights[i]/totalWeight));
+    eligible.forEach((m, i) => {
+      const reward = Math.floor(
+        totalRewardToDistribute * (weights[i] / totalWeight)
+      );
       finalWeeklyData[m.uid] = reward;
     });
   }
+  // =======================================
 
-  parsedData.forEach((d,i)=>{
+  parsedData.forEach((d, i) => {
+
+    const shareRatio = guildTotalAverageScore > 0
+      ? (d.totalAvg / guildTotalAverageScore)
+      : 0;
+
     const reward = finalWeeklyData[d.uid] || 0;
+
     tbody.innerHTML += `
       <tr>
-        <td>${i+1}</td>
+        <td>${i + 1}</td>
         <td>${d.nickname}</td>
-        <td>${d.avg.toFixed(1)}</td>
-        <td>${reward}</td>
-      </tr>
-    `;
+        <td>${d.avgLaby.toFixed(1)}</td>
+        <td>${d.avgDuel.toFixed(1)}</td>
+        <td>${d.avgActivity.toFixed(1)}</td>
+        <td>${d.totalAvg.toFixed(1)}</td>
+        <td>${(shareRatio * 100).toFixed(2)}%</td>
+        <td class="col-reward">${reward.toLocaleString()}</td>
+      </tr>`;
   });
 
+  if (parsedData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8">${i18n[currentLang].adm_empty || "데이터 없음"}</td></tr>`;
+  }
+
+  if (!isAuto) {
+    document.querySelectorAll('.col-reward')
+      .forEach(el => el.style.display = 'table-cell');
+  }
+
+  applyLanguage();
 }
 
 async function finalize() {
 
-  if (!isAdmin) return;
+  if (!isAdmin || totalRewardToDistribute <= 0) return;
 
-  if (Object.keys(finalWeeklyData).length === 0) {
+  if (Object.keys(finalWeeklyData).length < 10) {
     alert("먼저 미리보기를 실행하세요.");
     return;
   }
 
-  await db.collection("weekly_results").add({
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    totalBoxes: totalRewardToDistribute,
-    results: finalWeeklyData
-  });
+  try {
+    await db.collection("weekly_results").add({
+      totalBoxes: totalRewardToDistribute,
+      result: finalWeeklyData,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-  alert("결산 저장 완료!");
+    alert(currentLang === "en"
+      ? "Settlement confirmed!"
+      : "결산 확정!");
+
+  } catch (e) {
+    alert("Error: " + e.message);
+  }
 }
-
 </script>
-
-</body>
-</html>
