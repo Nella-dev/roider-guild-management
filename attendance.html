@@ -10,6 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase_key.js"></script>
   <script src="firebase_config.js"></script>
 
   <style>
@@ -47,7 +48,7 @@
   <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23aaa'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="profile" style="background:#2a3242;" />
+      <img id="userPhoto" src="" alt="profile" style="width:32px; height:32px; border-radius:50%;" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
       
@@ -84,11 +85,11 @@
       </div>
       
       <div class="input-group">
-        <label data-i18n="att_laby">⚔️ 이계 점수</label>
+        <label data-i18n="att_laby">⚔️ Arcane Labyrinth</label>
         <input type="number" id="labyScore" min="0">
       </div>
       <div class="input-group">
-        <label data-i18n="att_duel">🛡️ 명결 점수</label>
+        <label data-i18n="att_duel">🛡️ Honor Duel</label>
         <input type="number" id="duelScore" min="0">
       </div>
       <div class="input-group">
@@ -110,6 +111,7 @@
     let isPastDate = false;
     let todayGameDateStr = "";
 
+    // 💡 원래 만드신 게임 날짜 로직 보존
     function getGameDate() {
       const now = new Date();
       const utcTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
@@ -131,7 +133,7 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        locale: currentLang === 'en' ? 'en' : 'ko', // 💡 달력 언어 자동 변환
+        locale: currentLang === 'en' ? 'en' : 'ko',
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
         height: 'auto',
         
@@ -155,7 +157,6 @@
             let currentDate = new Date(info.start);
             const endDate = new Date(info.end);
 
-            // 💡 달력의 버튼 텍스트도 번역 사전에서 가져옵니다!
             const textDone = i18n[currentLang]["att_btn_done"];
             const textPast = i18n[currentLang]["att_btn_past"];
             const textToday = i18n[currentLang]["att_btn_today"];
@@ -180,9 +181,7 @@
               currentDate.setDate(currentDate.getDate() + 1);
             }
             successCallback(events);
-          } catch (error) {
-            failureCallback(error);
-          }
+          } catch (error) { failureCallback(error); }
         }
       });
       calendar.render();
@@ -206,10 +205,9 @@
       document.getElementById("attendanceModal").style.display = "flex";
     }
 
-    function closeModal() {
-      document.getElementById("attendanceModal").style.display = "none";
-    }
+    function closeModal() { document.getElementById("attendanceModal").style.display = "none"; }
 
+    // 💡 원래 만드신 패널티 적용 로직 보존
     async function saveAttendance() {
       let laby = Number(document.getElementById("labyScore").value || 0);
       let duel = Number(document.getElementById("duelScore").value || 0);
@@ -226,9 +224,7 @@
         });
         closeModal();
         calendar.refetchEvents();
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
+      } catch (error) { alert("Error: " + error.message); }
     }
   </script>
 </body>

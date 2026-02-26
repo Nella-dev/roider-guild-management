@@ -3,279 +3,124 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROIDER 길드 - 주간 랭킹 및 결산</title>
-
+  <title>ROIDER 길드 - 주간 결산</title>
   <link rel="stylesheet" href="header_standard.css">
-  
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase_key.js"></script>
   <script src="firebase_config.js"></script>
-
   <style>
     body { margin: 0; background: radial-gradient(circle at top, #1b2333, #0f1015 60%); color: #e6e6e6; min-height: 100vh; }
     .wrap { max-width: 1100px; margin: 40px auto; padding: 20px; }
     .card { background: #1c1f2a; border-radius: 12px; padding: 24px; border: 1px solid #2a3242; margin-bottom: 20px; }
-    
     h2 { color: #f4c430; margin-top: 0; font-weight: 800; }
-    .desc { color: #aaa; margin-bottom: 24px; font-weight: 500; }
-    
     table { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 14.5px; text-align: center; }
-    th { background: #121721; color: #f4c430; font-weight: 700; font-size: 14px; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
-    td { background: #1c1f2a; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; transition: all 0.3s; }
-    td:first-child { border-left: 1px solid #2a3242; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-    td:last-child { border-right: 1px solid #2a3242; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
-    
-    .highlight { color: #00e676; font-weight: 800; font-size: 16px; }
-    .total-row td { background: rgba(244, 196, 48, 0.08); font-weight: 800; color: #f4c430; border-color: #f4c430; }
-
-    .rank-1 td { background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #fff; font-weight: 800; box-shadow: 0px 4px 15px rgba(255, 215, 0, 0.2); }
-    .rank-1 .rank-icon { font-size: 22px; text-shadow: 0 0 10px #ffd700; }
-    .rank-1 .score-text { color: #ffd700; font-size: 18px; }
-
-    .rank-2 td { background: rgba(192, 192, 192, 0.1); border-color: #c0c0c0; color: #fff; font-weight: 700; }
-    .rank-2 .rank-icon { font-size: 20px; text-shadow: 0 0 8px #c0c0c0; }
-    .rank-2 .score-text { color: #e0e0e0; font-size: 17px; }
-
-    .rank-3 td { background: rgba(205, 127, 50, 0.1); border-color: #cd7f32; color: #fff; font-weight: 700; }
-    .rank-3 .rank-icon { font-size: 18px; text-shadow: 0 0 8px #cd7f32; }
-    .rank-3 .score-text { color: #cd7f32; font-size: 16px; }
-
-    .rank-normal .rank-icon { font-size: 15px; color: #888; font-weight: 800; }
-    .rank-normal .score-text { color: #f4c430; font-weight: 800; }
-
-    .admin-only { display: none; background: #2a1515; border-color: #ff5252; margin-top: 30px; }
-    .admin-only h3 { color: #ff5252; margin-top: 0; font-weight: 800; margin-bottom: 10px; }
-    .control-panel { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; background: #1c1212; padding: 18px; border-radius: 10px; border: 1px solid #ff5252; }
-    .control-panel label { display: block; font-size: 13px; margin-bottom: 6px; color: #bbb; font-weight: 600; }
-    .control-panel input[type="number"] { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; width: 160px; font-size: 15px; font-weight: 600; font-family: inherit; }
-    
-    .btn-calc { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; transition: 0.2s; background: #f4c430; color: #111; font-family: inherit; font-size: 15px; }
-    .btn-calc:hover { background: #d4a924; }
-    .btn-save { background: #ff5252; color: #fff; padding: 14px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 15px; font-family: inherit; width: 100%; margin-top: 10px; }
-    .btn-save:hover { background: #e04848; }
-
+    th { background: #121721; color: #f4c430; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
+    td { background: #1c1f2a; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
+    .admin-only { display: none; background: rgba(255, 82, 82, 0.05); border-color: #ff5252; margin-top: 30px; }
     .col-reward { display: none; }
   </style>
 </head>
 <body>
-
   <header>
     <div class="logo" id="appTitle" onclick="location.href='main.html'">ROIDER GUILD</div>
     <div class="user-box">
-      <img id="userPhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23aaa'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="profile" style="background:#2a3242;" />
+      <img id="userPhoto" src="" alt="profile" style="width:32px; height:32px; border-radius:50%;" />
       <span id="userName">로딩중...</span>
       <span id="myRoleBadge" class="role-badge" style="display:none;"></span>
-      
-      <button id="langToggleBtn" class="logout" onclick="toggleLanguage()" style="color:#f4c430; border-color:#f4c430;">🌐 EN</button>
+      <button id="langToggleBtn" class="logout" onclick="toggleLanguage()">🌐 EN</button>
       <button class="logout" onclick="logout()" data-i18n="btn_logout">로그아웃</button>
     </div>
   </header>
-  
   <nav class="top-nav">
     <div class="nav-container">
       <a href="main.html" class="nav-link" data-i18n="menu_home">홈</a>
       <a href="notice.html" class="nav-link" data-i18n="menu_notice">공지사항</a>
       <a href="attendance.html" class="nav-link" data-i18n="menu_calendar">활동 캘린더</a>
-      <a href="weekly.html" class="nav-link" data-i18n="menu_weekly">주간 결산</a>
+      <a href="weekly.html" class="nav-link active" data-i18n="menu_weekly">주간 결산</a>
       <a href="strategy.html" class="nav-link" data-i18n="menu_strategy">작전 지도</a>
       <a href="members.html" class="nav-link" data-i18n="menu_members">길드원 목록</a>
-      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none; color: #ff5252;" data-i18n="menu_admin">권한 관리</a>
+      <a href="admin.html" class="nav-link" id="navAdminMenu" style="display: none;" data-i18n="menu_admin">권한 관리</a>
     </div>
   </nav>
   <div class="wrap">
-    
     <div class="card">
       <h2 data-i18n="weekly_title">🏆 주간 길드 활동 랭킹 (실시간)</h2>
-      <p class="desc" data-i18n="weekly_desc">일주일 평균 점수 합산을 기준으로 순위가 매겨집니다. 상위권에 도전하세요!</p>
-      
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th data-i18n="col_rank">순위</th>
-              <th data-i18n="col_nickname">닉네임</th>
-              <th data-i18n="col_laby">이계 (평균)</th>
-              <th data-i18n="col_duel">명결 (평균)</th>
-              <th data-i18n="col_activity">활약도 (평균)</th>
-              <th data-i18n="col_total">합산 평균점수</th>
-              <th data-i18n="col_share">기여 지분율</th>
-              <th class="col-reward" style="color:#00e676;" data-i18n="col_reward">예상 분배량</th>
-            </tr>
-          </thead>
-          <tbody id="resultTable">
-            <tr><td colspan="8" style="padding:40px; color:#aaa; font-weight: 500;" data-i18n="msg_loading">실시간 데이터를 불러오는 중입니다...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <table style="overflow-x: auto;">
+        <thead>
+          <tr>
+            <th data-i18n="col_rank">순위</th>
+            <th data-i18n="col_nickname">닉네임</th>
+            <th data-i18n="col_laby">이계 (평균)</th>
+            <th data-i18n="col_duel">명결 (평균)</th>
+            <th data-i18n="col_activity">활약도 (평균)</th>
+            <th data-i18n="col_total">합산 평균점수</th>
+            <th data-i18n="col_share">기여 지분율</th>
+            <th class="col-reward" data-i18n="col_reward" style="color:#00e676;">예상 분배량</th>
+          </tr>
+        </thead>
+        <tbody id="resultTable">
+          <tr><td colspan="8" data-i18n="msg_loading">로딩중...</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="card admin-only" id="adminBox">
-      <h3 data-i18n="admin_title">🛡️ 운영진 결산 및 분배 관리</h3>
-      <p style="color:#aaa; font-weight: 500; margin-bottom: 20px;" data-i18n="admin_desc">상자 개수를 입력하여 분배량을 미리보기 한 뒤, 이번 주 공식 기록으로 확정하세요.</p>
-      
-      <div class="control-panel">
+      <h3 data-i18n="admin_title" style="color:#ff5252;">🛡️ 운영진 결산 및 분배 관리</h3>
+      <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:20px; background:#1c1212; padding:15px; border-radius:10px; border:1px solid #ff5252;">
         <div>
-          <label data-i18n="admin_label">📦 분배할 총 상자 개수</label>
-          <input type="number" id="totalReward" placeholder="예: 10000" min="0">
+          <label data-i18n="admin_label" style="display:block; font-size:12px; color:#bbb; margin-bottom:5px;"></label>
+          <input type="number" id="totalReward" style="padding:10px; border-radius:8px; border:1px solid #444; background:#111; color:#fff; width:160px;">
         </div>
-        <button class="btn-calc" onclick="calculateWeekly(false)" data-i18n="btn_preview">분배 계산 미리보기</button>
+        <button onclick="calculateWeekly(false)" data-i18n="btn_preview" style="padding:10px 20px; background:#f4c430; border:none; border-radius:8px; font-weight:800; cursor:pointer; color:#111;"></button>
       </div>
-
-      <button class="btn-save" onclick="finalize()" data-i18n="btn_confirm">이대로 결산 확정 및 이력 저장</button>
+      <button onclick="finalize()" data-i18n="btn_confirm" style="width:100%; padding:15px; background:#ff5252; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;"></button>
     </div>
   </div>
-
   <script>
-    let isAdmin = false;
-    let finalWeeklyData = {};
-    let totalRewardToDistribute = 0;
-
+    let isAdmin = false, finalWeeklyData = {}, totalRewardToDistribute = 0;
     auth.onAuthStateChanged(async (user) => {
       if (!user) return location.replace("login.html");
       const docSnap = await db.collection("users").doc(user.uid).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        if (data.role === "admin" || data.role === "manager") {
-          isAdmin = true;
-          document.getElementById("adminBox").style.display = "block";
-        }
+      if (docSnap.exists && (docSnap.data().role === "admin" || docSnap.data().role === "manager")) {
+        isAdmin = true; document.getElementById("adminBox").style.display = "block";
       }
       calculateWeekly(true);
     });
-
-    async function calculateWeekly(isAutoLoad = false) {
-      if (!isAutoLoad) {
-        const rewardInput = document.getElementById("totalReward").value;
-        if (!rewardInput) return alert("분배할 총 상자 개수를 입력해주세요!");
-        totalRewardToDistribute = Number(rewardInput);
-        document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
-      } else {
-        totalRewardToDistribute = 0; 
-      }
-
+    async function calculateWeekly(isAuto) {
+      if (!isAuto) { totalRewardToDistribute = Number(document.getElementById("totalReward").value); }
       const tbody = document.getElementById("resultTable");
-      if (!isAutoLoad) tbody.innerHTML = `<tr><td colspan='8' style='padding:20px;' data-i18n="msg_calc">분배량을 계산 중입니다...</td></tr>`;
-      
-      // 💡 표 내용이 바뀌었으므로 즉시 번역 적용
-      applyLanguage(); 
-      
-      finalWeeklyData = {};
-
-      const usersSnap = await db.collection("users").get();
-      const userMap = {};
+      const usersSnap = await db.collection("users").get(), userMap = {};
       usersSnap.forEach(u => userMap[u.id] = u.data().nickname);
-
       const logsSnap = await db.collection("attendance_logs").get();
-      
-      let guildTotalAverageScore = 0; 
-      const parsedData = [];
-
+      let guildTotalAverageScore = 0, parsedData = [];
       for (const userDoc of logsSnap.docs) {
-        const uid = userDoc.id;
         let sumLaby = 0, sumDuel = 0, sumActivity = 0;
-
         const daysSnap = await userDoc.ref.collection("days").get();
-        daysSnap.forEach(d => {
-          const v = d.data();
-          sumLaby += (v.laby || 0);
-          sumDuel += (v.duel || 0);
-          sumActivity += (v.activity || 0);
-        });
-
-        if (sumLaby > 0 || sumDuel > 0 || sumActivity > 0) {
-          const avgLaby = (sumLaby / 7).toFixed(1);
-          const avgDuel = (sumDuel / 7).toFixed(1);
-          const avgActivity = (sumActivity / 7).toFixed(1);
-          
-          const totalAvgScore = Number(avgLaby) + Number(avgDuel) + Number(avgActivity);
-          guildTotalAverageScore += totalAvgScore;
-
-          parsedData.push({
-            uid: uid,
-            nickname: userMap[uid] || "알수없음",
-            avgLaby: Number(avgLaby),
-            avgDuel: Number(avgDuel),
-            avgActivity: Number(avgActivity),
-            totalAvg: totalAvgScore
-          });
+        daysSnap.forEach(d => { const v = d.data(); sumLaby += v.laby || 0; sumDuel += v.duel || 0; sumActivity += v.activity || 0; });
+        if (sumLaby + sumDuel + sumActivity > 0) {
+          const totalAvg = Number((sumLaby/7).toFixed(1)) + Number((sumDuel/7).toFixed(1)) + Number((sumActivity/7).toFixed(1));
+          guildTotalAverageScore += totalAvg;
+          parsedData.push({ uid: userDoc.id, nickname: userMap[userDoc.id] || "Unknown", totalAvg });
         }
       }
-
       tbody.innerHTML = "";
-      if (parsedData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan='8' style='padding:40px; color:#aaa;' data-i18n="msg_nodata">이번 주 기록된 데이터가 없습니다.</td></tr>`;
-        applyLanguage(); // 데이터 없음 번역
-        return;
-      }
-
-      parsedData.sort((a, b) => b.totalAvg - a.totalAvg);
-
-      parsedData.forEach((d, index) => {
-        const rank = index + 1; 
-        let rankClass = "rank-normal";
-        let rankIcon = `${rank}`;
-        if (rank === 1) { rankClass = "rank-1"; rankIcon = "🥇 1"; }
-        else if (rank === 2) { rankClass = "rank-2"; rankIcon = "🥈 2"; }
-        else if (rank === 3) { rankClass = "rank-3"; rankIcon = "🥉 3"; }
-
+      parsedData.sort((a,b) => b.totalAvg - a.totalAvg).forEach((d, i) => {
         const shareRatio = guildTotalAverageScore > 0 ? (d.totalAvg / guildTotalAverageScore) : 0;
-        const sharePercent = (shareRatio * 100).toFixed(2);
         const myReward = Math.floor(totalRewardToDistribute * shareRatio);
-        
-        finalWeeklyData[d.uid] = { nickname: d.nickname, sharePercent: sharePercent, reward: myReward };
-
-        tbody.innerHTML += `
-          <tr class="${rankClass}">
-            <td><span class="rank-icon">${rankIcon}</span></td>
-            <td><b>${d.nickname}</b></td>
-            <td>${d.avgLaby}</td>
-            <td>${d.avgDuel}</td>
-            <td>${d.avgActivity}</td>
-            <td><span class="score-text">${d.totalAvg.toFixed(1)}</span></td>
-            <td>${sharePercent}%</td>
-            <td class="col-reward highlight">${totalRewardToDistribute > 0 ? myReward.toLocaleString() : "-"}</td>
-          </tr>
-        `;
+        finalWeeklyData[d.uid] = { nickname: d.nickname, reward: myReward };
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${d.nickname}</td><td>-</td><td>-</td><td>-</td><td>${d.totalAvg.toFixed(1)}</td><td>${(shareRatio*100).toFixed(2)}%</td><td class="col-reward">${myReward.toLocaleString()}</td></tr>`;
       });
-
-      const totalRewardText = totalRewardToDistribute > 0 ? totalRewardToDistribute.toLocaleString() : "-";
-      
-      tbody.innerHTML += `
-        <tr class="total-row">
-          <td colspan="5" data-i18n="msg_total">길드 총 합산 점수</td>
-          <td>${guildTotalAverageScore.toFixed(1)}</td>
-          <td>100.00%</td>
-          <td class="col-reward">${totalRewardText}</td>
-        </tr>
-      `;
-      
-      if (!isAutoLoad) {
-        document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
-      }
-
-      // 💡 자바스크립트로 표를 다 그린 후 무조건 번역 함수를 한 번 더 실행합니다!
-      applyLanguage(); 
+      if (!isAuto) document.querySelectorAll('.col-reward').forEach(el => el.style.display = 'table-cell');
+      applyLanguage();
     }
-
     async function finalize() {
-      if (!isAdmin) return;
-      if (totalRewardToDistribute <= 0) return alert("먼저 총 상자 개수를 입력하고 '분배 계산 미리보기'를 눌러주세요.");
-      if (!confirm(`총 상자 ${totalRewardToDistribute}개로 결산을 확정하시겠습니까?\n확정 후 이력 페이지로 넘어갑니다.`)) return;
-
+      if (!isAdmin || totalRewardToDistribute <= 0) return;
       try {
-        const weekKey = new Date().toISOString().substring(0, 10) + "-W" + Date.now().toString().slice(-4);
-        await db.collection("weekly_results").doc(weekKey).set({
-          week: new Date().toISOString().substring(0, 10) + " 분배 결산",
-          totalReward: totalRewardToDistribute,
-          result: finalWeeklyData,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("성공적으로 결산이 확정되었습니다!");
-        location.href = "history.html"; 
-      } catch (error) {
-        alert("저장 중 오류 발생: " + error.message);
-      }
+        await db.collection("weekly_results").add({ totalReward: totalRewardToDistribute, result: finalWeeklyData, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        alert("결산 확정!");
+      } catch (e) { alert("오류: " + e.message); }
     }
   </script>
 </body>
