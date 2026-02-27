@@ -1,4 +1,4 @@
-// firebase_config.js - 공통 인증 및 다국어 로직
+// firebase_config.js - 공통 인증 및 다국어 로직 (안정화 풀 코드)
 
 if (typeof firebaseConfig !== 'undefined') {
   try {
@@ -21,6 +21,7 @@ function logout() {
   });
 }
 
+// 🔹 네비게이션 active 처리
 document.addEventListener("DOMContentLoaded", () => {
   try {
     const currentPath = window.location.pathname.split("/").pop() || "main.html";
@@ -34,23 +35,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 🔥 통합 Auth 리스너
+// 🔥 통합 Auth 리스너 (리다이렉트 루프 해결 버전)
 auth.onAuthStateChanged(async (user) => {
   const isLoginPg = window.isLoginPage || location.pathname.includes("login.html");
 
-  // 1. 로그아웃 상태일 때 처리
+  // 1. 로그아웃 상태일 때
   if (!user) {
-    // 💡 중요: 리다이렉트 처리 중(결과 대기 중)일 수 있으므로 즉시 튕겨내지 않음
     if (!isLoginPg) {
-      // 0.5초 정도 여유를 주어 Firebase 세션 로딩을 기다림 (GitHub Pages 권장사항)
+      // 💡 세션 로딩 대기: 즉시 튕기지 않고 1초 뒤에 currentUser가 여전히 없는지 확인
       setTimeout(() => {
-        if (!auth.currentUser) location.replace("./login.html");
+        if (!auth.currentUser) {
+          location.replace("./login.html");
+        }
       }, 1000);
     }
     return;
   }
 
-  // 2. 로그인 상태일 때 데이터 처리
+  // 2. 로그인 상태일 때 데이터 가져오기
   const userRef = db.collection("users").doc(user.uid);
   let docSnap;
   try {
@@ -60,6 +62,7 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
+  // 3. 신규 유저 등록 (기존 로직 통합)
   if (!docSnap.exists) {
     await userRef.set({
       uid: user.uid,
@@ -75,7 +78,7 @@ auth.onAuthStateChanged(async (user) => {
 
   const data = docSnap.data();
 
-  // 3. 분기 처리 (기존 로직 보존)
+  // 4. 로그인 페이지에서의 리다이렉트 분기
   if (isLoginPg) {
     if (!data.nickname) {
       location.replace("./nickname.html");
@@ -87,35 +90,46 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 4. UI 업데이트 (기존 로직 보존)
+  // 5. 헤더 UI 업데이트 (기존 로직 유지)
   const userNameEl = document.getElementById("userName");
   const userPhotoEl = document.getElementById("userPhoto");
   const badgeEl = document.getElementById("myRoleBadge");
   const navAdminMenu = document.getElementById("navAdminMenu");
 
-  if (userNameEl) userNameEl.textContent = data.nickname || "User";
+  if (userNameEl) {
+    userNameEl.textContent = data.nickname || "User";
+  }
+
   if (userPhotoEl) {
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname || 'U')}&background=2a3242&color=f4c430&bold=true`;
     userPhotoEl.src = user.photoURL || avatarUrl;
-    userPhotoEl.onerror = () => { userPhotoEl.src = avatarUrl; };
+    userPhotoEl.onerror = () => {
+      userPhotoEl.src = avatarUrl;
+    };
   }
+
   if (badgeEl) {
     badgeEl.style.display = "inline-block";
     badgeEl.textContent = data.role || "";
     badgeEl.className = `role-badge role-${data.role || 'member'}`;
   }
+
   if (navAdminMenu) {
     const allowedRoles = ["admin", "manager"];
     navAdminMenu.style.display = allowedRoles.includes(data.role) ? "inline-block" : "none";
   }
 
-  // 온라인 상태 업데이트 (기존 로직 보존)
+  // 6. 온라인 상태 업데이트
   userRef.set({
     online: true,
     lastActive: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
 
   window.addEventListener("beforeunload", () => {
-    userRef.set({ online: false, lastActive: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    userRef.set({
+      online: false,
+      lastActive: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
   });
+
 });
