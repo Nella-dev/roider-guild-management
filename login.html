@@ -9,9 +9,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  <!-- 🔥 키는 여기서 불러옴 -->
+  <!-- 🔥 키만 불러옴 (firebase_config.js 제거) -->
   <script src="firebase_key.js"></script>
-  <script src="firebase_config.js"></script>
 
   <style>
     body {
@@ -33,10 +32,6 @@
       max-width:420px;
       box-shadow:0 10px 40px rgba(0,0,0,0.6);
     }
-    .google-btn {
-      margin-top:20px;
-      cursor:pointer;
-    }
   </style>
 </head>
 
@@ -45,22 +40,31 @@
   <div class="card">
     <h2>AFK Journey: Homestead</h2>
     <p>ROIDER Guild Management</p>
-    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" onclick="login()" style="cursor:pointer; margin-top:20px;">
+    <img 
+      src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png"
+      onclick="login()"
+      style="cursor:pointer; margin-top:20px;">
   </div>
 
 <script>
+
+// 🔥 Firebase 초기화 (login 전용)
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithRedirect(provider);
 }
 
-// redirect 결과만 처리
-auth.getRedirectResult().catch(err => {
-  console.error("Redirect Error:", err);
-});
+// redirect 결과 처리
+auth.getRedirectResult().catch(console.error);
 
-/* 🔥 로그인 상태 감지 */
+// 로그인 상태 감지 (login 전용)
 auth.onAuthStateChanged(async (user) => {
 
   if (!user) return;
