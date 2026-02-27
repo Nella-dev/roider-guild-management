@@ -69,10 +69,10 @@
         myRole = docSnap.data().role;
         myNickname = docSnap.data().nickname || "Manager";
         if (myRole === "admin" || myRole === "manager") document.getElementById("btnWriteNotice").style.display = "block";
-        loadNotices();
+        loadNotice();
       }
     });
-    function loadNotices() {
+    function loadNotice() {
       db.collection("notice").orderBy("createdAt", "desc").onSnapshot(snapshot => {
         const list = document.getElementById("noticeList");
         list.innerHTML = "";
@@ -94,7 +94,7 @@
       const title = document.getElementById("noticeTitle").value;
       const content = document.getElementById("noticeContent").value;
       if (!title || !content) return alert("내용을 입력하세요.");
-      await db.collection("notices").add({ title, content, author: myNickname, authorRole: myRole, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await db.collection("notice").add({ title, content, author: myNickname, authorRole: myRole, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       closeModal();
     }
   </script>
