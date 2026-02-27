@@ -1,4 +1,4 @@
-// firebase_config.js - 공통 인증 및 다국어 로직 (통합 안정화 버전)
+// firebase_config.js - 공통 인증 및 다국어 로직 (FINAL STABLE VERSION)
 
 if (typeof firebaseConfig !== 'undefined') {
   try {
@@ -21,7 +21,7 @@ function logout() {
   });
 }
 
-// 🔹 네비게이션 active 처리 (기존 로직 보존)
+// 🔹 네비게이션 active 처리 (기존 로직)
 document.addEventListener("DOMContentLoaded", () => {
   try {
     const currentPath = window.location.pathname.split("/").pop() || "main.html";
@@ -35,17 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 🔥 통합 Auth 리스너 (기존 로직 유지 및 루프 해결)
+// 🔥🔥🔥 통합 Auth 리스너 (모든 분기 로직 포함)
 auth.onAuthStateChanged(async (user) => {
   const isLoginPg = window.isLoginPage || location.pathname.includes("login.html");
 
   // 1. 로그아웃 상태일 때
   if (!user) {
     if (!isLoginPg) {
-      // 💡 세션 로딩 대기: 즉시 리다이렉트 시키지 않고 0.5초 대기 후 확인
-      setTimeout(() => {
-        if (!auth.currentUser) location.replace("./login.html");
-      }, 500);
+      location.replace("./login.html");
     }
     return;
   }
@@ -60,7 +57,7 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 🔹 신규 유저 생성 (기존 login.html 로직 통합)
+  // 🔹 유저 데이터가 없으면 새로 생성 (기존 login.html 로직 통합)
   if (!docSnap.exists) {
     await userRef.set({
       uid: user.uid,
@@ -76,7 +73,7 @@ auth.onAuthStateChanged(async (user) => {
 
   const data = docSnap.data();
 
-  // 🔹 로그인 페이지에서 접속 시 분기 로직 (기존 로직 보존)
+  // 🔹 로그인 페이지에서 접속 중인 경우 페이지 이동 처리
   if (isLoginPg) {
     if (!data.nickname) {
       location.replace("./nickname.html");
@@ -88,7 +85,7 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 🔹 UI 업데이트 및 온라인 상태 관리 (기존 firebase_config.js 로직)
+  // 🔹 메인 UI 업데이트 (기존 로직)
   const userNameEl = document.getElementById("userName");
   const userPhotoEl = document.getElementById("userPhoto");
   const badgeEl = document.getElementById("myRoleBadge");
@@ -110,7 +107,7 @@ auth.onAuthStateChanged(async (user) => {
     navAdminMenu.style.display = allowedRoles.includes(data.role) ? "inline-block" : "none";
   }
 
-  // 온라인 상태 업데이트
+  // 🔥 온라인 상태 업데이트 (기존 로직)
   userRef.set({
     online: true,
     lastActive: firebase.firestore.FieldValue.serverTimestamp()
