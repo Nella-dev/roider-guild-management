@@ -73,7 +73,7 @@
       }
     });
     function loadNotices() {
-      db.collection("notices").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+      db.collection("notice").orderBy("createdAt", "desc").onSnapshot(snapshot => {
         const list = document.getElementById("noticeList");
         list.innerHTML = "";
         if (snapshot.empty) {
