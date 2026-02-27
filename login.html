@@ -45,10 +45,7 @@
   <div class="card">
     <h2>AFK Journey: Homestead</h2>
     <p>ROIDER Guild Management</p>
-    <img src="google_login.png"
-         class="google-btn"
-         onclick="login()"
-         width="220">
+    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" onclick="login()" style="cursor:pointer; margin-top:20px;">
   </div>
 
 <script>
@@ -82,20 +79,20 @@ auth.onAuthStateChanged(async (user) => {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      location.replace("nickname.html");
+      location.replace("./nickname.html");
       return;
     }
 
     const data = snap.data();
 
     if (!data.nickname) {
-      location.replace("nickname.html");
+      location.replace("./nickname.html");
     }
     else if (data.role === "pending") {
-      location.replace("pending.html");
+      location.replace("./pending.html");
     }
     else {
-      location.replace("main.html");
+      location.replace("./main.html");
     }
 
   } catch (e) {
