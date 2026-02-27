@@ -114,7 +114,7 @@ body::before {
 <script>
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
+  auth.signInWithRedirect(provider);
 }
 
 let redirected = false;
@@ -122,6 +122,12 @@ let redirected = false;
 auth.onAuthStateChanged(async (user) => {
   if (!user || redirected) return;
   redirected = true;
+
+  auth.getRedirectResult().then((result) => {
+  // redirect 로그인 완료 처리
+}).catch((error) => {
+  console.error(error);
+});
 
   const ref = db.collection("users").doc(user.uid);
   const snap = await ref.get();
