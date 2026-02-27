@@ -11,7 +11,7 @@
 
   <script src="firebase_key.js"></script>
   <script>
-    // 🔥 firebase_config.js의 무한 리다이렉트 방지를 위한 식별자
+    // firebase_config.js 로딩 전 로그인 페이지임을 선언
     window.isLoginPage = true; 
   </script>
   <script src="firebase_config.js"></script>
@@ -51,18 +51,28 @@
   </div>
 
 <script>
-// Firebase 초기화 확인 (기본 로직 유지)
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-function login() {
+const authInstance = firebase.auth();
+
+async function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithRedirect(provider); // 기존 Redirect 방식 유지
+  // 리다이렉트 시작
+  await authInstance.signInWithRedirect(provider);
 }
 
-// Redirect 결과 처리
-firebase.auth().getRedirectResult().catch(console.error);
+// 리다이렉트 후 돌아왔을 때 결과를 처리 (비동기로 확실히 대기)
+authInstance.getRedirectResult()
+  .then((result) => {
+    if (result.user) {
+      console.log("Redirect login success:", result.user.email);
+    }
+  })
+  .catch((error) => {
+    console.error("Redirect Error:", error);
+  });
 </script>
 
 </body>
