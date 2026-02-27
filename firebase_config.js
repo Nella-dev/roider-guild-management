@@ -1,4 +1,4 @@
-// firebase_config.js - 공통 인증 및 다국어 로직 (FINAL STABLE VERSION)
+// firebase_config.js - 공통 인증 및 다국어 로직
 
 if (typeof firebaseConfig !== 'undefined') {
   try {
@@ -21,7 +21,6 @@ function logout() {
   });
 }
 
-// 🔹 네비게이션 active 처리 (기존 로직)
 document.addEventListener("DOMContentLoaded", () => {
   try {
     const currentPath = window.location.pathname.split("/").pop() || "main.html";
@@ -35,11 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 🔥🔥🔥 통합 Auth 리스너 (모든 분기 로직 포함)
+// 🔥 통합 Auth 리스너
 auth.onAuthStateChanged(async (user) => {
   const isLoginPg = window.isLoginPage || location.pathname.includes("login.html");
 
-  // 1. 로그아웃 상태일 때
   if (!user) {
     if (!isLoginPg) {
       location.replace("./login.html");
@@ -47,7 +45,6 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 2. 로그인 상태일 때 데이터 처리
   const userRef = db.collection("users").doc(user.uid);
   let docSnap;
   try {
@@ -57,7 +54,7 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 🔹 유저 데이터가 없으면 새로 생성 (기존 login.html 로직 통합)
+  // 신규 유저 데이터 생성 (기존 login.html 로직 통합)
   if (!docSnap.exists) {
     await userRef.set({
       uid: user.uid,
@@ -73,7 +70,7 @@ auth.onAuthStateChanged(async (user) => {
 
   const data = docSnap.data();
 
-  // 🔹 로그인 페이지에서 접속 중인 경우 페이지 이동 처리
+  // 로그인 페이지에서 접속 시 분기 처리
   if (isLoginPg) {
     if (!data.nickname) {
       location.replace("./nickname.html");
@@ -85,7 +82,7 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // 🔹 메인 UI 업데이트 (기존 로직)
+  // UI 업데이트 로직 (기존 유지)
   const userNameEl = document.getElementById("userName");
   const userPhotoEl = document.getElementById("userPhoto");
   const badgeEl = document.getElementById("myRoleBadge");
@@ -107,7 +104,7 @@ auth.onAuthStateChanged(async (user) => {
     navAdminMenu.style.display = allowedRoles.includes(data.role) ? "inline-block" : "none";
   }
 
-  // 🔥 온라인 상태 업데이트 (기존 로직)
+  // 온라인 상태 업데이트
   userRef.set({
     online: true,
     lastActive: firebase.firestore.FieldValue.serverTimestamp()

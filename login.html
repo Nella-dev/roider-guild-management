@@ -11,53 +11,41 @@
 
   <script src="firebase_key.js"></script>
   <script>
-    // firebase_config.js 로딩 전, 로그인 페이지임을 표시 (무한 루프 방지)
+    // firebase_config.js 실행 전 로그인 페이지임을 선언 (무한 루프 방지)
     window.isLoginPage = true; 
   </script>
   <script src="firebase_config.js"></script>
 
   <style>
-    body {
-      background:#0f1015;
-      color:#eee;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-      font-family:system-ui;
-      margin:0;
-    }
-    .card {
-      background:#1c1f2a;
-      padding:40px;
-      border-radius:16px;
-      text-align:center;
-      width:90%;
-      max-width:420px;
-      box-shadow:0 10px 40px rgba(0,0,0,0.6);
-    }
+    body { background:#0f1015; color:#eee; display:flex; align-items:center; justify-content:center; height:100vh; font-family:system-ui; margin:0; }
+    .card { background:#1c1f2a; padding:40px; border-radius:16px; text-align:center; width:90%; max-width:420px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
   </style>
 </head>
 
 <body>
-
   <div class="card">
     <h2>AFK Journey: Homestead</h2>
     <p>ROIDER Guild Management</p>
-    <img 
-      src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png"
-      onclick="login()"
-      style="cursor:pointer; margin-top:20px;">
+    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" onclick="login()" style="cursor:pointer; margin-top:20px;">
   </div>
 
 <script>
-// 로그인 함수 (기존 구조 유지)
+// 기존의 복잡한 auth.onAuthStateChanged 로직을 제거했습니다.
+// 모든 인증 로직은 firebase_config.js에서 통합 처리됩니다.
+
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  // Redirect 결과 처리는 공통 파일(firebase_config.js)에서 수행됩니다.
+  // 에러 발생을 줄이기 위해 redirect 대신 Popup 방식을 권장하지만, 
+  // 기존 로직 유지를 위해 redirect를 유지할 경우 도메인 설정이 필수입니다.
   auth.signInWithRedirect(provider);
 }
-</script>
 
+// Redirect 결과 수신 시 에러 확인용
+auth.getRedirectResult().catch((error) => {
+  if (error.code === 'auth/invalid-auth-event') {
+    console.error("인증 요청이 만료되었거나 중복되었습니다. 페이지를 새로고침하세요.");
+  }
+});
+</script>
 </body>
 </html>
