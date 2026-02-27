@@ -1,4 +1,4 @@
-// firebase_config.js - 공통 인증 및 다국어 로직 (FINAL STABLE VERSION)
+// firebase_config.js - 공통 인증 및 다국어 로직 (통합 버전)
 
 if (typeof firebaseConfig !== 'undefined') {
   try {
@@ -21,7 +21,7 @@ function logout() {
   });
 }
 
-// 🔹 네비게이션 active 처리
+// 🔹 네비게이션 active 처리 (기존 로직 유지)
 document.addEventListener("DOMContentLoaded", () => {
   try {
     const currentPath = window.location.pathname.split("/").pop() || "main.html";
@@ -35,12 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 🔥🔥🔥 단 하나의 Auth 리스너 (중복 제거 완료)
+// 🔥🔥🔥 단 하나의 Auth 리스너 (기존 로직 유지 및 로그인 페이지 대응 추가)
 auth.onAuthStateChanged(async (user) => {
 
+  const isLoginPg = window.isLoginPage || location.pathname.includes("login.html");
+
   if (!user) {
-    if (!location.pathname.includes("login.html")) {
-    location.replace("./login.html");
+    if (!isLoginPg) {
+      location.replace("./login.html");
     }
     return;
   }
@@ -55,25 +57,44 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
+  // 🔹 신규 유저 생성 (기존 login.html에 있던 로직 통합)
   if (!docSnap.exists) {
-    console.warn("User document not found.");
+    await userRef.set({
+      uid: user.uid,
+      email: user.email,
+      nickname: "",
+      role: "pending",
+      country: navigator.language.startsWith("ko") ? "KR" : "EN",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    location.replace("./nickname.html");
     return;
   }
 
   const data = docSnap.data();
 
-  // 🔹 헤더 요소들
+  // 🔹 로그인 페이지에서 로그인 성공 시 페이지 전환 로직
+  if (isLoginPg) {
+    if (!data.nickname) {
+      location.replace("./nickname.html");
+    } else if (data.role === "pending") {
+      location.replace("./pending.html");
+    } else {
+      location.replace("./main.html");
+    }
+    return;
+  }
+
+  // 🔹 헤더 요소들 및 UI 업데이트 (기존 로직 유지)
   const userNameEl = document.getElementById("userName");
   const userPhotoEl = document.getElementById("userPhoto");
   const badgeEl = document.getElementById("myRoleBadge");
   const navAdminMenu = document.getElementById("navAdminMenu");
 
-  // 🔹 닉네임 표시
   if (userNameEl) {
     userNameEl.textContent = data.nickname || "User";
   }
 
-  // 🔹 프로필 이미지
   if (userPhotoEl) {
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nickname || 'U')}&background=2a3242&color=f4c430&bold=true`;
     userPhotoEl.src = user.photoURL || avatarUrl;
@@ -82,27 +103,24 @@ auth.onAuthStateChanged(async (user) => {
     };
   }
 
-  // 🔹 역할 뱃지 표시
   if (badgeEl) {
     badgeEl.style.display = "inline-block";
     badgeEl.textContent = data.role || "";
     badgeEl.className = `role-badge role-${data.role || 'member'}`;
   }
 
-  // 🔹 관리자 메뉴 표시 여부
   if (navAdminMenu) {
-  const allowedRoles = ["admin", "manager"];
-  navAdminMenu.style.display =
-    allowedRoles.includes(data.role) ? "inline-block" : "none";
+    const allowedRoles = ["admin", "manager"];
+    navAdminMenu.style.display =
+      allowedRoles.includes(data.role) ? "inline-block" : "none";
   }
 
-  // 🔥 온라인 상태 업데이트 (merge 필수)
+  // 🔥 온라인 상태 업데이트 (기존 로직 유지)
   userRef.set({
     online: true,
     lastActive: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
 
-  // 🔥 브라우저 종료 시 오프라인 처리
   window.addEventListener("beforeunload", () => {
     userRef.set({
       online: false,
