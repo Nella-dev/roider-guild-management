@@ -91,11 +91,9 @@ auth.onAuthStateChanged(async (user) => {
 
   // 🔹 관리자 메뉴 표시 여부
   if (navAdminMenu) {
-    if (data.role === "admin" || data.role === "manager") {
-      navAdminMenu.style.display = "inline-block";
-    } else {
-      navAdminMenu.style.display = "none";
-    }
+  const allowedRoles = ["admin", "manager"];
+  navAdminMenu.style.display =
+    allowedRoles.includes(data.role) ? "inline-block" : "none";
   }
 
   // 🔥 온라인 상태 업데이트 (merge 필수)
