@@ -132,51 +132,62 @@ button.logout:hover {
   table { font-size: 12px !important; }
 }
 
-/* ============================= */
-/* 🔥 GLOBAL RESPONSIVE PATCH */
-/* ============================= */
+/* ================================================= */
+/* 🔥 GLOBAL RESPONSIVE SYSTEM (SAFE PATCH) */
+/* ================================================= */
 
-/* 기본 컨테이너 폭 자동 대응 */
+:root {
+  --content-max-width: 1200px;
+  --mobile-padding: 14px;
+  --tablet-padding: 18px;
+  --desktop-padding: 24px;
+}
+
+/* 모든 wrap 통일 */
 .wrap {
-  width: 90%;
-  max-width: 1200px;
+  width: 95%;
+  max-width: var(--content-max-width);
   margin: 40px auto;
+  padding: 0 var(--mobile-padding);
+  box-sizing: border-box;
 }
 
-/* 네비 자동 줄바꿈 */
-.nav-container {
-  flex-wrap: wrap;
-  gap: 10px;
+/* 카드 공통 부드러운 정렬 */
+.card,
+.notice-card,
+.user-card {
+  box-sizing: border-box;
+  transition: 0.2s ease;
 }
 
-/* 버튼 터치 영역 확대 */
+/* 버튼 터치 최적화 */
 button {
-  min-height: 44px;
+  min-height: 42px;
 }
 
-/* ============================= */
-/* 📱 태블릿 */
-@media (max-width: 1199px) {
-
-  .wrap {
-    width: 95%;
-  }
-
-  h2 {
-    font-size: 22px;
-  }
-
+/* 테이블 모바일 안전 */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
 }
 
-/* ============================= */
-/* 📱 모바일 */
+.table-scroll table {
+  min-width: 700px;
+}
+
+/* ========================== */
+/* 📱 MOBILE */
+/* ========================== */
 @media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
 
   header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    padding: 15px;
   }
 
   .user-box {
@@ -189,25 +200,53 @@ button {
   }
 
   .nav-container {
-    display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
   }
 
   .nav-link {
     white-space: nowrap;
-  }
-
-  table {
     font-size: 13px;
+    padding: 8px 12px;
   }
 
-  th, td {
-    padding: 8px 6px;
+  .wrap {
+    margin: 25px auto;
   }
 
-  .card {
-    padding: 15px;
+  .card,
+  .notice-card {
+    padding: 16px;
+  }
+
+  .user-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+
+}
+
+/* ========================== */
+/* 📲 TABLET */
+/* ========================== */
+@media (min-width: 769px) and (max-width: 1199px) {
+
+  .wrap {
+    width: 94%;
+    padding: 0 var(--tablet-padding);
+  }
+
+}
+
+/* ========================== */
+/* 🖥 DESKTOP */
+/* ========================== */
+@media (min-width: 1200px) {
+
+  .wrap {
+    width: 85%;
+    padding: 0 var(--desktop-padding);
   }
 
 }
