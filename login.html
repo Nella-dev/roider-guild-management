@@ -1,138 +1,72 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AFK Journey: ROIDER Guild</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AFK Journey: Homestead ROIDER Guild Management</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<!-- 🔥 분리된 키 + 공통 초기화 -->
-<script src="firebase_key.js"></script>
-<script src="firebase_config.js"></script>
+  <!-- 🔥 키는 여기서 불러옴 -->
+  <script src="firebase_key.js"></script>
+  <script src="firebase_config.js"></script>
 
-<style>
-body {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at top, #1b2333, #0f1015 70%);
-  overflow: hidden;
-}
-
-/* 배경 빛 효과 */
-body::before {
-  content: "";
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(244,196,48,0.15), transparent 70%);
-  top: -200px;
-  right: -200px;
-  filter: blur(80px);
-}
-
-.login-card {
-  position: relative;
-  background: rgba(28, 31, 42, 0.85);
-  backdrop-filter: blur(18px);
-  padding: 50px 60px;
-  border-radius: 20px;
-  border: 1px solid rgba(244,196,48,0.3);
-  text-align: center;
-  width: 90%;
-  max-width: 420px;
-  box-shadow: 0 0 40px rgba(0,0,0,0.5);
-}
-
-.login-title {
-  font-size: 26px;
-  font-weight: 800;
-  color: #f4c430;
-  margin-bottom: 10px;
-}
-
-.login-sub {
-  color: #ccc;
-  margin-bottom: 35px;
-  font-size: 15px;
-}
-
-.google-btn {
-  display: inline-block;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.google-btn img {
-  width: 220px;
-  cursor: pointer;
-}
-
-.google-btn:hover {
-  transform: scale(1.05);
-  opacity: 0.95;
-}
-
-.footer-text {
-  margin-top: 30px;
-  font-size: 12px;
-  color: #777;
-}
-@media (max-width: 500px) {
-  .login-card {
-    padding: 35px 25px;
-  }
-
-  .google-btn img {
-    width: 180px;
-  }
-}
-</style>
+  <style>
+    body {
+      background:#0f1015;
+      color:#eee;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      font-family:system-ui;
+      margin:0;
+    }
+    .card {
+      background:#1c1f2a;
+      padding:40px;
+      border-radius:16px;
+      text-align:center;
+      width:90%;
+      max-width:420px;
+      box-shadow:0 10px 40px rgba(0,0,0,0.6);
+    }
+    .google-btn {
+      margin-top:20px;
+      cursor:pointer;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="login-card">
-  <div class="login-title">ROIDER Guild Management</div>
-  <div class="login-sub">구글 계정으로 로그인</div>
-
-  <div class="google-btn" onclick="login()">
-    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" 
-         alt="Google 로그인">
+  <div class="card">
+    <h2>AFK Journey: Homestead</h2>
+    <p>ROIDER Guild Management</p>
+    <img src="google_login.png"
+         class="google-btn"
+         onclick="login()"
+         width="220">
   </div>
-
-  <div class="footer-text">
-    AFK Journey: Homestead
-  </div>
-</div>
 
 <script>
+
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithRedirect(provider);
 }
 
-/* 🔥 redirect 결과 먼저 처리 */
-auth.getRedirectResult()
-  .then(() => {
-    // 아무 처리 안 해도 됨
-  })
-  .catch((error) => {
-    console.error("Redirect Error:", error);
-  });
+/* 🔥 redirect 결과 처리 */
+auth.getRedirectResult().catch(err => {
+  console.error("Redirect Error:", err);
+});
 
 /* 🔥 로그인 상태 감지 */
 auth.onAuthStateChanged(async (user) => {
 
-  if (!user) {
-    // 🔥 로그인 안 된 상태면 그냥 대기 (중요)
-    return;
-  }
+  if (!user) return;
 
   try {
     const ref = db.collection("users").doc(user.uid);
@@ -156,16 +90,16 @@ auth.onAuthStateChanged(async (user) => {
 
     if (!data.nickname) {
       location.replace("nickname.html");
-    } 
+    }
     else if (data.role === "pending") {
       location.replace("pending.html");
-    } 
+    }
     else {
       location.replace("main.html");
     }
 
   } catch (e) {
-    console.error("Login flow error:", e);
+    console.error("Login Flow Error:", e);
   }
 
 });
