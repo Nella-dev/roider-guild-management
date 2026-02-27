@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
 auth.onAuthStateChanged(async (user) => {
 
   if (!user) {
-    if (!location.pathname.endsWith("login.html")) {
-      location.replace("login.html");
+    if (!location.pathname.includes("login.html")) {
+    location.replace("./login.html");
     }
     return;
   }

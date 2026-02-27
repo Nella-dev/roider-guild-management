@@ -55,7 +55,7 @@ function login() {
   auth.signInWithRedirect(provider);
 }
 
-/* 🔥 redirect 결과 처리 */
+// redirect 결과만 처리
 auth.getRedirectResult().catch(err => {
   console.error("Redirect Error:", err);
 });
