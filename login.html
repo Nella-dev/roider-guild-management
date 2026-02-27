@@ -112,22 +112,27 @@ body::before {
 </div>
 
 <script>
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithRedirect(provider);
 }
 
-let redirected = false;
+/* 🔥 redirect 결과 먼저 처리 */
+auth.getRedirectResult()
+  .then((result) => {
+    // 아무것도 안 해도 됨 (상태만 확정시키면 됨)
+  })
+  .catch((error) => {
+    console.error("Redirect Error:", error);
+  });
 
+/* 🔥 로그인 상태 감지 */
 auth.onAuthStateChanged(async (user) => {
-  if (!user || redirected) return;
-  redirected = true;
 
-  auth.getRedirectResult().then((result) => {
-  // redirect 로그인 완료 처리
-}).catch((error) => {
-  console.error(error);
-});
+  if (!user) return;
 
   const ref = db.collection("users").doc(user.uid);
   const snap = await ref.get();
@@ -147,9 +152,16 @@ auth.onAuthStateChanged(async (user) => {
 
   const data = snap.data();
 
-  if (!data.nickname) location.replace("nickname.html");
-  else if (data.role === "pending") location.replace("pending.html");
-  else location.replace("main.html");
+  if (!data.nickname) {
+    location.replace("nickname.html");
+  } 
+  else if (data.role === "pending") {
+    location.replace("pending.html");
+  } 
+  else {
+    location.replace("main.html");
+  }
+
 });
 </script>
 
