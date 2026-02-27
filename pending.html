@@ -9,6 +9,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+  <!-- 🔥 여기서 키 로드 -->
+  <script src="firebase_key.js"></script>
+  <script src="firebase_config.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -33,7 +37,10 @@
     h1 { color: #f4c430; margin-bottom: 10px; letter-spacing: 1px; }
     p { opacity: 0.85; margin: 6px 0; }
     .hourglass { font-size: 42px; margin: 20px 0; animation: spin 2s infinite linear; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
   </style>
 </head>
 <body>
@@ -46,19 +53,6 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbqEcGsdSDBZs8PjiI05YRNEGupLf3nSc",
-      authDomain: "roider-guild-management.firebaseapp.com",
-      projectId: "roider-guild-management",
-      storageBucket: "roider-guild-management.firebasestorage.app",
-      messagingSenderId: "1012249034459",
-      appId: "1:1012249034459:web:ec0f821f29170446af96fe"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
     auth.onAuthStateChanged((user) => {
       if (!user) {
         location.replace("login.html");
@@ -67,13 +61,15 @@
 
       const ref = db.collection("users").doc(user.uid);
 
-      // 🔥 실시간 감시: admin / member 승인되면 자동 이동
+      // 🔥 실시간 승인 감지
       ref.onSnapshot((doc) => {
         if (!doc.exists) return;
+
         const data = doc.data();
 
-        if (["admin", "member"].includes(data.role)) {
-          location.replace("main.html"); // 메인 파일명에 맞게 수정
+        // 🔥 pending이 아니면 모두 승인 처리
+        if (data.role && data.role !== "pending") {
+          location.replace("main.html");
         }
       });
     });
