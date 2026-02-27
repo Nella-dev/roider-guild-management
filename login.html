@@ -112,9 +112,6 @@ body::before {
 </div>
 
 <script>
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithRedirect(provider);
