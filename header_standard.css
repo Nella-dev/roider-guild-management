@@ -131,3 +131,83 @@ button.logout:hover {
   .wrap { margin: 20px auto !important; padding: 10px !important; }
   table { font-size: 12px !important; }
 }
+
+/* ============================= */
+/* 🔥 GLOBAL RESPONSIVE PATCH */
+/* ============================= */
+
+/* 기본 컨테이너 폭 자동 대응 */
+.wrap {
+  width: 90%;
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+/* 네비 자동 줄바꿈 */
+.nav-container {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 버튼 터치 영역 확대 */
+button {
+  min-height: 44px;
+}
+
+/* ============================= */
+/* 📱 태블릿 */
+@media (max-width: 1199px) {
+
+  .wrap {
+    width: 95%;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+}
+
+/* ============================= */
+/* 📱 모바일 */
+@media (max-width: 768px) {
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .user-box {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .top-nav {
+    overflow-x: auto;
+  }
+
+  .nav-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .nav-link {
+    white-space: nowrap;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+}

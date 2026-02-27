@@ -22,6 +22,7 @@
     td { background: #1c1f2a; padding: 14px 10px; border-top: 1px solid #2a3242; border-bottom: 1px solid #2a3242; }
     .admin-only { display: none; background: rgba(255, 82, 82, 0.05); border-color: #ff5252; margin-top: 30px; }
     .col-reward { display: none; }
+      table { min-width: 700px; }
   </style>
 </head>
 <body>
@@ -50,6 +51,8 @@
     <div class="card">
       <h2 data-i18n="weekly_title">🏆 주간 길드 활동 랭킹 (실시간)</h2>
       <div style="overflow-x: auto;">
+
+        
         <table>
           <thead>
             <tr>
@@ -156,7 +159,7 @@
       }
 
       tbody.innerHTML = "";
-      
+
 if (!isAuto && parsedData.length < 10) {
   alert(currentLang === "en"
     ? "At least 10 members required."
